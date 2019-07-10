@@ -21,6 +21,9 @@
 #endif /* _SAM3XA_ */
 
 #define SYSCLC *(volatile uint32_t *) 0x400E0610 // I can't find the clc makro - Register for perifrel clc control
+#define LOAD *(volatile uint32_t *) 0xE000E014 // Register defining value that system procesor loads when restarted - gives timer of milisecunds WO max 16777215
+#define CTRL *(volatile uint32_t *) 0xE000E018 // At 16 there is a flag wheter clc reached 0 here are adidional options. RW
+#define RELOAD *(volatile uint32_t *) 0xE000E018 // Writing anything in this register sets it to 0 sets TIMER_FLAG to 0 so it loads LOAD value.
 
 /**************************************************************************************/
 
@@ -34,6 +37,9 @@
 
 #define CLEAR_PIN_NUM 17 //Arduino pin 46
 #define CLEAR_PIN_VAL 0x1<<MULTIPLEXER_PIN_NUM 
+
+#define ACQUISITION_TIME_MS 10000 /must be int 
+#define TIMER_FLAG CTRL & (0B1<<16)
 
 
 volatile unsigned int* multiplexerPointers[2]; 
@@ -61,6 +67,8 @@ void setup() {
   REG_PIOC_PUDR = 0B1<<CLC_PIN_NUM | MULTIPLEXER_PIN_VAL | pin_mask | CLEAR_PIN_VAL;// pull up disable 
   SYSCLC = 1<<13; //PMC Peripheral Clock Enable Register 0, turn on a periferal clock 
   REG_PIOC_CODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for LOW. 
+  cli(); // Test wheter this helps at all
+  LOAD = ACQUISITION_TIME_MS;
 }
 
 
@@ -75,7 +83,9 @@ void loop() {
     REG_PIOC_SODR = CLEAR_PIN_NUM; //Reset value on counter - idk if realy needed - probably due to removal
     REG_PIOC_CODR = CLEAR_PIN_NUM;
     //read value on bus
-    for(f=0;f<1E5;f++){
+
+    RELOAD = 1; //start the clock TIMER_FLAG should be 0
+    while(!TIMER_FLAG){
       for(i=0;i<8;i++){
         
         REG_PIOC_SODR = CLC_PIN_VAL; //send sygnal to clc, change is trigered on rising edge but time is needed for hardwere to set it's state
