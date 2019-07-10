@@ -1,4 +1,5 @@
 #include <stdlib.h>
+
 #ifndef _SAM3XA_
 #define _SAM3XA_
 
@@ -112,7 +113,7 @@ void loop() {
       //CODE
         //REG_PIOC_SODR = CLC_PIN_VAL; //reset clc- might be not needed 
         //REG_PIOC_CODR = CLC_PIN_VAL;
-    
+
     }
 
   }
