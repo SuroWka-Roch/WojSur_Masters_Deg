@@ -21,11 +21,13 @@
 
 #endif /* _SAM3XA_ */
 
-#define SYSCLC *(volatile uint32_t *) 0x400E0610 // I can't find the clc makro - Register for perifrel clc control
-#define LOAD *(volatile uint32_t *) 0xE000E014 // Register defining value that system procesor loads when restarted - gives timer of milisecunds WO max 16777215
-#define CTRL *(volatile uint32_t *) 0xE000E018 // At 16 there is a flag wheter clc reached 0 here are adidional options. RW
-#define RELOAD *(volatile uint32_t *) 0xE000E018 // Writing anything in this register sets it to 0 sets TIMER_FLAG to 0 so it loads LOAD value.
-
+#define SYSCLC *(volatile uint32_t *) 0x400E0610    // I can't find the clc makro - Register for perifrel clc control
+#define LOAD *(volatile uint32_t *) 0xE000E014      // Register defining value that system procesor loads when restarted - gives timer of milisecunds WO max 16777215
+#define CTRL *(volatile uint32_t *) 0xE000E018      // At 16 there is a flag wheter clc reached 0 here are adidional options. RW
+#define RELOAD *(volatile uint32_t *) 0xE000E018    // Writing anything in this register sets it to 0 sets TIMER_FLAG to 0 so it loads LOAD value.
+#define PIOC_OWDR *(volatile uint32_t *) 0x400E12A4 // Protect lines from writes on PIOC_ODSR, kind of a mask.
+#define PIOC_ODSR *(volatile uint32_t *) 0x400E1238 // Cool write register writen value is put on IO line
+ 
 /**************************************************************************************/
 
 //All output is done on periferal PC 
@@ -70,6 +72,7 @@ void setup() {
   REG_PIOC_CODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for LOW. 
   cli(); // Test wheter this helps at all
   LOAD = ACQUISITION_TIME_MS;
+  PIOC_OWDR = ~CLC_PIN_VAL; // makes PIOC_ODSR change value only for clc pin.  
 }
 
 
@@ -79,18 +82,19 @@ void loop() {
   int previousValue[8]={0};
   for(booleenCounter=0;booleenCounter<2;booleenCounter++){ //Multiplexer loop
     counts = multiplexerPointers[booleenCounter%2];
-    booleenCounter%2 ? REG_PIOC_SODR = MULTIPLEXER_PIN_VAL:REG_PIOC_CODR = MULTIPLEXER_PIN_VAL; // choose muliplaxer 
+    booleenCounter%2 ? REG_PIOC_SODR = MULTIPLEXER_PIN_VAL:REG_PIOC_CODR = MULTIPLEXER_PIN_VAL; // choose muliplaxer - writes LOW to anything else
 
-    REG_PIOC_SODR = CLEAR_PIN_NUM; //Reset value on counter - idk if realy needed - probably due to removal
-    REG_PIOC_CODR = CLEAR_PIN_NUM;
+    //CODE
+      //REG_PIOC_SODR = CLEAR_PIN_NUM; //Reset value on counter - idk if realy needed - probably due to removal
+      //REG_PIOC_CODR = CLEAR_PIN_NUM;
+
     //read value on bus
-
-    RELOAD = 1; //start the clock TIMER_FLAG should be 0
+    RELOAD = 1; //start the clock TIMER_FLAG
     while(!TIMER_FLAG){
       for(i=0;i<8;i++){
         
-        REG_PIOC_SODR = CLC_PIN_VAL; //send sygnal to clc, change is trigered on rising edge but time is needed for hardwere to set it's state
-        REG_PIOC_CODR = CLC_PIN_VAL; //turn of clc
+        PIOC_ODSR = CLC_PIN_VAL; //send sygnal to clc, change is trigered on rising edge but time is needed for hardwere to set it's state
+        PIOC_ODSR = 0; //turn of clc - works because of PIOC_OWDR mask
         
         val = (REG_PIOC_PDSR & pin_mask)>>1; //read value and add it to table 
 
@@ -106,13 +110,13 @@ void loop() {
         else{
             counts[i] += val + 16 - previousValue[i]; //15 is max for 4 bit counters but 16 gives value of 1 for 0 state  
         }
-        previousValue[i]= val; 
+        previousValue[i] = val; 
 
       }
 
       //CODE
-        //REG_PIOC_SODR = CLC_PIN_VAL; //reset clc- might be not needed 
-        //REG_PIOC_CODR = CLC_PIN_VAL;
+        //PIOC_ODSR = CLC_PIN_VAL; //reset clc- might be not needed 
+        //PIOC_ODSR = 0;
 
     }
 
