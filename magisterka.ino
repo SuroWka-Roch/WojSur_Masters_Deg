@@ -89,7 +89,7 @@ void loop() {
       //REG_PIOC_CODR = CLEAR_PIN_NUM;
 
     //read value on bus
-    RELOAD = 1; //start the clock TIMER_FLAG
+    RELOAD = true; //start the clock TIMER_FLAG
     while(!TIMER_FLAG){
       for(i=0;i<8;i++){
         
