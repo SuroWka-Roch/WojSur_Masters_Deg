@@ -21,10 +21,10 @@
 
 #endif /* _SAM3XA_ */
 
-#define SYSCLC *(volatile uint32_t *) 0x400E0610    // I can't find the clc makro - Register for perifrel clc control
-#define LOAD *(volatile uint32_t *) 0xE000E014      // Register defining value that system procesor loads when restarted - gives timer of milisecunds WO max 16777215
-#define CTRL *(volatile uint32_t *) 0xE000E018      // At 16 there is a flag wheter clc reached 0 here are adidional options. RW
-#define RELOAD *(volatile uint32_t *) 0xE000E018    // Writing anything in this register sets it to 0 sets TIMER_FLAG to 0 so it loads LOAD value.
+#define SYSCLC *(volatile uint32_t *) 0x400E0610 // I can't find the clc makro - Register for perifrel clc control
+#define LOAD *(volatile uint32_t *) 0xE000E014 // Register defining value that system procesor loads when restarted - gives timer of milisecunds WO max 16777215
+#define CTRL *(volatile uint32_t *) 0xE000E018 // At 16 there is a flag wheter clc reached 0 here are adidional options. RW
+#define RELOAD *(volatile uint32_t *) 0xE000E018 // Writing anything in this register sets it to 0 sets TIMER_FLAG to 0 so it loads LOAD value.
 #define PIOC_OWDR *(volatile uint32_t *) 0x400E12A4 // Protect lines from writes on PIOC_ODSR, kind of a mask.
 #define PIOC_ODSR *(volatile uint32_t *) 0x400E1238 // Cool write register writen value is put on IO line
  
@@ -41,7 +41,7 @@
 #define CLEAR_PIN_NUM 17 //Arduino pin 46
 #define CLEAR_PIN_VAL 0x1<<MULTIPLEXER_PIN_NUM 
 
-#define ACQUISITION_TIME_MS 10000 /must be int 
+#define ACQUISITION_TIME_MS 10000 //must be int 
 #define TIMER_FLAG CTRL & (0B1<<16)
 
 
