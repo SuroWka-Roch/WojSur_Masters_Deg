@@ -1,6 +1,6 @@
 include ./makefile.conf
 NAME=WojSurMag
-STARTUP_DEFS=-D __ATSAM3X8E__
+STARTUP_DEFS=-D __SAM3X8E__
 
 CMSISPATHFLAG=-I /home/piernik/programing/c/WojSurMagSAM/tools/CMSIS/Include
 
@@ -8,6 +8,8 @@ BINFOLDER=./bin
 SRC=./src
 
 LINKERPATH=./src/
+
+ADDITIONALS=./include/system_sam3xa.c
 
 LDSCRIPTS=-L. -L$(LINKERPATH) -T multi-ram.ld
 
@@ -23,7 +25,7 @@ LFLAGS=$(USE_NANO) $(USE_SEMIHOST) $(LDSCRIPTS) $(GC) -u _printf_float
 $(BINFOLDER)/$(NAME)-$(CORE).bin: $(SRC)/$(NAME)-$(CORE).axf
 	$(objCP) -O binary $^ $@
 
-$(SRC)/$(NAME)-$(CORE).axf: ./$(NAME).c ./$(STARTUP)
+$(SRC)/$(NAME)-$(CORE).axf: ./$(NAME).c ./$(STARTUP) $(ADDITIONALS)
 	$(CC) $^ $(CFLAGS) $(LFLAGS) $(CMSISPATHFLAG) -o $@
 	
 .PHONY: start
