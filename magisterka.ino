@@ -41,6 +41,7 @@ volatile unsigned int* multiplexerPointers[2];
 //volatile unsigned int counts[16] = { 0 };
 volatile unsigned int* counts = NULL;
 int pin_mask = 0B1111<<1; //PC0 is NC, data pins start at arduino pin 33 
+void(* resetFunc) (void) = 0;//declare reset function at address 0
 
 void setup() {
   Serial.begin(9600);
@@ -89,7 +90,7 @@ void loop() {
         *   If previous state is biger calcuate overflow 
         */
 
-        if(previousValue[i] < val){ 
+        if(previousValue[i] <= val){ 
             counts[i] += val - previousValue[i];
         }
         else{
