@@ -24,6 +24,11 @@
 
 /**************************************************************************************/
 
+//CONGIG
+
+#define ONE_MULTIPLEXER 1
+#define STARTING_MULTIPLEXER_B 0x1
+
 //All output is done on periferal PC 
 
 #define CLC_PIN_NUM 19 //Arduino pin 44
@@ -33,7 +38,7 @@
 #define MULTIPLEXER_PIN_VAL 0x1<<MULTIPLEXER_PIN_NUM  
 
 #define CLEAR_PIN_NUM 17 //Arduino pin 46
-#define CLEAR_PIN_VAL 0x1<<MULTIPLEXER_PIN_NUM 
+#define CLEAR_PIN_VAL STARTING_MULTIPLEXER_B<<MULTIPLEXER_PIN_NUM 
 
 
 volatile unsigned int* multiplexerPointers[2]; 
@@ -69,14 +74,19 @@ void loop() {
   int i=0,f=0,val;
   int booleenCounter;
   int previousValue[8]={0};
+
+  REG_PIOC_CODR = CLEAR_PIN_NUM;
+  REG_PIOC_SODR = CLEAR_PIN_NUM; //Reset value on counter - idk if realy needed - probably due to removal
+  
+  noInterrupts(); 
+
   for(booleenCounter=0;booleenCounter<2;booleenCounter++){ //Multiplexer loop
     counts = multiplexerPointers[booleenCounter%2];
     booleenCounter%2 ? REG_PIOC_SODR = MULTIPLEXER_PIN_VAL:REG_PIOC_CODR = MULTIPLEXER_PIN_VAL; // choose muliplaxer 
 
-    REG_PIOC_SODR = CLEAR_PIN_NUM; //Reset value on counter - idk if realy needed - probably due to removal
-    REG_PIOC_CODR = CLEAR_PIN_NUM;
+
     //read value on bus
-    for(f=0;f<1E5;f++){
+    for(f=0;f<1E4;f++){
       for(i=0;i<8;i++){
         
         REG_PIOC_SODR = CLC_PIN_VAL; //send sygnal to clc, change is trigered on rising edge but time is needed for hardwere to set it's state
@@ -100,11 +110,14 @@ void loop() {
 
       }
 
-      //CODE
-        //REG_PIOC_SODR = CLC_PIN_VAL; //reset clc- might be not needed 
-        //REG_PIOC_CODR = CLC_PIN_VAL;
+    
+      REG_PIOC_SODR = CLC_PIN_VAL; //reset clc- might be not needed 
+      REG_PIOC_CODR = CLC_PIN_VAL;
     
     }
+
+
+  interrupts();
 
   }
 
