@@ -111,7 +111,7 @@ void loop() {
       }
 
     
-      REG_PIOC_SODR = CLC_PIN_VAL; //reset clc- might be not needed 
+      REG_PIOC_SODR = CLC_PIN_VAL; //reset clc empty shift register circle 
       REG_PIOC_CODR = CLC_PIN_VAL;
     
     }
@@ -125,6 +125,8 @@ void loop() {
   for(i=0;i<8;i++){
     Serial.println(counts[i]);
     counts[i]=0;
+    previousValue[i]=0;
   }
 
 }
+
