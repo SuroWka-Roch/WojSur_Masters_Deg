@@ -26,8 +26,8 @@
 
 //CONGIG
 
-#define ONE_MULTIPLEXER 1
-#define STARTING_MULTIPLEXER_B 0x1
+#define STARTING_MULTIPLEXER_HIGH 0
+#define CIRCLES_FOR_100MS 21636
 
 //All output is done on periferal PC 
 
@@ -38,7 +38,7 @@
 #define MULTIPLEXER_PIN_VAL 0x1<<MULTIPLEXER_PIN_NUM  
 
 #define CLEAR_PIN_NUM 17 //Arduino pin 46
-#define CLEAR_PIN_VAL STARTING_MULTIPLEXER_B<<MULTIPLEXER_PIN_NUM 
+#define CLEAR_PIN_VAL 0x1<<CLEAR_PIN_NUM 
 
 
 volatile unsigned int* multiplexerPointers[2]; 
@@ -63,10 +63,17 @@ void setup() {
   
 
   REG_PIOC_ODR = pin_mask;//disable output of pins
-  REG_PIOC_OER = CLC_PIN_VAL | MULTIPLEXER_PIN_VAL | CLEAR_PIN_NUM; // enable output
+  REG_PIOC_OER = CLC_PIN_VAL | MULTIPLEXER_PIN_VAL | CLEAR_PIN_VAL; // enable output
   REG_PIOC_PUDR = 0B1<<CLC_PIN_NUM | MULTIPLEXER_PIN_VAL | pin_mask | CLEAR_PIN_VAL;// pull up disable 
   SYSCLC = 1<<13; //PMC Peripheral Clock Enable Register 0, turn on a periferal clock 
-  REG_PIOC_CODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for LOW. 
+
+  if(STARTING_MULTIPLEXER_HIGH){
+    REG_PIOC_SODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for LOW.
+  }
+  else{
+    REG_PIOC_CODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for LOW.
+  }
+  
 }
 
 
@@ -75,58 +82,56 @@ void loop() {
   int booleenCounter;
   int previousValue[8]={0};
 
-  REG_PIOC_CODR = CLEAR_PIN_NUM;
-  REG_PIOC_SODR = CLEAR_PIN_NUM; //Reset value on counter - idk if realy needed - probably due to removal
+  REG_PIOC_CODR = CLEAR_PIN_VAL;
+  REG_PIOC_SODR = CLEAR_PIN_VAL; //Reset value on counter - idk if realy needed - probably due to removal
   
   noInterrupts(); 
 
-  for(booleenCounter=0;booleenCounter<2;booleenCounter++){ //Multiplexer loop
-    counts = multiplexerPointers[booleenCounter%2];
-    booleenCounter%2 ? REG_PIOC_SODR = MULTIPLEXER_PIN_VAL:REG_PIOC_CODR = MULTIPLEXER_PIN_VAL; // choose muliplaxer 
 
+  //read value on bus
+  for(f=0;f< (int)(CIRCLES_FOR_100MS) ;f++){
+    for(i=0;i<8;i++){
+      
+      REG_PIOC_SODR = CLC_PIN_VAL; //send sygnal to clc, change is trigered on rising edge but time is needed for hardwere to set it's state
+      REG_PIOC_CODR = CLC_PIN_VAL; //turn of clc
+      
+      val = (REG_PIOC_PDSR & pin_mask)>>1; //read value and add it to table 
 
-    //read value on bus
-    for(f=0;f<1E4;f++){
-      for(i=0;i<8;i++){
-        
-        REG_PIOC_SODR = CLC_PIN_VAL; //send sygnal to clc, change is trigered on rising edge but time is needed for hardwere to set it's state
-        REG_PIOC_CODR = CLC_PIN_VAL; //turn of clc
-        
-        val = (REG_PIOC_PDSR & pin_mask)>>1; //read value and add it to table 
+      /*
+      * Dealing with counters overflow:
+      *   table previousValue has value of last state
+      *   If previous state is biger calcuate overflow 
+      */
 
-        /*
-        * Dealing with counters overflow:
-        *   table previousValue has value of last state
-        *   If previous state is biger calcuate overflow 
-        */
-
-        if(previousValue[i] <= val){ 
-            counts[i] += val - previousValue[i];
-        }
-        else{
-            counts[i] += val + 16 - previousValue[i]; //15 is max for 4 bit counters but 16 gives value of 1 for 0 state  
-        }
-        previousValue[i]= val; 
-
+      if(previousValue[i] <= val){ 
+          counts[i] += val - previousValue[i];
+      }
+      else{
+          counts[i] += val + 16 - previousValue[i]; //15 is max for 4 bit counters but 16 gives value of 1 for 0 state  
       }
 
-    
-      REG_PIOC_SODR = CLC_PIN_VAL; //reset clc empty shift register circle 
-      REG_PIOC_CODR = CLC_PIN_VAL;
-    
+      previousValue[i]= val; 
+
     }
+
+  
+    REG_PIOC_SODR = CLC_PIN_VAL; //reset clc empty shift register circle 
+    REG_PIOC_CODR = CLC_PIN_VAL;
+  
+  }
 
 
   interrupts();
 
-  }
+  
 
   /*print output to serial port */
   for(i=0;i<8;i++){
     Serial.println(counts[i]);
     counts[i]=0;
-    previousValue[i]=0;
   }
+  
+  Serial.println("~~~~~~~~~~~~~");
+  Serial.flush();
 
 }
-
