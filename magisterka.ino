@@ -27,7 +27,9 @@
 //CONGIG
 
 #define STARTING_MULTIPLEXER_HIGH 0
-#define CIRCLES_FOR_100MS 21636
+#define CIRCLES_FOR_100MS 21656
+
+#define NOP __asm__("nop")
 
 //All output is done on periferal PC 
 
@@ -89,7 +91,7 @@ void loop() {
 
 
   //read value on bus
-  for(f=0;f< (int)(CIRCLES_FOR_100MS) ;f++){
+  for(f=0;f< (int)(CIRCLES_FOR_100MS * 1) ;f++){
     for(i=0;i<8;i++){
       
       REG_PIOC_SODR = CLC_PIN_VAL; //send sygnal to clc, change is trigered on rising edge but time is needed for hardwere to set it's state
