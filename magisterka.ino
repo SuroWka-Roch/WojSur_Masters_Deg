@@ -26,6 +26,8 @@
 
 //CONGIG
 
+//na cykl 4.618 us100
+
 #define STARTING_MULTIPLEXER_HIGH 0
 #define CIRCLES_FOR_100MS 21656
 
@@ -80,6 +82,28 @@ void setup() {
 
 
 void loop() {
+
+
+  aquisition(1.0);
+
+  /*print output to serial port */
+  for(int i=0;i<8;i++){
+    Serial.println(counts[i]);
+    counts[i]=0;
+  }
+  
+  Serial.println("~~~~~~~~~~~~~");
+  Serial.flush();
+
+}
+
+
+void aquisition(float time){
+  /**
+   * @brief Will count and reset counters on external hardwere. Fills counters table.
+   * @param time aquisition time is equal to time * 100ms
+   * 
+  */
   int i=0,f=0,val;
   int booleenCounter;
   int previousValue[8]={0};
@@ -91,7 +115,7 @@ void loop() {
 
 
   //read value on bus
-  for(f=0;f< (int)(CIRCLES_FOR_100MS * 1) ;f++){
+  for(f=0;f< (int)(CIRCLES_FOR_100MS * time) ;f++){
     for(i=0;i<8;i++){
       
       REG_PIOC_SODR = CLC_PIN_VAL; //send sygnal to clc, change is trigered on rising edge but time is needed for hardwere to set it's state
@@ -124,16 +148,4 @@ void loop() {
 
 
   interrupts();
-
-  
-
-  /*print output to serial port */
-  for(i=0;i<8;i++){
-    Serial.println(counts[i]);
-    counts[i]=0;
-  }
-  
-  Serial.println("~~~~~~~~~~~~~");
-  Serial.flush();
-
 }
