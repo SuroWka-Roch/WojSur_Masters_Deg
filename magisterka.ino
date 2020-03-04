@@ -27,12 +27,13 @@
 /**************************************************************************************/
 
 //communication constants
-#define HANSHAKE_CONFIRM_REQUEST_CODE '420'
-#define HANSHAKE_CONFIRMATION_CODE '421'
-#define CHOOSE_MULTIPLEXER_CODE 'cmx'
-#define AKW_TIME_MS_CODE 'atm'
-#define START_CODE 'srt'
-#define STOP_CODE 'stp'
+#define RECEIVED_BUFFER_SIZE 20
+#define HANSHAKE_CONFIRM_REQUEST_CODE "42a"
+#define HANSHAKE_CONFIRMATION_CODE "42b"
+#define CHOOSE_MULTIPLEXER_CODE "cmx"
+#define AKW_TIME_MS_CODE "atm"
+#define START_CODE "srt"
+#define STOP_CODE "stp"
 
 //CONFIG
 
@@ -61,6 +62,7 @@ int multiplexer_state_flag = STARTING_MULTIPLEXER_STATE;
 volatile unsigned int* counts = NULL;
 volatile unsigned int* multiplexerPointers[2]; 
 int pin_mask = 0B1111<<1; //PC0 is NC, data pins start at arduino pin 33 
+char received_buffer[RECEIVED_BUFFER_SIZE];
 
 
 void(* resetFunc) (void) = 0;//declare reset function at address 0
@@ -93,6 +95,7 @@ void loop() {
 
   aquisition(akw_time);
   write_output();
+  receive_command();
 
 }
 
@@ -172,6 +175,39 @@ void set_multiplexer(int state_to_set){
   else{
     REG_PIOC_CODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for LOW.
   }
+
   multiplexer_state_flag = state_to_set;
 
+}
+
+void receive_command(){
+  char* pnt_data = received_buffer;
+
+  while (Serial.available() > 0)
+  {
+    *pnt_data = Serial.read();
+    if(*pnt_data == '\0'){
+      analyze_command();
+    }
+    pnt_data++;
+
+  }
+  
+}
+
+void analyze_command(){
+    switch(received_buffer){
+      case HANSHAKE_CONFIRM_REQUEST_CODE:
+        Serial.write(HANSHAKE_CONFIRMATION_CODE);
+        break;
+      case COMAND_VOLTAGE_CHANGE:
+        Serial.readBytesUntil('\0',information,41);
+        // tytaj wysyłaj
+        sendVoltageInformation();
+        clearTable(information);
+        Serial.write(VOLTAGE_CHANGE_DONE);
+        Serial.flush();
+      default:
+        Serial.write(info);
+    }
 }
