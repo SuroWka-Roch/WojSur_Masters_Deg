@@ -1,60 +1,6 @@
 #include <stdlib.h>
-#ifndef _SAM3XA_
-#define _SAM3XA_
-
-#if defined (__SAM3A4C__)
-#include "sam3a4c.h"
-#elif defined (__SAM3A8C__)
-#include "sam3a8c.h"
-#elif defined (__SAM3X4C__)
-#include "sam3x4c.h"
-#elif defined (__SAM3X4E__)
-#include "sam3x4e.h"
-#elif defined (__SAM3X8C__)
-#include "sam3x8c.h"
-#elif defined (__SAM3X8E__)
-#include "sam3x8e.h"
-#elif defined (__SAM3X8H__)
-#include "sam3x8h.h"
-#endif
-
-#endif /* _SAM3XA_ */
-
-#define SYSCLC *(volatile uint32_t *) 0x400E0610 // I can't find the clc makro - Register for perifrel clc control
-#define NOP __asm__("nop")
-
-
-/**************************************************************************************/
-
-//communication constants
-#define RECEIVED_BUFFER_SIZE 20
-#define HANSHAKE_CONFIRM_REQUEST_CODE "42a"
-#define HANSHAKE_CONFIRMATION_CODE "42b"
-#define CHOOSE_MULTIPLEXER_CODE "cmx"
-#define AKW_TIME_MS_CODE "atm"
-#define START_CODE "srt"
-#define STOP_CODE "stp"
-
-//CONFIG
-
-
-#define STARTING_MULTIPLEXER_STATE 0
-
-//4.618us per circle 
-#define CIRCLES_FOR_1MS (21656.0/100.0)
-#define DEAD_TIME_CORRECTION (1.14503073835)
-
-
-//All output is done on periferal PC 
-
-#define CLC_PIN_NUM 19 //Arduino pin 44
-#define CLC_PIN_VAL 0x1<<CLC_PIN_NUM  //2^19
-
-#define MULTIPLEXER_PIN_NUM 18 //Arduino pin 45
-#define MULTIPLEXER_PIN_VAL 0x1<<MULTIPLEXER_PIN_NUM  
-
-#define CLEAR_PIN_NUM 17 //Arduino pin 46
-#define CLEAR_PIN_VAL 0x1<<CLEAR_PIN_NUM 
+#include "ENV_CONFIG.h"
+#include "USER_CONFIG.h"
 
 //Global values 
 double akw_time = 1.0;
@@ -65,7 +11,6 @@ int pin_mask = 0B1111<<1; //PC0 is NC, data pins start at arduino pin 33
 char received_buffer[RECEIVED_BUFFER_SIZE];
 
 
-void(* resetFunc) (void) = 0;//declare reset function at address 0
 
 void setup() {
   Serial.begin(9600);
@@ -190,24 +135,14 @@ void receive_command(){
       analyze_command();
     }
     pnt_data++;
-
   }
   
+  if(Serial.available()){
+    receive_command();
+  }
+
 }
 
 void analyze_command(){
-    switch(received_buffer){
-      case HANSHAKE_CONFIRM_REQUEST_CODE:
-        Serial.write(HANSHAKE_CONFIRMATION_CODE);
-        break;
-      case COMAND_VOLTAGE_CHANGE:
-        Serial.readBytesUntil('\0',information,41);
-        // tytaj wysyłaj
-        sendVoltageInformation();
-        clearTable(information);
-        Serial.write(VOLTAGE_CHANGE_DONE);
-        Serial.flush();
-      default:
-        Serial.write(info);
-    }
+;//TODO
 }
