@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "ENV_CONFIG.h"
 #include "USER_CONFIG.h"
 
@@ -37,7 +38,6 @@ void setup() {
 
 void loop() {
 
-
   aquisition(akw_time);
   write_output();
   receive_command();
@@ -71,7 +71,7 @@ void aquisition(double time){
       val = (REG_PIOC_PDSR & pin_mask)>>1; //read value and add it to table 
 
       /*
-      * Dealing with counters overflow:
+      *   Dealing with counters overflow:
       *   table previousValue has value of last state
       *   If previous state is bigger calculate overflow 
       */
@@ -115,7 +115,7 @@ void write_output(){
 void set_multiplexer(int state_to_set){
 
   if(state_to_set){
-    REG_PIOC_SODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for LOW.
+    REG_PIOC_SODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for HIGH.
   }
   else{
     REG_PIOC_CODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for LOW.
@@ -144,5 +144,36 @@ void receive_command(){
 }
 
 void analyze_command(){
-;//TODO
+  if(strcmp(received_buffer, HANSHAKE_CONFIRM_REQUEST_CODE)){
+    Serial.println( HANSHAKE_CONFIRMATION_CODE );
+    return;
+  }else{
+    
+  if(strcmp( received_buffer, CHOOSE_MULTIPLEXER_CODE )){
+    int set_flag = read_number();
+    set_multiplexer(set_flag);
+    return;
+
+  }else{
+
+  if(strcmp( received_buffer, AKW_TIME_MS_CODE)){
+    akw_time = read_number();
+    return;
+  }
+
+  }
+  }
+  Serial.println(received_buffer);
+}
+
+int read_number(){
+  char* pnt_data = received_buffer;
+  while (Serial.available() > 0){
+    *pnt_data = Serial.read();
+    if(*pnt_data == '\0'){
+      break;
+    }
+    pnt_data++;
+  }
+  return atoi(received_buffer);
 }
