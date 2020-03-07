@@ -5,12 +5,17 @@
 #define SERIAL_SPEED 9600
 #define RECEIVED_BUFFER_SIZE 20
 #define COMAND_ENDING_CONST '\n'
+#define READY_TO_READ "Ready to read\n"
+#define PING_CHAR 'P'
 #define HANSHAKE_CONFIRM_REQUEST_CODE "42a"
 #define HANSHAKE_CONFIRMATION_CODE "42b"
 #define CHOOSE_MULTIPLEXER_CODE "cmx"
 #define AKW_TIME_MS_CODE "atm"
 #define START_CODE "srt"
 #define STOP_CODE "stp"
+
+#define START_DATA "<~+~>"
+#define STOP_DATA "~<+>~"
 
 //CONFIG
 #define STARTING_MULTIPLEXER_STATE 0
