@@ -32,7 +32,6 @@
 #define NOP __asm__("nop")
 void(* resetFunc) (void) = 0; //declare reset function at address 0
 
-
-
+#define MULTIPLEXER_NR(canal_nr) ((((canal_nr)/8)%2)+1)
 /**************************************************************************************/
-#endif
+#endif //end ENV_CONFIG

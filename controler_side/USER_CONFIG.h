@@ -4,9 +4,9 @@
 //communication constants
 #define SERIAL_SPEED 9600
 #define RECEIVED_BUFFER_SIZE 20
+#define PRINTF_BUFFER_SIZE 15
 #define COMAND_ENDING_CONST '\n'
 #define READY_TO_READ "Ready to read\n"
-#define PING_CHAR 'P'
 #define HANSHAKE_CONFIRM_REQUEST_CODE "42a"
 #define HANSHAKE_CONFIRMATION_CODE "42b"
 #define CHOOSE_MULTIPLEXER_CODE "cmx"

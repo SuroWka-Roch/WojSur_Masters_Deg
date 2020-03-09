@@ -60,45 +60,51 @@ void aquisition(double time){
   int i=0,f=0,val;
   int booleenCounter;
   int previousValue[8]={0};
-
-  REG_PIOC_CODR = CLEAR_PIN_VAL;
-  REG_PIOC_SODR = CLEAR_PIN_VAL; //Reset value on counter - idk if realy needed - probably due to removal
+  volatile unsigned int* counts_pointer = counts;
   
   noInterrupts(); 
 
+  for(int j = 0; j<2; j++){ // j is eighter 1 or 0 
+    set_multiplexer(!j);
+    counts_pointer = &counts[8*j];
+    clear_int_table(previousValue,8);
 
-  //read value on bus
-  for(f=0;f< (int)(CIRCLES_FOR_1MS * DEAD_TIME_CORRECTION * time); f++){
-    for(i=0;i<8;i++){
-      
-      REG_PIOC_SODR = CLC_PIN_VAL; //send signal to clc, change is triggered on rinsing edge but time is needed for hardwere to set it's state
-      REG_PIOC_CODR = CLC_PIN_VAL; //turn of clc
-      
-      val = (REG_PIOC_PDSR & pin_mask)>>1; //read value and add it to table 
+    REG_PIOC_CODR = CLEAR_PIN_VAL;
+    REG_PIOC_SODR = CLEAR_PIN_VAL; //Reset value on counter - idk if realy needed - probably due to removal
+    
+    //read value on bus
+    for(f=0;f< (int)(CIRCLES_FOR_1MS * DEAD_TIME_CORRECTION * time); f++){
+      for(i=0;i<8;i++){
+        
+        REG_PIOC_SODR = CLC_PIN_VAL; //send signal to clc, change is triggered on rinsing edge but time is needed for hardwere to set it's state
+        REG_PIOC_CODR = CLC_PIN_VAL; //turn of clc
+        
+        val = (REG_PIOC_PDSR & pin_mask)>>1; //read value and add it to table 
 
-      /*
-      *   Dealing with counters overflow:
-      *   table previousValue has value of last state
-      *   If previous state is bigger calculate overflow 
-      */
+        /*
+        *   Dealing with counters overflow:
+        *   table previousValue has value of last state
+        *   If previous state is bigger calculate overflow 
+        */
 
-      if(previousValue[i] <= val){ 
-          counts[i] += val - previousValue[i];
+        if(previousValue[i] <= val){ 
+            counts_pointer[i] += val - previousValue[i];
+        }
+        else{
+            counts_pointer[i] += val + 16 - previousValue[i]; //15 is max for 4 bit counters but 16 gives value of 1 for 0 state  
+        }
+
+        previousValue[i]= val; 
+
       }
-      else{
-          counts[i] += val + 16 - previousValue[i]; //15 is max for 4 bit counters but 16 gives value of 1 for 0 state  
-      }
 
-      previousValue[i]= val; 
-
+    
+      REG_PIOC_SODR = CLC_PIN_VAL; //reset clc empty shift register circle 
+      REG_PIOC_CODR = CLC_PIN_VAL;
+    
     }
 
-  
-    REG_PIOC_SODR = CLC_PIN_VAL; //reset clc empty shift register circle 
-    REG_PIOC_CODR = CLC_PIN_VAL;
-  
   }
-
 
   interrupts();
 }
@@ -108,9 +114,13 @@ void write_output(){
    *  @brief print output to serial port 
    */
   Serial.println(START_DATA);
-
-  for(int i=0;i<8;i++){
-    Serial.println(counts[i]);
+  char printf_buffer[PRINTF_BUFFER_SIZE] = {0}; 
+  for(int i=0;i<16;i++){
+    sprintf(printf_buffer, "%dA%d\t%d\0",
+            MULTIPLEXER_NR(i), (i-((MULTIPLEXER_NR(i)-1)*8))+1,
+            counts[i]);
+    Serial.println(printf_buffer);
+    clear_char_table(printf_buffer,PRINTF_BUFFER_SIZE);
     counts[i]=0;
   }
   
@@ -120,6 +130,10 @@ void write_output(){
 }
 
 void set_multiplexer(int state_to_set){
+  /**
+   * @brief Sets state of external multiplexer
+   * @param state_to_set binary flag true for first multiplexed 8 false for secend
+  */
 
   if(state_to_set){
     REG_PIOC_SODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for HIGH.
@@ -187,6 +201,7 @@ void analyze_command(){
   }else{
     //unknown command
     Serial.println("Don't understend");
+    Serial.print("Received:");
     Serial.println(received_buffer);
 
   }}}}} // :( 
@@ -216,4 +231,18 @@ int read_number(){
 
 void cut_ending(){
   received_buffer[strlen(received_buffer)-1] = '\0';
+}
+
+void clear_char_table(char* table, int len){
+  for(int i = 0; i<len; i++){
+   *table = '\0';
+    table++; 
+  }
+}
+
+void clear_int_table(int* table, int len){
+  for(int i = 0; i<len; i++){
+   *table = 0;
+    table++; 
+  }
 }
