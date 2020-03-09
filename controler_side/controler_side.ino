@@ -177,26 +177,37 @@ void analyze_command(){
   if(!strcmp( received_buffer, AKW_TIME_MS_CODE)){
     akw_time = read_number();
   }else{
+
+  if(!strcmp( received_buffer, START_CODE)){
+    hibernation_flag = false;
+  }else{
+
+  if(!strcmp( received_buffer, STOP_CODE)){
+    hibernation_flag = true;
+  }else{
     //unknown command
     Serial.println("Don't understend");
     Serial.println(received_buffer);
-  }
-  }
-  }
+
+  }}}}} // :( 
   command_in_buffer_flag = 0;
-  
 }
 
 int read_number(){
   //todo cut the ending
   char* command_pointer = received_buffer;
-  while(!Serial.available());
-  while (Serial.available() > 0){
-    *command_pointer = Serial.read();
-    if(*command_pointer == COMAND_ENDING_CONST){
-      break;
+  while(!Serial.available()); // wait for data
+
+  int have_number_flag = false;
+
+  while(!have_number_flag){
+    while (Serial.available() > 0){
+      *command_pointer = Serial.read();
+      if(*command_pointer == COMAND_ENDING_CONST){
+        have_number_flag = true;
+      }
+      command_pointer++;
     }
-    command_pointer++;
   }
   cut_ending();
   Serial.println(atoi(received_buffer));
