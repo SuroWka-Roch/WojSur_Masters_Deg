@@ -182,11 +182,6 @@ void analyze_command(){
   if(!strcmp(received_buffer, HANSHAKE_CONFIRM_REQUEST_CODE)){
     Serial.println( HANSHAKE_CONFIRMATION_CODE);
   }else{
-    
-  if(!strcmp( received_buffer, CHOOSE_MULTIPLEXER_CODE )){
-    int set_flag = read_number();
-    set_multiplexer(set_flag);
-  }else{
 
   if(!strcmp( received_buffer, AKW_TIME_MS_CODE)){
     akw_time = read_number();
@@ -199,12 +194,13 @@ void analyze_command(){
   if(!strcmp( received_buffer, STOP_CODE)){
     hibernation_flag = true;
   }else{
+    
     //unknown command
     Serial.println("Don't understend");
     Serial.print("Received:");
     Serial.println(received_buffer);
 
-  }}}}} // :( 
+  }}}} // :( 
   command_in_buffer_flag = 0;
 }
 
