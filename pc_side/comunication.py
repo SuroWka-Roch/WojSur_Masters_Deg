@@ -1,8 +1,11 @@
 #!/usr/bin/env python3.7
 
+
 from serialInfo import serial_ports
+import back_end
 import serial
 import time
+import re
 
 PortName = "/dev/ttyACM0"
 SERIAL_BUFFER_SIZE = 64
@@ -22,7 +25,7 @@ def read_chunk(ser_port):
         if received:
             return received.decode(encoding='utf-8', errors='strict')
     except Exception as e:
-        print(str(e))
+        print( "read error at read_chunk with code of: " + str(e))
 
 
 def send_and_expect(serialPort, send, expect):
@@ -36,26 +39,29 @@ def send_and_expect(serialPort, send, expect):
     serialPort.write(COMAND_ENDING_CONST.encode(encoding='utf-8'))
     
     waited_for_response = 0
-    while temp_log.find(READY_TO_READ) == -1:
+    reg = re.compile(READY_TO_READ)
+    while not reg.search(temp_log):
         time.sleep(SLEEP_TIME)
         temp_string = read_chunk(serialPort)
         if temp_string:
-                temp_log += temp_string
+            temp_log += temp_string
         waited_for_response += 1
         if waited_for_response > WAIT_FOR:
-            return temp_log
+            raise back_end.CommunicationError("No 'Ready to read' response")
 
     serialPort.write(send.encode(encoding='utf-8'))
 
     if expect:
-        while temp_log.find(expect) == -1:
+        waited_for_response = 0
+        reg = re.compile(expect)
+        while not reg.search(temp_log):
             time.sleep(SLEEP_TIME)
             temp_string = read_chunk(serialPort)
             if temp_string:
-                    temp_log += temp_string
+                temp_log += temp_string
             waited_for_response += 1
             if waited_for_response > WAIT_FOR:
-                return temp_log
+                raise back_end.CommunicationError("No response")
 
 
     return temp_log
@@ -68,16 +74,15 @@ try:
         time.sleep(2)
         string = ""
 
-        string += send_and_expect(ser, "atm\n1000\n", "1000\n")
+        string += send_and_expect(ser, "atm\n500\n", "500\n")
         string += send_and_expect(ser, "42a\n", "42b\n")
 
         
-        ser.flushInput()
         for _ in range(100):
-            time.sleep(0.01)
+            time.sleep(SLEEP_TIME)
             temp_string = read_chunk(ser)
             if temp_string:
                 string += temp_string
-    print(string, end="")
+    print(back_end.seperate_data(string))
 except Exception as e:
-    print(str(e))
+    print('Caught Exeption of class "{}" with message of "{}"'.format(type(e),str(e)))

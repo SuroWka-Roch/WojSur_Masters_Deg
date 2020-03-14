@@ -180,11 +180,14 @@ void receive_command(){
 void analyze_command(){
   cut_ending();
   if(!strcmp(received_buffer, HANSHAKE_CONFIRM_REQUEST_CODE)){
-    Serial.println( HANSHAKE_CONFIRMATION_CODE);
+    Serial.print(HANSHAKE_CONFIRMATION_CODE);
+    Serial.print(COMAND_ENDING_CONST);
   }else{
 
   if(!strcmp( received_buffer, AKW_TIME_MS_CODE)){
     akw_time = read_number();
+    Serial.print( (int) akw_time);
+    Serial.print(COMAND_ENDING_CONST);
   }else{
 
   if(!strcmp( received_buffer, START_CODE)){
@@ -221,7 +224,6 @@ int read_number(){
     }
   }
   cut_ending();
-  Serial.println(atoi(received_buffer));
   return atoi(received_buffer);
 }
 
