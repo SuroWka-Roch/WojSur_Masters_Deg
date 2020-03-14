@@ -20,8 +20,8 @@ def read_chunk(ser_port):
         received = None
         #handle no information relived problem
 
-        while ser.inWaiting() > 0:
-            received = ser.read(ser.inWaiting())
+        while ser_port.inWaiting() > 0:
+            received = ser_port.read(ser_port.inWaiting())
         if received:
             return received.decode(encoding='utf-8', errors='strict')
     except Exception as e:
@@ -47,7 +47,7 @@ def send_and_expect(serialPort, send, expect):
             temp_log += temp_string
         waited_for_response += 1
         if waited_for_response > WAIT_FOR:
-            raise back_end.CommunicationError("No 'Ready to read' response")
+            raise back_end.NoReadyToResponse("No 'Ready to read' response")
 
     serialPort.write(send.encode(encoding='utf-8'))
 
@@ -61,28 +61,35 @@ def send_and_expect(serialPort, send, expect):
                 temp_log += temp_string
             waited_for_response += 1
             if waited_for_response > WAIT_FOR:
-                raise back_end.CommunicationError("No response")
+                raise back_end.ExpectedResponseNotFound("No response")
 
 
     return temp_log
 
 
+def test(database):
+    try:
+        #open port and make sure my program is running on the Arduino
+        with serial.Serial(PortName, 9600, timeout=5) as ser:
+            time.sleep(2)
+            string = ""
 
-try:
-    #open port and make sure my program is running on the Arduino
-    with serial.Serial(PortName, 9600, timeout=5) as ser:
-        time.sleep(2)
-        string = ""
+            string += send_and_expect(ser, "atm\n100\n", "100\n")
+            string += send_and_expect(ser, "42a\n", "42b\n")
 
-        string += send_and_expect(ser, "atm\n500\n", "500\n")
-        string += send_and_expect(ser, "42a\n", "42b\n")
+            
+            for _ in range(100):
+                time.sleep(SLEEP_TIME)
+                temp_string = read_chunk(ser)
+                if temp_string:
+                    string += temp_string
+        seperated = back_end.CountRateData.seperate_data(string)
+        database.update(seperated)
+    except Exception as e:
+        print('Caught Exeption of class "{}" with message of "{}"'.format(type(e),str(e)))
 
-        
-        for _ in range(100):
-            time.sleep(SLEEP_TIME)
-            temp_string = read_chunk(ser)
-            if temp_string:
-                string += temp_string
-    print(back_end.seperate_data(string))
-except Exception as e:
-    print('Caught Exeption of class "{}" with message of "{}"'.format(type(e),str(e)))
+back_end_data = back_end.CountRateData(back_end.CANAL_NAMES)
+for _ in range(10):
+    test(back_end_data)
+print(back_end_data)
+back_end_data.dump_to("./tmp.txt")
