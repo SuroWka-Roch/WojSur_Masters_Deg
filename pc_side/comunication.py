@@ -67,14 +67,14 @@ def send_and_expect(serialPort, send, expect):
     return temp_log
 
 
-def test(database):
+def test(database, akw_time):
     try:
         #open port and make sure my program is running on the Arduino
         with serial.Serial(PortName, 9600, timeout=5) as ser:
             time.sleep(2)
             string = ""
 
-            string += send_and_expect(ser, "atm\n100\n", "100\n")
+            string += send_and_expect(ser, "atm\n"+ str(akw_time) +"\n", str(akw_time) + "\n")
             string += send_and_expect(ser, "42a\n", "42b\n")
 
             
@@ -88,8 +88,8 @@ def test(database):
     except Exception as e:
         print('Caught Exeption of class "{}" with message of "{}"'.format(type(e),str(e)))
 
-back_end_data = back_end.CountRateData(back_end.CANAL_NAMES)
-for _ in range(10):
-    test(back_end_data)
+akw_time = 10
+back_end_data = back_end.CountRateData(back_end.CANAL_NAMES, akw_time)
+for _ in range(3):
+    test(back_end_data, akw_time)
 print(back_end_data)
-back_end_data.dump_to("./tmp.txt")

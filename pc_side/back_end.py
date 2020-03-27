@@ -1,4 +1,5 @@
 import json
+from numpy import average
 
 START_DATA = "<~+~>"
 STOP_DATA = "~<+>~"
@@ -9,9 +10,17 @@ class CountRateData:
     """ 
         @brief class holding whole structure for count rate data. 
     """
-    def __init__(self, canal_names):
+
+    def __init__(self, canal_names, akw_time):
+        """
+            @param canal_names list names of output canals has to be the same that controler gives
+            @param akw_time Create new object when changing akw_time 
+        """
+        self.akw_time = akw_time
         self.dataDict = {}
         self.canal_names = canal_names
+        self.nr_of_averages = 5
+
         for name in canal_names:
             self.dataDict[name] = [] #create empty list for each canal
 
@@ -59,6 +68,20 @@ class CountRateData:
     def dump_to(self, file_name):
         with open(file_name,"a") as JsonDumpFile:
             json.dump(self.dataDict, JsonDumpFile)
+
+    def data_for_plot(self):
+        y = []
+        for canal_name in self.canal_names:
+            data_len = self.nr_of_averages if len(self.dataDict[canal_name]) > self.nr_of_averages else len(self.dataDict[canal_name])
+            y.append( average( self.dataDict[canal_name][-data_len:] ))
+            
+
+        return self.canal_names, y
+
+    def change_nr_of_averages(self, new_number):
+        self.nr_of_averages = new_number
+
+    
 
     def __str__(self):
         return( str(self.dataDict) )

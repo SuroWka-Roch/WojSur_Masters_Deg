@@ -13,6 +13,7 @@
 #define AKW_TIME_MS_CODE "atm"
 #define START_CODE "srt"
 #define STOP_CODE "stp"
+#define CODE_STOPED_RESPONSE "fin"
 
 #define START_DATA "<~+~>"
 #define STOP_DATA "~<+>~"
