@@ -2,10 +2,14 @@ from PyQt5.QtWidgets import QFileDialog
 from PyQt5 import QtCore, QtWidgets
 import gui_module.fig as fig
 from gui_module.serialInfo import serial_ports
+from gui_module.configuration import CANAL_NAMES 
 
+def get_counter_list():
+    counter_list = []
+    for i in range(1,17):
+        exec("counter_list.append( ui.label_" + str(i) + ")")
 
 def setup_names(ui):
-    CANAL_NAMES = ["1A1","1A2","1A3","1A4","1A5","1A6","1A7","1A8","2A1","2A2","2A3","2A4","2A5","2A6","2A7","2A8"]
     for i in range(1,17):
         exec("ui.label_" + str(i) + ".setText('" + CANAL_NAMES[i-1] + "')")
 

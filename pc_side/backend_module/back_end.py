@@ -4,8 +4,6 @@ from numpy import average
 START_DATA = "<~+~>"
 STOP_DATA = "~<+>~"
 
-CANAL_NAMES = ["1A1","1A2","1A3","1A4","1A5","1A6","1A7","1A8","2A1","2A2","2A3","2A4","2A5","2A6","2A7","2A8"]
-
 class CountRateData:
     """ 
         @brief class holding whole structure for count rate data. 
@@ -85,7 +83,40 @@ class CountRateData:
 
     def __str__(self):
         return( str(self.dataDict) )
-    
+
+
+class ConfigurationData(object):
+    """
+    Holds configuration data
+    keys in dictionary:
+    akw_time, nr_of_averages, save_period, save_location, save_type, port_name
+    """
+
+    def __init__(self,akw_time, nr_of_averages, save_period, save_location, save_type, port_name):
+        self.empty = False
+        self.data = {}
+        self.data["akw_time"] = akw_time
+        self.data["nr_of_averages"] = nr_of_averages
+        self.data["save_period"] = save_period # in secends
+        self.data["save_location"] = save_location
+        self.data["save_type"] = save_type
+        self.data["port_name"] = port_name
+
+    def create_empty():
+        temp_obj = ConfigurationData(0,0,0,0,0,0)
+        temp_obj.empty = True
+        return temp_obj
+
+    def update_and_drop_diferances(self,next_iteration):
+        differences = []
+        for key in self.data:
+            if not self.data[key] == next_iteration.data[key]:
+                differences.append(key)
+                self.data[key] = next_iteration.data[key]
+        return differences
+
+    def __str__(self):
+        return( str(self.data) )
 
 ##########################################
 #Exceptions
