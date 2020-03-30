@@ -11,7 +11,7 @@ volatile unsigned int* multiplexerPointers[2];
 int pin_mask = 0B1111<<1; //PC0 is NC, data pins start at arduino pin 33 
 char received_buffer[RECEIVED_BUFFER_SIZE];
 char* command_pointer = received_buffer;
-int hibernation_flag = 0;
+int hibernation_flag = 1;
 int command_in_buffer_flag = 0;
 
 

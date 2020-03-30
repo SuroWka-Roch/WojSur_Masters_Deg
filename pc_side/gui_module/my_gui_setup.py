@@ -1,0 +1,45 @@
+from PyQt5.QtWidgets import QFileDialog
+from PyQt5 import QtCore, QtWidgets
+import gui_module.fig as fig
+from gui_module.serialInfo import serial_ports
+
+
+def setup_names(ui):
+    CANAL_NAMES = ["1A1","1A2","1A3","1A4","1A5","1A6","1A7","1A8","2A1","2A2","2A3","2A4","2A5","2A6","2A7","2A8"]
+    for i in range(1,17):
+        exec("ui.label_" + str(i) + ".setText('" + CANAL_NAMES[i-1] + "')")
+
+def fileselect():
+    return QFileDialog.getExistingDirectory()
+
+def set_conf_file_loc(ui):
+    ui.lineEdit_conf_data_loc.setText(fileselect())
+
+def set_ss_file_loc(ui):
+    ui.lineEdit_ss_file_loc.setText(fileselect())
+
+def my_setup(ui):
+    setup_names(ui)
+    ui.toolButton_conf_log_file_location.clicked.connect(lambda: set_conf_file_loc(ui))
+    ui.toolButton_ss_save_loc.clicked.connect(lambda: set_ss_file_loc(ui))
+    insert_plot(ui)
+    set_port_combobox(ui)
+    ui.pushButton_conf_reset_port_list.clicked.connect(lambda :set_port_combobox(ui))
+
+def set_port_combobox(ui):
+    portlist = serial_ports()
+    ui.comboBox_conf_Port_name.clear()
+
+    if portlist:
+        for port_name in portlist:
+            ui.comboBox_conf_Port_name.addItem(port_name)
+    else:
+        ui.comboBox_conf_Port_name.addItem("Not connected")
+
+def insert_plot(ui):
+    ss_fig = fig.MyStaticMplCanvas(ui.frame_vis_fig, width=5, height=4, dpi=100)
+    vis_fig = fig.MyDynamicMplCanvas(ui.Put_fig_here_OneShot, width=5, height=4, dpi=100)
+    ui.grid_vis_fig.addWidget(vis_fig)
+    ui.grid_ss_fig.addWidget(ss_fig)
+
+

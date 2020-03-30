@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="Configuration">
        <attribute name="title">
@@ -242,6 +242,13 @@
           <item row="6" column="3">
            <widget class="QComboBox" name="comboBox_conf_Port_name"/>
           </item>
+          <item row="6" column="2">
+           <widget class="QPushButton" name="pushButton_conf_reset_port_list">
+            <property name="text">
+             <string>Reset ports list</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
@@ -436,7 +443,7 @@
          </spacer>
         </item>
         <item row="0" column="0" colspan="2">
-         <widget class="QFrame" name="frame">
+         <widget class="QFrame" name="frame_vis_fig">
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
           </property>
@@ -445,7 +452,7 @@
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
-            <widget class="QWidget" name="Put_fig_here" native="true"/>
+            <layout class="QGridLayout" name="grid_vis_fig"/>
            </item>
           </layout>
          </widget>
@@ -474,6 +481,11 @@
             <property name="frameShadow">
              <enum>QFrame::Raised</enum>
             </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <layout class="QGridLayout" name="grid_ss_fig"/>
+             </item>
+            </layout>
            </widget>
           </item>
           <item row="3" column="2">

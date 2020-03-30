@@ -1,5 +1,4 @@
 pyserial
 pyqt5
 matplotlib
-json
 numpy

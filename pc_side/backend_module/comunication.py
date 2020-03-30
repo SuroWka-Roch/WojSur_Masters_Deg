@@ -1,8 +1,8 @@
 #!/usr/bin/env python3.7
 
 
-from serialInfo import serial_ports
-import back_end
+from backend_module.serialInfo import serial_ports
+import backend_module.back_end as back_end
 import serial
 import time
 import re
@@ -74,6 +74,8 @@ def test(database, akw_time):
             time.sleep(2)
             string = ""
 
+
+            string += send_and_expect(ser, "srt\n", None)
             string += send_and_expect(ser, "atm\n"+ str(akw_time) +"\n", str(akw_time) + "\n")
             string += send_and_expect(ser, "42a\n", "42b\n")
 
@@ -88,8 +90,13 @@ def test(database, akw_time):
     except Exception as e:
         print('Caught Exeption of class "{}" with message of "{}"'.format(type(e),str(e)))
 
-akw_time = 10
-back_end_data = back_end.CountRateData(back_end.CANAL_NAMES, akw_time)
-for _ in range(3):
-    test(back_end_data, akw_time)
-print(back_end_data)
+
+def high_test():
+    akw_time = 10
+    back_end_data = back_end.CountRateData(back_end.CANAL_NAMES, akw_time)
+    for _ in range(3):
+        test(back_end_data, akw_time)
+    print(back_end_data)
+
+if __name__ == "__main__":
+    print("Running back end module independenty")
