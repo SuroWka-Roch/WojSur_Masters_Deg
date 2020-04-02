@@ -1,8 +1,14 @@
 import json
 from numpy import average
+import threading
 
-START_DATA = "<~+~>"
-STOP_DATA = "~<+>~"
+import backend_module.configuration
+
+from backend_module.configuration import START_DATA
+from backend_module.configuration import STOP_DATA
+
+import serial
+
 
 class CountRateData:
     """ 
@@ -114,9 +120,42 @@ class ConfigurationData(object):
                 differences.append(key)
                 self.data[key] = next_iteration.data[key]
         return differences
+    
+    def __getitem__(self, item):
+        return self.data[item]
 
     def __str__(self):
         return( str(self.data) )
+
+class rawLogClass():
+    def __init__(self):
+        self.log_string = ""
+        self.new_info_pointer = 0
+        self.lock = threading.RLock()
+
+    def write(self, msg):
+        self.lock.acquire()
+        self.log_string += msg
+        self.lock.release()
+
+    def return_chunk(self):
+        temp_string = None
+        self.lock.acquire()
+        temp_string = self.log_string[self.new_info_pointer:]
+        self.new_info_pointer = len(self.log_string)
+        self.lock.release()
+        return temp_string
+
+    def __str__(self):
+        return self.log_string
+
+class port(serial.Serial):
+     
+    def __init__(self):
+        self = serial.Serial()
+
+    def update(self, port):
+        self = port
 
 ##########################################
 #Exceptions
