@@ -9,7 +9,7 @@
 #define READY_TO_READ "Ready to read\n"
 #define HANSHAKE_CONFIRM_REQUEST_CODE "42a"
 #define HANSHAKE_CONFIRMATION_CODE "42b"
-#define CHOOSE_MULTIPLEXER_CODE "cmx"
+#define CHOOSE_MULTIPLEXER_CODE "cmx" // absolute 
 #define AKW_TIME_MS_CODE "atm"
 #define START_CODE "srt"
 #define STOP_CODE "stp"

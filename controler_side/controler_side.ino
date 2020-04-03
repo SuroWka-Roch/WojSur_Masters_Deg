@@ -196,6 +196,7 @@ void analyze_command(){
 
   if(!strcmp( received_buffer, STOP_CODE)){
     Serial.print(CODE_STOPED_RESPONSE);
+    Serial.print(COMAND_ENDING_CONST);
     hibernation_flag = true;
   }else{
     

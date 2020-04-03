@@ -49,7 +49,6 @@ def send_and_expect(serialPort, send, expect):
     serialPort.write(COMAND_ENDING_CONST.encode(encoding='utf-8'))
 
     send += COMAND_ENDING_CONST
-    expect += COMAND_ENDING_CONST
 
     waited_for_response = 0
     reg = re.compile(READY_TO_READ)
@@ -65,6 +64,7 @@ def send_and_expect(serialPort, send, expect):
     serialPort.write(send.encode(encoding='utf-8'))
 
     if expect:
+        expect += COMAND_ENDING_CONST
         waited_for_response = 0
         reg = re.compile(expect)
         while not reg.search(temp_log):
@@ -132,7 +132,17 @@ def try_port(Port_name, SerialObject):
         print(type(e))
         raise e
         
+def start(serial_port, log):
+    if not serial_port.is_open:
+        serial_port.open()
+    
+    log.write(send_and_expect(serial_port,START_CODE, None))
 
+def stop(serial_port, log):
+    if not serial_port.is_open:
+        serial_port.open()
+    
+    log.write(send_and_expect(serial_port, STOP_CODE, CODE_STOPED_RESPONSE))
 
 def configure_all(serial_port, configuration, log):
     if not serial_port.is_open:
@@ -141,11 +151,5 @@ def configure_all(serial_port, configuration, log):
     log.write(send_and_expect(serial_port, AKW_TIME_MS_CODE + '\n' + 
                               str(configuration["akw_time"]), str(configuration["akw_time"])))
 
-def start(serial_port,log):
-    log.write(send_and_expect(serial_port, START_CODE
-                              , None))
-
-def stop(serial_port, log):
-    log.write(send_and_expect(serial_port, STOP_CODE, CODE_STOPED_RESPONSE))
 if __name__ == "__main__":
     pass

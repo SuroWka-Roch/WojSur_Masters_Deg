@@ -1,3 +1,7 @@
+"""
+Header like file with all static defines.
+"""
+
 START_DATA = "<~+~>"
 STOP_DATA = "~<+>~"
 
@@ -18,4 +22,8 @@ START_CODE = "srt"
 STOP_CODE = "stp"
 
 SLEEP_TIME = 0.01
-WAIT_FOR = 1000
+WAIT_FOR = 100
+
+REPEAT_FOR =3
+
+DEAMON_LOOP_COUNT = 50

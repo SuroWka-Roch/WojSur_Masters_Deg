@@ -6,6 +6,12 @@ import backend_module.configuration
 
 from backend_module.configuration import START_DATA
 from backend_module.configuration import STOP_DATA
+from backend_module.configuration import SLEEP_TIME, DEAMON_LOOP_COUNT
+
+
+import backend_module.comunication
+
+import time
 
 import serial
 
@@ -18,29 +24,31 @@ class CountRateData:
     def __init__(self, canal_names, akw_time):
         """
             @param canal_names list names of output canals has to be the same that controler gives
-            @param akw_time Create new object when changing akw_time 
+            @param ak1000w_time Create new object when changing akw_time 
         """
+        self.lock = threading.RLock()
         self.akw_time = akw_time
         self.dataDict = {}
         self.canal_names = canal_names
-        self.nr_of_averages = 5
+        self.nr_of_averages = 1
 
         for name in canal_names:
-            self.dataDict[name] = [] #create empty list for each canal
+            self.dataDict[name] = []  # create empty list for each canal
 
     def update(self, seperated_data):
         if type(seperated_data[0]) is not type(""):
             pass
         else:
-            for string in seperated_data:
-                split_canal = string.split("\n")
-                try:
-                    for canal_name, data in [(x.split("\t")[0],x.split("\t")[1]) for x in split_canal]:
-                        if canal_name in self.canal_names:
-                            self.dataDict[canal_name].append( int(data) )
-                except IndexError as e:
-                    print(str(e))
-                    continue
+            with self.lock:
+                for string in seperated_data:
+                    split_canal = string.split("\n")
+                    try:
+                        for canal_name, data in [(x.split("\t")[0], x.split("\t")[1]) for x in split_canal]:
+                            if canal_name in self.canal_names:
+                                self.dataDict[canal_name].append(int(data))
+                    except IndexError as e:
+                        print(str(e))
+                        continue
 
     @staticmethod
     def seperate_data(string_log):
@@ -57,38 +65,45 @@ class CountRateData:
         chunk_end = 0
         while 1:
             moving_pointer = string_log.find(START_DATA, moving_pointer)
-            chunk_end = string_log.find(STOP_DATA,moving_pointer)
+            chunk_end = string_log.find(STOP_DATA, moving_pointer)
 
             if moving_pointer == -1 or chunk_end == -1:
                 break
 
             chunk_end += ending_len
 
-            seperated_data.append(string_log[moving_pointer+starting_len+1 :
-                                                    chunk_end-ending_len-1])
+            seperated_data.append(string_log[moving_pointer+starting_len+1:
+                                             chunk_end-ending_len-1])
             moving_pointer = chunk_end
         return seperated_data
 
     def dump_to(self, file_name):
-        with open(file_name,"a") as JsonDumpFile:
-            json.dump(self.dataDict, JsonDumpFile)
+        with self.lock:
+            with open(file_name, "a") as JsonDumpFile:
+                json.dump(self.dataDict, JsonDumpFile)
 
-    def data_for_plot(self):
+    def data_for_plot_ss(self):
         y = []
         for canal_name in self.canal_names:
-            data_len = self.nr_of_averages if len(self.dataDict[canal_name]) > self.nr_of_averages else len(self.dataDict[canal_name])
-            y.append( average( self.dataDict[canal_name][-data_len:] ))
-            
+            data_len = self.nr_of_averages if len(
+                self.dataDict[canal_name]) > self.nr_of_averages else len(self.dataDict[canal_name])
+            y.append(average(self.dataDict[canal_name][-data_len:]))
 
         return self.canal_names, y
 
     def change_nr_of_averages(self, new_number):
-        self.nr_of_averages = new_number
+        with self.lock:
+            self.nr_of_averages = new_number
 
-    
+    def clear(self, file_name="exit_data"):
+        self.dump_to(file_name)
+        with self.lock:
+            self.dataDict = {}
+            for name in self.canal_names:
+                self.dataDict[name] = []  # create empty list for each canal
 
     def __str__(self):
-        return( str(self.dataDict) )
+        return(str(self.dataDict))
 
 
 class ConfigurationData(object):
@@ -98,34 +113,35 @@ class ConfigurationData(object):
     akw_time, nr_of_averages, save_period, save_location, save_type, port_name
     """
 
-    def __init__(self,akw_time, nr_of_averages, save_period, save_location, save_type, port_name):
+    def __init__(self, akw_time, nr_of_averages, save_period, save_location, save_type, port_name):
         self.empty = False
         self.data = {}
         self.data["akw_time"] = akw_time
         self.data["nr_of_averages"] = nr_of_averages
-        self.data["save_period"] = save_period # in secends
+        self.data["save_period"] = save_period  # in secends
         self.data["save_location"] = save_location
         self.data["save_type"] = save_type
         self.data["port_name"] = port_name
 
     def create_empty():
-        temp_obj = ConfigurationData(0,0,0,0,0,0)
+        temp_obj = ConfigurationData(0, 0, 0, 0, 0, 0)
         temp_obj.empty = True
         return temp_obj
 
-    def update_and_drop_diferances(self,next_iteration):
+    def update_and_drop_diferances(self, next_iteration):
         differences = []
         for key in self.data:
             if not self.data[key] == next_iteration.data[key]:
                 differences.append(key)
                 self.data[key] = next_iteration.data[key]
         return differences
-    
+
     def __getitem__(self, item):
         return self.data[item]
 
     def __str__(self):
-        return( str(self.data) )
+        return(str(self.data))
+
 
 class rawLogClass():
     def __init__(self):
@@ -149,13 +165,22 @@ class rawLogClass():
     def __str__(self):
         return self.log_string
 
-class port(serial.Serial):
-     
-    def __init__(self):
-        self = serial.Serial()
+#############################################
+#functions
+def back_end_deamon(count_rate_data, semaphore,log, serial_port):
+    while True:
+        time.sleep(SLEEP_TIME)
+        if serial_port.is_open:
+            string = ""
+            for _ in range(DEAMON_LOOP_COUNT):
+                with semaphore:
+                    time.sleep(SLEEP_TIME)
+                    temp_string = backend_module.comunication.read_chunk(serial_port)
+                    if temp_string:
+                        string += temp_string
+            log.write(string)
 
-    def update(self, port):
-        self = port
+
 
 ##########################################
 #Exceptions
@@ -165,22 +190,22 @@ class CommunicationError(Exception):
     def __init__(self, arg):
         self.value = arg
 
-    def __str__(self): 
-        return( str(self.value)) 
+    def __str__(self):
+        return(str(self.value))
+
 
 class NoReadyToResponse(CommunicationError):
     def __init__(self, arg):
         self.value = arg
 
-    def __str__(self): 
-        return( str(self.value)) 
+    def __str__(self):
+        return(str(self.value))
+
 
 class ExpectedResponseNotFound(CommunicationError):
     def __init__(self, arg):
         self.value = arg
 
-    def __str__(self): 
-        return( str(self.value)) 
-
-
+    def __str__(self):
+        return(str(self.value))
 
