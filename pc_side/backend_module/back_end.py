@@ -1,4 +1,5 @@
 import json
+import csv
 from numpy import average
 import threading
 
@@ -49,6 +50,8 @@ class CountRateData:
                     except IndexError as e:
                         print(str(e))
                         continue
+                    except ValueError as e:
+                        print(str(e))
 
     @staticmethod
     def seperate_data(string_log):
@@ -75,12 +78,22 @@ class CountRateData:
             seperated_data.append(string_log[moving_pointer+starting_len+1:
                                              chunk_end-ending_len-1])
             moving_pointer = chunk_end
-        return seperated_data
+        return seperated_data, (moving_pointer - starting_len)
 
-    def dump_to(self, file_name):
+    def JSON_dump_to(self, file_name):
         with self.lock:
             with open(file_name, "a") as JsonDumpFile:
                 json.dump(self.dataDict, JsonDumpFile)
+
+    def CSV_dump_to(self, file_name):
+        with self.lock:
+            with open(file_name, 'a') as CSV_dump_file:
+                writer = csv.writer(CSV_dump_file)
+                writer.writerow(self.canal_names)
+                for len in range(self._shortest()):
+                    line = [self.dataDict[key][len]
+                            for key in self.canal_names]
+                    writer.writerow(line)
 
     def data_for_plot_ss(self):
         y = []
@@ -91,16 +104,34 @@ class CountRateData:
 
         return self.canal_names, y
 
+    def _shortest(self):
+        short = min([len(self.dataDict[key]) for key in self.dataDict.keys()])
+        return short
+
     def change_nr_of_averages(self, new_number):
         with self.lock:
             self.nr_of_averages = new_number
 
+    def last_values(self):
+        with self.lock:
+            try:
+                values = [self.dataDict[key][-1] for key in self.canal_names]
+                return values
+            except IndexError as e:
+                return [-1 for _ in range(16)]
+
     def clear(self, file_name="exit_data"):
-        self.dump_to(file_name)
         with self.lock:
             self.dataDict = {}
             for name in self.canal_names:
                 self.dataDict[name] = []  # create empty list for each canal
+
+    def set_akw_time(self, time):
+        with self.lock:
+            self.akw_time = time
+
+    def __getitem__(self, item):
+        return self.dataDict[item]
 
     def __str__(self):
         return(str(self.dataDict))
@@ -129,6 +160,7 @@ class ConfigurationData(object):
         return temp_obj
 
     def update_and_drop_diferances(self, next_iteration):
+        self.empty = False
         differences = []
         for key in self.data:
             if not self.data[key] == next_iteration.data[key]:
@@ -154,6 +186,10 @@ class rawLogClass():
         self.log_string += msg
         self.lock.release()
 
+    def set_pointer(self, new_place):
+        with self.lock:
+            self.new_info_pointer = new_place
+
     def return_chunk(self):
         temp_string = None
         self.lock.acquire()
@@ -167,7 +203,9 @@ class rawLogClass():
 
 #############################################
 #functions
-def back_end_deamon(count_rate_data, semaphore,log, serial_port):
+
+
+def back_end_deamon(count_rate_data, semaphore, log, serial_port):
     while True:
         time.sleep(SLEEP_TIME)
         if serial_port.is_open:
@@ -175,11 +213,11 @@ def back_end_deamon(count_rate_data, semaphore,log, serial_port):
             for _ in range(DEAMON_LOOP_COUNT):
                 with semaphore:
                     time.sleep(SLEEP_TIME)
-                    temp_string = backend_module.comunication.read_chunk(serial_port)
+                    temp_string = backend_module.comunication.read_chunk(
+                        serial_port)
                     if temp_string:
                         string += temp_string
             log.write(string)
-
 
 
 ##########################################
@@ -208,4 +246,3 @@ class ExpectedResponseNotFound(CommunicationError):
 
     def __str__(self):
         return(str(self.value))
-
