@@ -195,7 +195,7 @@ def run_window():
     app.exec()
 
     #clean up
-    save_data(count_data, current_configuration_data)
+    save_data(count_data, current_configuration_data, silence=True)
 
 
 def raw_data_function(count_data, displays):
@@ -211,19 +211,29 @@ def ensure_dir(file_path):
         os.makedirs(directory)
 
 
-def save_data(count_data, current_configuration_data):
-    if current_configuration_data.empty:
+def save_data(count_data, current_configuration_data, silence = False):
+    if current_configuration_data.empty and not silence:
         popup_window("Set configuration before saving")
         return
     now = datetime.now()
-    directory = os.path.join(
-        current_configuration_data["save_location"], now.strftime("%d-%m-%Y"))
     file_name = now.strftime("%H:%M ")
-    file_name += str(current_configuration_data["akw_time"]) + "[ms]"
+
+
+
+
+
+    if silence and current_configuration_data.empty:
+        directory = os.path.join(".", "panic data dump", now.strftime("%d-%m-%Y"))
+        file_save_type = "JSON"
+    else:
+        directory = os.path.join(
+            current_configuration_data["save_location"], now.strftime("%d-%m-%Y"))
+        file_save_type = current_configuration_data["save_type"]
+        file_name += str(current_configuration_data["akw_time"]) + "[ms]"
     file_path = os.path.join(directory, file_name)
     ensure_dir(file_path)
 
-    if current_configuration_data["save_type"] == "JSON":
+    if file_save_type == "JSON":
         file_path += ".JSON"
         count_data.JSON_dump_to(file_path)
     else:
