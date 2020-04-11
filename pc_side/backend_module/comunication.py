@@ -119,7 +119,9 @@ def try_port(Port_name, SerialObject):
     SerialObject.port = Port_name
     SerialObject.timeout = 5
     SerialObject.baudrate = SERIAL_SPEED
-    
+    SerialObject.xonxoff = True
+    SerialObject.rtscts =  True
+    SerialObject.dsrdtr =  True
 
     try:
         if not SerialObject.is_open:

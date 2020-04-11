@@ -4,7 +4,7 @@ import sys
 import logging
 from PyQt5 import QtWidgets, QtCore
 
-from serial import SerialException
+from serial import SerialException, serialutil
 from serial import Serial
 
 import time
@@ -72,6 +72,10 @@ def comunication_function_hendler_funtion(fun, silence=False):
                 'Bad response from arduino. Make sure right program is running on controler.')
         return False
 
+    except serialutil.SerialException as e:
+        if not silence:
+            popup_window("resorce busy wait a moment and try again")
+
     except Exception as e:
         if not silence:
             popup_window('exeption with message of {}'.format(str(e)))
@@ -120,10 +124,15 @@ def connect_backend(ui, current_configuration_data, serial_port, log, semaphore,
     ui.pushButton_conf_Force_save.clicked.connect(
         lambda: save_data(count_data, current_configuration_data))
 
+    ui.checkBox_vis_logscale.stateChanged.connect(lambda: change_log_scale_vis(current_configuration_data))
+
+
+def change_log_scale_vis(current_configuration_data):
+    current_configuration_data["vis_log_scale"] = not current_configuration_data["vis_log_scale"]
 
 def start_buttom_function(ui, current_configuration_data, count_data, semaphore, serial_port, log, save_data_timer):
-    if current_configuration_data.empty:
-        configuration_buttom_func(ui, current_configuration_data,
+    # if current_configuration_data.empty:
+    configuration_buttom_func(ui, current_configuration_data,
                                   serial_port, log, semaphore, count_data, save_data_timer)
     with semaphore:
         for tries in range(REPEAT_FOR):
@@ -154,7 +163,8 @@ def update_count_data(count_data, log):
 def run_window():
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
-    ui = gui_module.gui.Ui_MainWindow()
+    # ui = gui_module.gui.Ui_MainWindow()
+    ui = gui_module.fig.MyWindowWithFig()
     ui.setupUi(MainWindow)
     gui_module.my_gui_setup.my_setup(ui)
 
@@ -175,12 +185,16 @@ def run_window():
     update_count_data_timer = QtCore.QTimer()
     update_count_data_timer.timeout.connect(
         lambda: update_count_data(count_data, log))
-    update_count_data_timer.start(3000)
+    update_count_data_timer.start(1000)
 
     save_data_timer = QtCore.QTimer()
     save_data_timer.timeout.connect(lambda: save_data(
         count_data, current_configuration_data))
     save_data_timer.start(600 * 1000)
+
+    update_vis_timer = QtCore.QTimer()
+    update_vis_timer.timeout.connect(lambda: update_figure(ui, count_data, current_configuration_data))
+    update_vis_timer.start(gui_module.configuration.GUI_UPDATE_PERIOD_MS)
 
     displays = gui_module.my_gui_setup.get_digital_numbers(ui)
     update_displays_timer = QtCore.QTimer()
@@ -196,7 +210,8 @@ def run_window():
 
     #clean up
     save_data(count_data, current_configuration_data, silence=True)
-
+    with open("./log.txt", "w") as log_file:
+        log_file.write(str(log))
 
 def raw_data_function(count_data, displays):
     values = count_data.last_values()
@@ -217,10 +232,6 @@ def save_data(count_data, current_configuration_data, silence = False):
         return
     now = datetime.now()
     file_name = now.strftime("%H:%M ")
-
-
-
-
 
     if silence and current_configuration_data.empty:
         directory = os.path.join(".", "panic data dump", now.strftime("%d-%m-%Y"))
@@ -243,6 +254,12 @@ def save_data(count_data, current_configuration_data, silence = False):
     count_data.clear()
     logger.info("file saved")
 
+def update_figure(ui, count_rate_data, current_configuration_data):
+    labels, x, y = count_rate_data.data_for_plot()
+    if labels == None:
+        return
+
+    ui.vis_fig.update_figure(labels,x,y,log_scale= current_configuration_data["vis_log_scale"])
 
 def create_backend_deamon(count_rate_data, semaphore, log, serial_port):
     thread = threading.Thread(target=back_end_deamon, args=(

@@ -27,27 +27,32 @@ from PyQt5 import QtCore, QtWidgets
 from numpy import arange, sin, pi
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 progname = os.path.basename(sys.argv[0])
 progversion = "0.1"
+
+import gui_module.gui
 
 
 class MyMplCanvas(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
 
         self.compute_initial_figure()
 
-        FigureCanvas.__init__(self, fig)
+        FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
 
         FigureCanvas.setSizePolicy(self,
                                    QtWidgets.QSizePolicy.Expanding,
                                    QtWidgets.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
+
+        self.fig.set_label("plis")
 
     def compute_initial_figure(self):
         pass
@@ -67,16 +72,37 @@ class MyDynamicMplCanvas(MyMplCanvas):
 
     def __init__(self, *args, **kwargs):
         MyMplCanvas.__init__(self, *args, **kwargs)
-        timer = QtCore.QTimer(self)
-        timer.timeout.connect(self.update_figure)
-        timer.start(1000)
 
     def compute_initial_figure(self):
-        self.axes.plot([0, 1, 2, 3], [1, 2, 0, 4], 'r')
+        self.axes.plot([0], [0], 'r')
+        self.axes.text(-0.01,0, "Waiting for data")
+        self.axes.set_xlabel("Relative time [s]")
+        self.axes.set_ylabel("Count rate [Hz]")
 
-    def update_figure(self):
-        # Build a list ofadfaadsafsadfasdfasd 4 random integers between 0 and 10 (both inclusive)
-        l = [random.randint(0, 10) for i in range(4)]
+    def update_figure(self, labels, x, list_of_y, log_scale = False):
         self.axes.cla()
-        self.axes.plot([0, 1, 2, 3], l, 'r')
+        self.axes.set_xlabel("Relative time [s]")
+        self.axes.set_ylabel("Count rate [Hz]")
+        if log_scale:
+            self.axes.set_yscale("log")
+        for label, y in zip(labels, list_of_y):
+            self.axes.plot(x,y,label = label)
+        self.axes.legend(loc =  2)
         self.draw()
+
+
+class MyWindowWithFig(gui_module.gui.Ui_MainWindow):
+    def __init__(self):
+        super().__init__()
+        self.ss_fig = None
+        self.vis_fig = None
+
+
+    def setupUi(self, MainWindow):
+        super().setupUi(MainWindow)
+        self.ss_fig = MyStaticMplCanvas(
+            self.frame_vis_fig, width=5, height=4, dpi=100)
+        self.vis_fig = MyDynamicMplCanvas(
+            self.Put_fig_here_OneShot, width=5, height=4, dpi=100)
+        self.grid_vis_fig.addWidget(self.vis_fig)
+        self.grid_ss_fig.addWidget(self.ss_fig)

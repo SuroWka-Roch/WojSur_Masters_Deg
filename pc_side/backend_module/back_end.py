@@ -7,7 +7,7 @@ import backend_module.configuration
 
 from backend_module.configuration import START_DATA
 from backend_module.configuration import STOP_DATA
-from backend_module.configuration import SLEEP_TIME, DEAMON_LOOP_COUNT
+from backend_module.configuration import SLEEP_TIME, DEAMON_LOOP_COUNT, COMUNICATION_TIME_MS
 
 
 import backend_module.comunication
@@ -95,14 +95,19 @@ class CountRateData:
                             for key in self.canal_names]
                     writer.writerow(line)
 
-    def data_for_plot_ss(self):
+    def data_for_plot(self):
+        len = self._shortest()
+        if self.akw_time == None or len == 0:
+            return None, None, None
+        time_per_step = self.akw_time * 2 + COMUNICATION_TIME_MS
+        x = [x * time_per_step * 0.001 for x in range(-len+1, 1)]
         y = []
-        for canal_name in self.canal_names:
-            data_len = self.nr_of_averages if len(
-                self.dataDict[canal_name]) > self.nr_of_averages else len(self.dataDict[canal_name])
-            y.append(average(self.dataDict[canal_name][-data_len:]))
+        with self.lock:
+            for canal in self.canal_names:
+                y.append([x/(self.akw_time/1000) for x in self.dataDict[canal][-len:]])
 
-        return self.canal_names, y
+        return self.canal_names, x, y
+
 
     def _shortest(self):
         short = min([len(self.dataDict[key]) for key in self.dataDict.keys()])
@@ -115,7 +120,7 @@ class CountRateData:
     def last_values(self):
         with self.lock:
             try:
-                values = [self.dataDict[key][-1] for key in self.canal_names]
+                values = [self.dataDict[key][-1]/(self.akw_time/1000) for key in self.canal_names]
                 return values
             except IndexError as e:
                 return [-1 for _ in range(16)]
@@ -137,6 +142,26 @@ class CountRateData:
         return(str(self.dataDict))
 
 
+def count_rate_data_single_shot(count_rate_data):
+
+    def ready(self):
+        for value in self.dataDict.values():
+            if not value:
+                break
+        else:
+            return True
+
+        return False
+
+    def data_for_plot_ss(self):
+        y = []
+        with self.lock:
+            for canal_name in self.canal_names:
+                y.append((self.dataDict[canal_name][-1]))
+
+        return self.canal_names, y
+
+
 class ConfigurationData(object):
     """
     Holds configuration data
@@ -153,6 +178,7 @@ class ConfigurationData(object):
         self.data["save_location"] = save_location
         self.data["save_type"] = save_type
         self.data["port_name"] = port_name
+        self.data["vis_log_scale"] = False
 
     def create_empty():
         temp_obj = ConfigurationData(0, 0, 0, 0, 0, 0)
@@ -170,6 +196,9 @@ class ConfigurationData(object):
 
     def __getitem__(self, item):
         return self.data[item]
+
+    def __setitem__(self,key,item):
+        self.data[key] =  item
 
     def __str__(self):
         return(str(self.data))

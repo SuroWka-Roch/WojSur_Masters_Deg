@@ -35,7 +35,7 @@ def my_setup(ui):
     ui.toolButton_conf_log_file_location.clicked.connect(
         lambda: set_conf_file_loc(ui))
     ui.toolButton_ss_save_loc.clicked.connect(lambda: set_ss_file_loc(ui))
-    insert_plot(ui)
+    # insert_plot(ui)
     set_port_combobox(ui)
     ui.pushButton_conf_reset_port_list.clicked.connect(
         lambda: set_port_combobox(ui))
