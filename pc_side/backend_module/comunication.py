@@ -153,5 +153,12 @@ def configure_all(serial_port, configuration, log):
     log.write(send_and_expect(serial_port, AKW_TIME_MS_CODE + '\n' + 
                               str(configuration["akw_time"]), str(configuration["akw_time"])))
 
+def set_akw_time(serial_port, akw_time, log):
+    if not serial_port.is_open:
+        serial_port.open()
+
+    log.write(send_and_expect(serial_port, AKW_TIME_MS_CODE + '\n' + 
+                              str(akw_time), str(akw_time)))
+
 if __name__ == "__main__":
     pass

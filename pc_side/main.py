@@ -22,9 +22,10 @@ import backend_module.comunication
 from backend_module.back_end import ConfigurationData
 from copy import deepcopy
 
-from backend_module.back_end import CountRateData, rawLogClass, back_end_deamon
+from backend_module.back_end import CountRateData, rawLogClass, back_end_deamon, CountRateDataSingleShoot
 from backend_module.back_end import ExpectedResponseNotFound, NoReadyToResponse, CommunicationError
-from backend_module.configuration import REPEAT_FOR
+from backend_module.back_end import update_count_data
+from backend_module.configuration import REPEAT_FOR, DEAMON_LOOP_COUNT, SLEEP_TIME
 
 from datetime import datetime
 
@@ -90,7 +91,7 @@ def try_port(SerialPort, current_configuration_data, silence=False):
 
 
 def configuration_buttom_func(ui, current_configuration_data, serial_port, log, semaphore, count_data, save_data_timer):
-    get_vis_configuration_info(ui, current_configuration_data)
+    get_vis_configuration_info(ui, current_configuration_data, count_data)
     count_data.set_akw_time(current_configuration_data["akw_time"])
     save_data_timer.setInterval(
         current_configuration_data["save_period"] * 1000)
@@ -124,16 +125,54 @@ def connect_backend(ui, current_configuration_data, serial_port, log, semaphore,
     ui.pushButton_conf_Force_save.clicked.connect(
         lambda: save_data(count_data, current_configuration_data))
 
-    ui.checkBox_vis_logscale.stateChanged.connect(lambda: change_log_scale_vis(current_configuration_data))
+    ui.checkBox_vis_logscale.stateChanged.connect(
+        lambda: change_log_scale_vis(current_configuration_data))
+
+    ui.checkBox_logscale_OneShot.stateChanged.connect(ui.ss_fig.change_scale)
+
+    ui.pushButton_ss_run.clicked.connect(lambda: ss_run_buttom_function(
+        ui, serial_port, log, semaphore, current_configuration_data, count_data, save_data_timer))
+
+
+def ss_run_buttom_function(ui, serial_port, log, port_semaphore, current_configuration_data, count_data, save_data_timer):
+    if current_configuration_data.empty:
+        configuration_buttom_func(ui, current_configuration_data,
+                                  serial_port, log, port_semaphore, count_data, save_data_timer)
+
+    stop_buttom_function(port_semaphore, serial_port,
+                         current_configuration_data, log)
+
+    save_location, akw_time = get_SingleShot_configuration_info(ui)
+
+    ss_count_data = CountRateDataSingleShoot(CANAL_NAMES, akw_time)
+
+    if "SS_deamon" in [thread.getName() for thread in threading.enumerate()]:
+        popup_window("Wait for previous run to end")
+        return
+
+    SS_thread = threading.Thread(target=SS_deamon, args=(
+        ui, serial_port, port_semaphore, log, ss_count_data), name=SS_deamon, daemon=True)
+
+    SS_thread.start()
+
+
+
+def SS_deamon(ui, serial_port, port_semaphore, log, ss_count_data):
+    backend_module.back_end.get_ss_mesurement(
+        serial_port, port_semaphore, log, ss_count_data)
+    ui.ss_fig.update_figure(CANAL_NAMES,ss_count_data.data_for_plot())
+    logger.debug("Single Shot result for canals of:\n{}\n{}".format(
+        CANAL_NAMES, ss_count_data.data_for_plot()))
 
 
 def change_log_scale_vis(current_configuration_data):
     current_configuration_data["vis_log_scale"] = not current_configuration_data["vis_log_scale"]
 
+
 def start_buttom_function(ui, current_configuration_data, count_data, semaphore, serial_port, log, save_data_timer):
     # if current_configuration_data.empty:
     configuration_buttom_func(ui, current_configuration_data,
-                                  serial_port, log, semaphore, count_data, save_data_timer)
+                              serial_port, log, semaphore, count_data, save_data_timer)
     with semaphore:
         for tries in range(REPEAT_FOR):
             if comunication_function_hendler_funtion(lambda: backend_module.comunication.start(serial_port, log), silence=True if not tries == REPEAT_FOR - 1 else False):
@@ -150,14 +189,6 @@ def stop_buttom_function(semaphore, serial_port, current_configuration_data, log
             if comunication_function_hendler_funtion(lambda: backend_module.comunication.stop(serial_port, log), silence=True if not tries == REPEAT_FOR - 1 else False):
                 break
     logger.info("stoped mesurement")
-
-
-def update_count_data(count_data, log):
-    log_chunk = log.return_chunk()
-    data, end_pointer = CountRateData.seperate_data(log_chunk)
-    if data:
-        count_data.update(data)
-        log.set_pointer(end_pointer)
 
 
 def run_window():
@@ -193,7 +224,8 @@ def run_window():
     save_data_timer.start(600 * 1000)
 
     update_vis_timer = QtCore.QTimer()
-    update_vis_timer.timeout.connect(lambda: update_figure(ui, count_data, current_configuration_data))
+    update_vis_timer.timeout.connect(lambda: update_figure(
+        ui, count_data, current_configuration_data))
     update_vis_timer.start(gui_module.configuration.GUI_UPDATE_PERIOD_MS)
 
     displays = gui_module.my_gui_setup.get_digital_numbers(ui)
@@ -213,6 +245,7 @@ def run_window():
     with open("./log.txt", "w") as log_file:
         log_file.write(str(log))
 
+
 def raw_data_function(count_data, displays):
     values = count_data.last_values()
     for num, display in enumerate(displays):
@@ -226,7 +259,7 @@ def ensure_dir(file_path):
         os.makedirs(directory)
 
 
-def save_data(count_data, current_configuration_data, silence = False):
+def save_data(count_data, current_configuration_data, silence=False):
     if current_configuration_data.empty and not silence:
         popup_window("Set configuration before saving")
         return
@@ -234,7 +267,8 @@ def save_data(count_data, current_configuration_data, silence = False):
     file_name = now.strftime("%H:%M ")
 
     if silence and current_configuration_data.empty:
-        directory = os.path.join(".", "panic data dump", now.strftime("%d-%m-%Y"))
+        directory = os.path.join(
+            ".", "panic data dump", now.strftime("%d-%m-%Y"))
         file_save_type = "JSON"
     else:
         directory = os.path.join(
@@ -252,22 +286,25 @@ def save_data(count_data, current_configuration_data, silence = False):
         count_data.CSV_dump_to(file_path)
 
     count_data.clear()
-    logger.info("file saved")
+    logger.info("file {} saved".format(file_path))
+
 
 def update_figure(ui, count_rate_data, current_configuration_data):
     labels, x, y = count_rate_data.data_for_plot()
     if labels == None:
         return
 
-    ui.vis_fig.update_figure(labels,x,y,log_scale= current_configuration_data["vis_log_scale"])
+    ui.vis_fig.update_figure(
+        labels, x, y, log_scale=current_configuration_data["vis_log_scale"])
+
 
 def create_backend_deamon(count_rate_data, semaphore, log, serial_port):
     thread = threading.Thread(target=back_end_deamon, args=(
-        count_rate_data, semaphore, log, serial_port), daemon=True, name="reading data")
+        count_rate_data, semaphore, log, serial_port), daemon=True, name="SerialReader")
     return thread
 
 
-def get_vis_configuration_info(ui, current_configuration_data):
+def get_vis_configuration_info(ui, current_configuration_data, count_data):
     akw_time = ui.spinBox_conf_akw_time.value()
     nr_of_averages = ui.spinBox_conf_averages.value()
     save_loc = ui.lineEdit_conf_data_loc.text()
@@ -281,14 +318,21 @@ def get_vis_configuration_info(ui, current_configuration_data):
 
     logger.info("Have configuration data")
 
+    old_configuration_data = deepcopy(current_configuration_data)
+
     new_configuration_data = ConfigurationData(
         akw_time, nr_of_averages, save_period_seconds, save_loc, save_type, port_name)
-    current_configuration_data.update_and_drop_diferances(
+    differences = current_configuration_data.update_and_drop_diferances(
         new_configuration_data)
+
+    if "akw_time" in differences and not count_data.is_empty():
+        save_data(count_data, old_configuration_data, silence=True)
+        count_data.clear()
+
     current_configuration_data = new_configuration_data
 
 
-def get_OneShot_configuration_info(ui):
+def get_SingleShot_configuration_info(ui):
     file_loc = ui.lineEdit_ss_file_loc.text()
     akw_time = ui.spinBox_ss_akw_time.value()
 

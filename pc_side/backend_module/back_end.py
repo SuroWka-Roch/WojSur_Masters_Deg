@@ -7,7 +7,7 @@ import backend_module.configuration
 
 from backend_module.configuration import START_DATA
 from backend_module.configuration import STOP_DATA
-from backend_module.configuration import SLEEP_TIME, DEAMON_LOOP_COUNT, COMUNICATION_TIME_MS
+from backend_module.configuration import SLEEP_TIME, DEAMON_LOOP_COUNT, COMUNICATION_TIME_MS, REPEAT_FOR
 
 
 import backend_module.comunication
@@ -17,7 +17,13 @@ import time
 import serial
 
 
-class CountRateData:
+#temp
+from inspect import currentframe, getframeinfo
+
+
+
+
+class CountRateData(object):
     """ 
         @brief class holding whole structure for count rate data. 
     """
@@ -135,6 +141,13 @@ class CountRateData:
         with self.lock:
             self.akw_time = time
 
+    def is_empty(self):
+        with self.lock:
+            if self._shortest() == 0:
+                return True
+            else:
+                return False
+
     def __getitem__(self, item):
         return self.dataDict[item]
 
@@ -142,7 +155,7 @@ class CountRateData:
         return(str(self.dataDict))
 
 
-def count_rate_data_single_shot(count_rate_data):
+class CountRateDataSingleShoot(CountRateData):
 
     def ready(self):
         for value in self.dataDict.values():
@@ -153,13 +166,13 @@ def count_rate_data_single_shot(count_rate_data):
 
         return False
 
-    def data_for_plot_ss(self):
+    def data_for_plot(self):
         y = []
         with self.lock:
             for canal_name in self.canal_names:
-                y.append((self.dataDict[canal_name][-1]))
+                y.append((self.dataDict[canal_name][-1] / (self.akw_time / 1000)))
 
-        return self.canal_names, y
+        return y
 
 
 class ConfigurationData(object):
@@ -180,6 +193,7 @@ class ConfigurationData(object):
         self.data["port_name"] = port_name
         self.data["vis_log_scale"] = False
 
+    @staticmethod
     def create_empty():
         temp_obj = ConfigurationData(0, 0, 0, 0, 0, 0)
         temp_obj.empty = True
@@ -248,6 +262,45 @@ def back_end_deamon(count_rate_data, semaphore, log, serial_port):
                         string += temp_string
             log.write(string)
 
+def update_count_data(count_data, log):
+    log_chunk = log.return_chunk()
+    data, end_pointer = CountRateData.seperate_data(log_chunk)
+    if data:
+        count_data.update(data)
+        log.set_pointer(end_pointer)
+
+def get_ss_mesurement(serial_port, port_semaphore, log, ss_count_data):
+    with port_semaphore:
+        repeat( lambda:
+            backend_module.comunication.set_akw_time(serial_port, ss_count_data.akw_time,log))
+        repeat(lambda : 
+            backend_module.comunication.start(serial_port,log))
+        while not ss_count_data.ready():
+            time.sleep(SLEEP_TIME)
+            if serial_port.is_open:
+                string = ""
+                for _ in range(DEAMON_LOOP_COUNT):
+                    time.sleep(SLEEP_TIME)
+                    temp_string = backend_module.comunication.read_chunk(
+                        serial_port)
+                    if temp_string:
+                        string += temp_string
+                log.write(string)
+            update_count_data(ss_count_data, log)
+        repeat(lambda: 
+            backend_module.comunication.stop(serial_port, log))
+
+def repeat(fun, times = REPEAT_FOR):
+    e = None
+    for _ in range(times):
+        try:
+            fun()
+            return
+        except CommunicationError as er:
+            e = er
+    else:
+        raise e
+    
 
 ##########################################
 #Exceptions

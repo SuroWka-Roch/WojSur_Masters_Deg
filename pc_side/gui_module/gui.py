@@ -274,10 +274,13 @@ class Ui_MainWindow(object):
         self.OneShot_save_loc_label = QtWidgets.QLabel(self.tab)
         self.OneShot_save_loc_label.setObjectName("OneShot_save_loc_label")
         self.gridLayout_5.addWidget(self.OneShot_save_loc_label, 3, 0, 1, 1)
-        self.spinBox_ss_akw_time_ = QtWidgets.QSpinBox(self.tab)
-        self.spinBox_ss_akw_time_.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
-        self.spinBox_ss_akw_time_.setObjectName("spinBox_ss_akw_time_")
-        self.gridLayout_5.addWidget(self.spinBox_ss_akw_time_, 4, 2, 1, 1)
+        self.spinBox_ss_akw_time = QtWidgets.QSpinBox(self.tab)
+        self.spinBox_ss_akw_time.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
+        self.spinBox_ss_akw_time.setMinimum(1)
+        self.spinBox_ss_akw_time.setMaximum(1000000)
+        self.spinBox_ss_akw_time.setProperty("value", 1000)
+        self.spinBox_ss_akw_time.setObjectName("spinBox_ss_akw_time")
+        self.gridLayout_5.addWidget(self.spinBox_ss_akw_time, 4, 2, 1, 1)
         self.pushButton_ss_run = QtWidgets.QPushButton(self.tab)
         self.pushButton_ss_run.setObjectName("pushButton_ss_run")
         self.gridLayout_5.addWidget(self.pushButton_ss_run, 7, 0, 1, 4)
@@ -293,7 +296,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

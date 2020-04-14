@@ -35,7 +35,6 @@ def my_setup(ui):
     ui.toolButton_conf_log_file_location.clicked.connect(
         lambda: set_conf_file_loc(ui))
     ui.toolButton_ss_save_loc.clicked.connect(lambda: set_ss_file_loc(ui))
-    # insert_plot(ui)
     set_port_combobox(ui)
     ui.pushButton_conf_reset_port_list.clicked.connect(
         lambda: set_port_combobox(ui))
@@ -52,8 +51,8 @@ def set_port_combobox(ui):
         ui.comboBox_conf_Port_name.addItem("Not connected")
 
 
-def insert_plot(ui):
-    ss_fig = fig.MyStaticMplCanvas(
+def insert_plot(ui): #absolute 
+    ss_fig = fig.MyDynamicMplCanvasSS(
         ui.frame_vis_fig, width=5, height=4, dpi=100)
     vis_fig = fig.MyDynamicMplCanvas(
         ui.Put_fig_here_OneShot, width=5, height=4, dpi=100)
