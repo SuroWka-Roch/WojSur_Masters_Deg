@@ -139,6 +139,10 @@ def ss_run_buttom_function(ui, serial_port, log, port_semaphore, current_configu
         configuration_buttom_func(ui, current_configuration_data,
                                   serial_port, log, port_semaphore, count_data, save_data_timer)
 
+    if "SS_deamon" in [thread.getName() for thread in threading.enumerate()]:
+        popup_window("Wait for previous run to end")
+        return
+
     stop_buttom_function(port_semaphore, serial_port,
                          current_configuration_data, log)
 
@@ -146,23 +150,22 @@ def ss_run_buttom_function(ui, serial_port, log, port_semaphore, current_configu
 
     ss_count_data = CountRateDataSingleShoot(CANAL_NAMES, akw_time)
 
-    if "SS_deamon" in [thread.getName() for thread in threading.enumerate()]:
-        popup_window("Wait for previous run to end")
-        return
-
     SS_thread = threading.Thread(target=SS_deamon, args=(
-        ui, serial_port, port_semaphore, log, ss_count_data), name=SS_deamon, daemon=True)
+        ui, serial_port, port_semaphore, log, ss_count_data,save_location), name="SS_deamon", daemon=True)
 
     SS_thread.start()
 
 
 
-def SS_deamon(ui, serial_port, port_semaphore, log, ss_count_data):
+def SS_deamon(ui, serial_port, port_semaphore, log, ss_count_data, save_location):
     backend_module.back_end.get_ss_mesurement(
         serial_port, port_semaphore, log, ss_count_data)
     ui.ss_fig.update_figure(CANAL_NAMES,ss_count_data.data_for_plot())
     logger.debug("Single Shot result for canals of:\n{}\n{}".format(
         CANAL_NAMES, ss_count_data.data_for_plot()))
+    
+    save_config = ConfigurationData(ss_count_data.akw_time,0,0,save_location,"Exel compliant", 0)
+    save_data(ss_count_data, save_config)
 
 
 def change_log_scale_vis(current_configuration_data):
