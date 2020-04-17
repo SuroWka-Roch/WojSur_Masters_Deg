@@ -30,8 +30,8 @@ def read_chunk(ser_port):
         received = None
         #handle no information relived problem
 
-        while ser_port.inWaiting() > 0:
-            received = ser_port.read(ser_port.inWaiting())
+        while ser_port.in_waiting > 0:
+            received = ser_port.read(ser_port.in_waiting)
         if received:
             return received.decode(encoding='utf-8', errors='strict')
     except Exception as e:
@@ -140,11 +140,11 @@ def start(serial_port, log):
     
     log.write(send_and_expect(serial_port,START_CODE, None))
 
-def stop(serial_port, log):
+def stop(serial_port, log, no_expected = False):
     if not serial_port.is_open:
         serial_port.open()
     
-    log.write(send_and_expect(serial_port, STOP_CODE, CODE_STOPED_RESPONSE))
+    log.write(send_and_expect(serial_port, STOP_CODE, CODE_STOPED_RESPONSE if not no_expected else None))
 
 def configure_all(serial_port, configuration, log):
     if not serial_port.is_open:

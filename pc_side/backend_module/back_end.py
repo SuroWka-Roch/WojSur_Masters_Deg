@@ -17,12 +17,6 @@ import time
 import serial
 
 
-#temp
-from inspect import currentframe, getframeinfo
-
-
-
-
 class CountRateData(object):
     """ 
         @brief class holding whole structure for count rate data. 
@@ -83,8 +77,8 @@ class CountRateData(object):
 
             seperated_data.append(string_log[moving_pointer+starting_len+1:
                                              chunk_end-ending_len-1])
-            moving_pointer = chunk_end
-        return seperated_data, (moving_pointer - starting_len)
+            moving_pointer = chunk_end - starting_len
+        return seperated_data, moving_pointer 
 
     def JSON_dump_to(self, file_name):
         with self.lock:
@@ -110,10 +104,10 @@ class CountRateData(object):
         y = []
         with self.lock:
             for canal in self.canal_names:
-                y.append([x/(self.akw_time/1000) for x in self.dataDict[canal][-len:]])
+                y.append([x/(self.akw_time/1000)
+                          for x in self.dataDict[canal][-len:]])
 
         return self.canal_names, x, y
-
 
     def _shortest(self):
         short = min([len(self.dataDict[key]) for key in self.dataDict.keys()])
@@ -126,7 +120,8 @@ class CountRateData(object):
     def last_values(self):
         with self.lock:
             try:
-                values = [self.dataDict[key][-1]/(self.akw_time/1000) for key in self.canal_names]
+                values = [self.dataDict[key][-1] /
+                          (self.akw_time/1000) for key in self.canal_names]
                 return values
             except IndexError as e:
                 return [-1 for _ in range(16)]
@@ -170,7 +165,8 @@ class CountRateDataSingleShoot(CountRateData):
         y = []
         with self.lock:
             for canal_name in self.canal_names:
-                y.append((self.dataDict[canal_name][-1] / (self.akw_time / 1000)))
+                y.append((self.dataDict[canal_name]
+                          [-1] / (self.akw_time / 1000)))
 
         return y
 
@@ -211,8 +207,8 @@ class ConfigurationData(object):
     def __getitem__(self, item):
         return self.data[item]
 
-    def __setitem__(self,key,item):
-        self.data[key] =  item
+    def __setitem__(self, key, item):
+        self.data[key] = item
 
     def __str__(self):
         return(str(self.data))
@@ -262,6 +258,7 @@ def back_end_deamon(count_rate_data, semaphore, log, serial_port):
                         string += temp_string
             log.write(string)
 
+
 def update_count_data(count_data, log):
     log_chunk = log.return_chunk()
     data, end_pointer = CountRateData.seperate_data(log_chunk)
@@ -269,12 +266,13 @@ def update_count_data(count_data, log):
         count_data.update(data)
         log.set_pointer(end_pointer)
 
+
 def get_ss_mesurement(serial_port, port_semaphore, log, ss_count_data):
     with port_semaphore:
-        repeat( lambda:
-            backend_module.comunication.set_akw_time(serial_port, ss_count_data.akw_time,log))
-        repeat(lambda : 
-            backend_module.comunication.start(serial_port,log))
+        repeat(lambda:
+               backend_module.comunication.set_akw_time(serial_port, ss_count_data.akw_time, log))
+        repeat(lambda:
+               backend_module.comunication.start(serial_port, log))
         while not ss_count_data.ready():
             time.sleep(SLEEP_TIME)
             if serial_port.is_open:
@@ -287,10 +285,11 @@ def get_ss_mesurement(serial_port, port_semaphore, log, ss_count_data):
                         string += temp_string
                 log.write(string)
             update_count_data(ss_count_data, log)
-        repeat(lambda: 
-            backend_module.comunication.stop(serial_port, log))
+        repeat(lambda:
+               backend_module.comunication.stop(serial_port, log, no_expected=True))
 
-def repeat(fun, times = REPEAT_FOR):
+
+def repeat(fun, times=REPEAT_FOR):
     e = None
     for _ in range(times):
         try:
@@ -300,7 +299,7 @@ def repeat(fun, times = REPEAT_FOR):
             e = er
     else:
         raise e
-    
+
 
 ##########################################
 #Exceptions
