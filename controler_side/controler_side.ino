@@ -18,7 +18,7 @@ int command_in_buffer_flag = 0;
 
 
 void setup() {
-  Serial.begin(SERIAL_SPEED);
+  SerialUSB.begin(SERIAL_SPEED);
 
   /* Using pointers to table as a way to deal witch multiplexing with low procesor yeald */
   counts = (unsigned int *) calloc(16, sizeof( unsigned int ));  
@@ -113,19 +113,19 @@ void write_output(){
   /**
    *  @brief print output to serial port 
    */
-  Serial.println(START_DATA);
+  SerialUSB.println(START_DATA);
   char printf_buffer[PRINTF_BUFFER_SIZE] = {0}; 
   for(int i=0;i<16;i++){
     sprintf(printf_buffer, "%dA%d\t%d\0",
             MULTIPLEXER_NR(i), (i-((MULTIPLEXER_NR(i)-1)*8))+1,
             counts[i]);
-    Serial.println(printf_buffer);
+    SerialUSB.println(printf_buffer);
     clear_char_table(printf_buffer,PRINTF_BUFFER_SIZE);
     counts[i]=0;
   }
   
-  Serial.println(STOP_DATA);
-  Serial.flush();
+  SerialUSB.println(STOP_DATA);
+  SerialUSB.flush();
 
 }
 
@@ -151,18 +151,18 @@ void receive_command(){
     command_pointer = received_buffer;
   }
 
-  while(Serial.available() > 0)
+  while(SerialUSB.available() > 0)
   {
     command_in_buffer_flag = 1;
-    *command_pointer = Serial.read();
-    Serial.print(READY_TO_READ);
+    *command_pointer = SerialUSB.read();
+    SerialUSB.print(READY_TO_READ);
 
     command_pointer= received_buffer;
-    while(!Serial.available()); //wait for command
+    while(!SerialUSB.available()); //wait for command
 
     while(command_in_buffer_flag){
-      while (Serial.available()>0){
-        *command_pointer =  Serial.read();
+      while (SerialUSB.available()>0){
+        *command_pointer =  SerialUSB.read();
         if(*command_pointer == COMAND_ENDING_CONST){
           analyze_command();
         }
@@ -171,23 +171,23 @@ void receive_command(){
     }
   }
 
-  if(Serial.available()){
+  if(SerialUSB.available()){
     receive_command();
   }
-  Serial.flush();
+  SerialUSB.flush();
 }
 
 void analyze_command(){
   cut_ending();
   if(!strcmp(received_buffer, HANSHAKE_CONFIRM_REQUEST_CODE)){
-    Serial.print(HANSHAKE_CONFIRMATION_CODE);
-    Serial.print(COMAND_ENDING_CONST);
+    SerialUSB.print(HANSHAKE_CONFIRMATION_CODE);
+    SerialUSB.print(COMAND_ENDING_CONST);
   }else{
 
   if(!strcmp( received_buffer, AKW_TIME_MS_CODE)){
     akw_time = read_number();
-    Serial.print( (int) akw_time);
-    Serial.print(COMAND_ENDING_CONST);
+    SerialUSB.print( (int) akw_time);
+    SerialUSB.print(COMAND_ENDING_CONST);
   }else{
 
   if(!strcmp( received_buffer, START_CODE)){
@@ -195,15 +195,15 @@ void analyze_command(){
   }else{
 
   if(!strcmp( received_buffer, STOP_CODE)){
-    Serial.print(CODE_STOPED_RESPONSE);
-    Serial.print(COMAND_ENDING_CONST);
+    SerialUSB.print(CODE_STOPED_RESPONSE);
+    SerialUSB.print(COMAND_ENDING_CONST);
     hibernation_flag = true;
   }else{
     
     //unknown command
-    Serial.println("Don't understend");
-    Serial.print("Received:");
-    Serial.println(received_buffer);
+    SerialUSB.println("Don't understend");
+    SerialUSB.print("Received:");
+    SerialUSB.println(received_buffer);
 
   }}}} // :( 
   command_in_buffer_flag = 0;
@@ -212,13 +212,13 @@ void analyze_command(){
 int read_number(){
   //todo cut the ending
   char* command_pointer = received_buffer;
-  while(!Serial.available()); // wait for data
+  while(!SerialUSB.available()); // wait for data
 
   int have_number_flag = false;
 
   while(!have_number_flag){
-    while (Serial.available() > 0){
-      *command_pointer = Serial.read();
+    while (SerialUSB.available() > 0){
+      *command_pointer = SerialUSB.read();
       if(*command_pointer == COMAND_ENDING_CONST){
         have_number_flag = true;
       }

@@ -13,12 +13,16 @@
   <property name="windowTitle">
    <string>Counter Program</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resorce.qrc">
+    <normaloff>:/icons/icons/monitor-icon.png</normaloff>:/icons/icons/monitor-icon.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="Configuration">
        <attribute name="title">
@@ -576,6 +580,8 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="resorce.qrc"/>
+ </resources>
  <connections/>
 </ui>
