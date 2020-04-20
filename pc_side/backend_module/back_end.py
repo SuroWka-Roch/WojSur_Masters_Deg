@@ -3,6 +3,8 @@ import csv
 from numpy import average
 import threading
 
+from numpy import average
+
 import backend_module.configuration
 
 from backend_module.configuration import START_DATA
@@ -78,7 +80,7 @@ class CountRateData(object):
             seperated_data.append(string_log[moving_pointer+starting_len+1:
                                              chunk_end-ending_len-1])
             moving_pointer = chunk_end - starting_len
-        return seperated_data, moving_pointer 
+        return seperated_data, moving_pointer
 
     def JSON_dump_to(self, file_name):
         with self.lock:
@@ -96,18 +98,36 @@ class CountRateData(object):
                     writer.writerow(line)
 
     def data_for_plot(self):
+        #@breief Returns data prepared for ploting
         len = self._shortest()
-        if self.akw_time == None or len == 0:
-            return None, None, None
-        time_per_step = self.akw_time * 2 + COMUNICATION_TIME_MS
-        x = [x * time_per_step * 0.001 for x in range(-len+1, 1)]
-        y = []
-        with self.lock:
-            for canal in self.canal_names:
-                y.append([x/(self.akw_time/1000)
-                          for x in self.dataDict[canal][-len:]])
 
-        return self.canal_names, x, y
+        if self.akw_time == None or len < self.nr_of_averages:
+            return None, None, None
+
+        time_per_step = self.akw_time * 2 + COMUNICATION_TIME_MS
+
+        if self.nr_of_averages == 1:
+            x = [x * time_per_step * 0.001 for x in range(-len+1, 1)]
+            y = []
+            with self.lock:
+                for canal in self.canal_names:
+                    y.append([x/(self.akw_time/1000)
+                              for x in self.dataDict[canal][-len:]])
+
+            return self.canal_names, x, y
+        else:
+            len = len // self.nr_of_averages
+            x = [x * time_per_step * 0.001 *
+                 self.nr_of_averages for x in range(-len+1, 1)]
+            y = []
+            with self.lock:
+                for canal in self.canal_names:
+                    canal_y = []
+                    for canal_y_nr in range(len):
+                        canal_y.append(sum(
+                            self.dataDict[canal][canal_y_nr*self.nr_of_averages:(canal_y_nr+1)*self.nr_of_averages])/self.nr_of_averages)
+                    y.append([val / (self.akw_time/1000) for val in canal_y])
+            return self.canal_names, x, y
 
     def _shortest(self):
         short = min([len(self.dataDict[key]) for key in self.dataDict.keys()])

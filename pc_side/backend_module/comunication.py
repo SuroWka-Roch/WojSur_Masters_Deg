@@ -74,7 +74,6 @@ def send_and_expect(serialPort, send, expect):
                 temp_log += temp_string
             waited_for_response += 1
             if waited_for_response > WAIT_FOR:
-                print("log = {}".format(temp_log))      
                 raise back_end.ExpectedResponseNotFound("No response")
     return temp_log
 
@@ -122,6 +121,7 @@ def try_port(Port_name, SerialObject):
     SerialObject.xonxoff = True
     SerialObject.rtscts =  True
     SerialObject.dsrdtr =  True
+
 
     try:
         if not SerialObject.is_open:

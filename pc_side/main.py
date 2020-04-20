@@ -93,6 +93,7 @@ def try_port(SerialPort, current_configuration_data, silence=False):
 def configuration_buttom_func(ui, current_configuration_data, serial_port, log, semaphore, count_data, save_data_timer):
     get_vis_configuration_info(ui, current_configuration_data, count_data)
     count_data.set_akw_time(current_configuration_data["akw_time"])
+    count_data.change_nr_of_averages(current_configuration_data["nr_of_averages"])
     save_data_timer.setInterval(
         current_configuration_data["save_period"] * 1000)
     logger.debug(current_configuration_data)
@@ -332,7 +333,7 @@ def get_vis_configuration_info(ui, current_configuration_data, count_data):
         save_data(count_data, old_configuration_data, silence=True)
         count_data.clear()
 
-    current_configuration_data = new_configuration_data
+    # current_configuration_data = new_configuration_data
 
 
 def get_SingleShot_configuration_info(ui):
