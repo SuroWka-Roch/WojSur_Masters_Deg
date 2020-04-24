@@ -1,0 +1,240 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{polski}
+\usepackage{helvet}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{geometry}
+
+\usepackage[unicode]{hyperref}
+\usepackage{amsmath}
+\usepackage{gensymb}
+\usepackage{multirow}
+\usepackage{multicol}
+
+\usepackage{lipsum} 
+\usepackage{indentfirst}
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+  basicstyle=\tiny
+}
+
+\author{Wojciech Surówka}
+
+\graphicspath{{fig/}}
+\geometry{hmargin={2cm, 2cm}, height=10.0in}
+
+\begin{document}
+
+% =====  STRONA TYTULOWA PRACY MAGISTERSKIEJKIEJ ====
+% ostatnia modyfikacja: 2009/07/01, K. Malarz
+
+\thispagestyle{empty}
+%% ------------------------ NAGLOWEK STRONY ---------------------------------
+\includegraphics[height=37.5mm]{agh_nzw_a_pl_1w_wbr}\\
+\rule{30mm}{0pt}
+{\large \textsf{Wydział Fizyki i Informatyki Stosowanej}}\\
+\rule{\textwidth}{3pt}\\
+\rule[2ex]
+{\textwidth}{1pt}\\
+\vspace{7ex}
+\begin{center}
+{\LARGE \bf \textsf{Praca magisterska}}\\
+\vspace{13ex}
+% --------------------------- IMIE I NAZWISKO -------------------------------
+{\bf \Large \textsf{Wojciech Surówka}}\\
+\vspace{3ex}
+{\sf\small kierunek studiów:} {\bf\small \textsf{Fizyka Medyczna}}\\
+\vspace{1.5ex}
+{\sf\small specjalność:} {\bf\small \textsf{Techniki obrazowania i biometria}}\\
+\vspace{10ex}
+%% ------------------------ TYTUL PRACY --------------------------------------
+{\bf \huge \textsf{System akwizycji danych pomiarowych dla szybkiego wielokanałowego układu scalonego o architekturze całkująco-zliczającej z detektorem promieniowania X}}\\
+\vspace{14ex}
+%% ------------------------ OPIEKUN PRACY ------------------------------------
+{\Large Opiekun: \bf \textsf{dr inż. Piotr Wiącek}}\\
+\vspace{16ex}
+{\large \bf \textsf{Kraków, czerwiec 2020}}
+\end{center}
+%% =====  STRONA TYTUŁOWA PRACY MAGISTERSKIEJKIEJ ====
+
+\newpage
+
+%% =====  TYŁ STRONY TYTUŁOWEJ PRACY MAGISTERSKIEJKIEJ ====
+\begin{center}
+        {\bf\large\textsf{Oświadczenie studenta}}
+\end{center}
+
+
+{\sf Uprzedzony(-a) o odpowiedzialności karnej na podstawie art. 115 ust. 1 i 2 ustawy z dnia 4 lutego 1994 r. o prawie autorskim i prawach pokrewnych (t.j. Dz. U. z 2018 r. poz. 1191 z późn. zm.): ,,Kto przywłaszcza sobie autorstwo albo wprowadza w błąd co do autorstwa całości lub części cudzego utworu albo artystycznego wykonania, podlega grzywnie, karze ograniczenia wolności albo pozbawienia wolności do lat 3. Tej samej karze podlega, kto rozpowszechnia bez podania nazwiska lub pseudonimu twórcy cudzy utwór w wersji oryginalnej albo w postaci opracowania, artystyczne wykonanie albo publicznie zniekształca taki utwór, artystyczne wykonanie, fonogram, wideogram lub nadanie.'', a także uprzedzony(-a) o odpowiedzialności dyscyplinarnej na podstawie art. 307 ust. 1 ustawy z dnia 20 lipca 2018 r. Prawo o szkolnictwie wyższym i nauce (Dz. U. z 2018 r. poz. 1668 z późn. zm.) ,,Student podlega odpowiedzialności dyscyplinarnej za naruszenie przepisów obowiązujących w~uczelni oraz za czyn uchybiający godności studenta.'', oświadczam, że niniejszą pracę dyplomową wykonałem(-am) osobiście i samodzielnie i nie korzystałem(-am) ze źródeł innych niż wymienione w pracy.
+
+\bigskip
+
+Jednocześnie Uczelnia informuje, że zgodnie z art. 15a ww. ustawy o prawie autorskim i prawach pokrewnych Uczelni przysługuje pierwszeństwo w opublikowaniu pracy dyplomowej studenta. Jeżeli Uczelnia nie opublikowała pracy dyplomowej w terminie 6 miesięcy od dnia jej obrony, autor może ją opublikować, chyba że praca jest częścią utworu zbiorowego. Ponadto Uczelnia jako podmiot, o którym mowa w art. 7 ust. 1 pkt 1 ustawy z dnia 20 lipca 2018 r. --- Prawo o szkolnictwie wyższym i nauce (Dz. U. z 2018 r. poz. 1668 z późn. zm.), może korzystać bez wynagrodzenia i bez konieczności uzyskania zgody autora z utworu stworzonego przez studenta w wyniku wykonywania obowiązków związanych z odbywaniem studiów, udostępniać utwór ministrowi właściwemu do spraw szkolnictwa wyższego i~nauki oraz korzystać z utworów znajdujących się w prowadzonych przez niego bazach danych, w celu sprawdzania z wykorzystaniem systemu antyplagiatowego. Minister właściwy do spraw szkolnictwa wyższego i nauki może korzystać z prac dyplomowych znajdujących się w prowadzonych przez niego bazach danych w zakresie niezbędnym do zapewnienia prawidłowego utrzymania i rozwoju tych baz oraz współpracujących z nimi systemów informatycznych.}
+
+
+\vspace{14ex}
+
+\begin{center}
+\begin{tabular}{lr}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ &
+................................................................. \\
+~ & {\sf (czytelny podpis)}\\
+\end{tabular}
+\end{center}
+
+%% =====  TYL STRONY TYTULOWEJ PRACY MAGISTERSKIEJKIEJ ====
+
+\newpage
+\rightline{Kraków, ?? czerwca 2020}
+\begin{center}
+{\bf Tematyka pracy magisterkiej i praktyki dyplomowej
+Wojciecha Surówki,
+studenta drugiego roku studiów drugiego stopnia na kierunku fizyka medyczna, specjalności Techniki obrazowania i biometria}\\
+\end{center}
+
+Temat pracy magisterskiej:
+{\bf System akwizycji danych pomiarowych dla szybkiego wielokanałowego układu scalonego o architekturze całkująco-zliczającej z detektorem promieniowania X}\\
+
+\begin{tabular}{rl}
+
+Opiekun pracy:                  & dr inż. Piotr Wiącek\\
+Recenzenci pracy:               & dr hab. inż. Owaki Śmaki\\
+Miejsce praktyki dyplomowej:    & WFiIS AGH, Kraków\\
+\end{tabular}
+
+\begin{center}
+{\bf Program pracy magisterskiej i praktyki dyplomowej}
+\end{center}
+
+\begin{enumerate}
+\item Omówienie realizacji pracy magisterskiej z opiekunem.
+\item Zebranie i opracowanie literatury dotyczącej tematu pracy.
+\item Praktyka dyplomowa:
+\begin{itemize}
+\item zapoznanie się z ideą...,
+\item uczestnictwo w eksperymentach/przygotwanie oprogramowania...,
+\item dyskusja i analiza wyników...
+\item sporządzenie sprawozdania z praktyki.
+\end{itemize}
+\item Kontynuacja obliczeń związanych z tematem pracy magisterskiej.
+\item Zebranie i opracowanie wyników obliczeń.
+\item Analiza wyników obliczeń numerycznych, ich omówienie i zatwierdzenie przez opiekuna.
+\item Opracowanie redakcyjne pracy.
+\end{enumerate}
+
+
+\noindent
+Termin oddania w dziekanacie: ?? czerwca 20??\\[1cm]
+
+\begin{center}
+\begin{tabular}{lcr}
+.............................................................. & ~~~ &
+.............................................................. \\
+(podpis kierownika katedry) & & (podpis opiekuna) \\
+\end{tabular}
+\end{center}
+
+\newpage
+
+\noindent
+Na kolejnych dwóch stronach proszę dołączyć kolejno recenzje pracy popełnione przez Opiekuna oraz Recenzenta (wydrukowane z systemu MISIO i podpisane przez odpowiednio Opiekuna i Recenzenta pracy). Papierową wersję pracy (zawierającą podpisane recenzje) proszę złożyć w dziekanacie celem rejestracji co najmniej na tydzień przed planowaną obroną.
+
+\linespread{1.3}
+\selectfont
+
+\newpage
+\linespread{1.3}
+\selectfont
+\tableofcontents
+\newpage
+
+
+\section{Wprowadzenie}
+\subsection{Cel pracy}
+
+Celem pracy było zaprojektowanie i skonstruowanie układu wspierającego system detekcji promieniowania X: RXHDR\_V2 \cite{master}.\\
+Cele szczegółowe:
+\begin{itemize}
+        \item Szesnasto-kanałowy odczyt i zliczenie impulsów o częstotliwości osiągającej do 2MHz/kanał z wykorzystaniem mikrokontrolera \textit{Arduiono Due}.
+        \item Stworzenie oprogramowania pozwalającego na komunikację pomiędzy mikrokontrolerem a komputerem wspierajacym. 
+        \item Wizualizacja i archiwizacja uzyskanych danych. 
+\end{itemize}
+
+\subsection{Wstęp teoretyczny}
+
+\section{Projekt}
+
+Zgodnie z dokumentacją RXHDR\_V2 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8$V$ o czasie trwania między 50$ns$ a 200$ns$ i częstotliwości osiągającej nawet do 2.5 $MHZ$.
+Sygnał ten na potrzeby rozwiązań softwarowych jest modyfikowany przez translator poziomów do poziomów logicznych 0 - 3.6$V$ i zostaje wybierana ósemka z szesnastu kanałów przez multiplexer.    
+Tak otrzymane sygnały należy zliczyć na płytce Arduino Due w ściśle określonym czasie oraz przekazać dane do dalszej obróbki bodź wizualizacji na zewnętrznym komputerze.
+
+W poniższych rozdziałach opisane są testowane sposoby wykonania tego zadania. 
+
+\subsection{Rozwiązanie softwarowe na platformie Arduino}
+Bezpośrednie zliczenie sygnałów z wykorzystaniem przerwań sprzętowych w frameworku Arduino. Projekt ten zakłada użycie przerwań sprzętowych na wyjściach cyfrowych. 
+Po ograniczeniu sygnałów do ośmiu wyjść przez multiplexer każde ze zboczy powoduje wywołanie krótkiej dedykowanej funkcji zwiększającej wartość licznika o jeden. 
+
+Poniżej znajduje się fragment prototypowego kodu użytego do badań. Na potrzeby badania zostaje uwzględniony tylko pojedyńczy kanał.
+
+\lstinputlisting[language=C++, firstline=95, lastline=117]{code_source/arduino/monocanal_rst.cpp}
+
+\subsection{Rozwiązanie softwarowe w standardzie CMSIS}
+Bezpośrednie zliczenie sygnałów z układu RXHDR\_V2 z wykorzystaniem przerwań sprzętowych w frameworku architektury ARM32 dla procesora AT91SAM3X8E, znajdującego się na płytce Arduino Due.
+\subsection{Rozwiązanie z użyciem dodatkowego układu elektronicznego.}
+
+Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu frameworku Arduino
+
+\subsubsection{Układ liczników zewnętrznych}
+\subsubsection{Oprogramowanie microkontrolera}
+\subsection{Program kontroli, wizualizacji oraz archiwizacji danych}
+
+\section{Wyniki badań}
+
+\section{Podsumowanie}
+
+\newpage
+\begin{thebibliography}{99}
+
+        \bibitem{master}
+	W. Dąbrowski, T. Fiutowski, P. Wiącek 
+	\textit{\detokenize{RXHDR_v2} - SPECIFICATION},
+	AGH University of Science and Technology
+        Faculty of Physics and Applied Computer Science 
+
+        \bibitem{pyserial}
+	Chris Liechti,	
+	\url{https://pyserial.readthedocs.io/en/latest/pyserial_api.html}
+        Odwiedzono: Wrzesień 2, 2018
+        
+        \bibitem{arduino}
+	 Arduino 2018,
+	 \url{https://www.arduino.cc/reference/en/}
+	Odwiedzono: Wrzesień 13, 2018	 
+\end{thebibliography}
+
+
+\end{document}
+
