@@ -37,9 +37,19 @@
   stringstyle=\color{mauve},
   breaklines=true,
   breakatwhitespace=true,
-  tabsize=3,
-  basicstyle=\tiny
+  tabsize=2,
+  basicstyle=\small
 }
+
+\usepackage{float}
+
+\floatstyle{ruled}
+\newfloat{kod}{htp}{lop}
+\floatname{kod}{Kod}
+
+
+%interrupt service routine
+%gui , ui
 
 \author{Wojciech Surówka}
 
@@ -173,6 +183,16 @@ Na kolejnych dwóch stronach proszę dołączyć kolejno recenzje pracy popełni
 
 
 \section{Wprowadzenie}
+
+
+W celu obliczenia ilości cykli które procesor wykonuje w przeciągu sekundy można skorzystać z równości. 
+\begin{equation}
+        \label{Cykli w sec}
+        N [1]= \frac{1}{T [Hz]}
+\end{equation} 
+Gdzie:\\
+$N$ - ilość cykli procesora wykonywanych w przeciągu sekundy
+$T$ - taktowanie procesora w Hz
 \subsection{Cel pracy}
 
 Celem pracy było zaprojektowanie i skonstruowanie układu wspierającego system detekcji promieniowania X: RXHDR\_V2 \cite{master}.\\
@@ -184,14 +204,16 @@ Cele szczegółowe:
 \end{itemize}
 
 \subsection{Wstęp teoretyczny}
-
+%compiling process
 \section{Projekt}
 
 Zgodnie z dokumentacją RXHDR\_V2 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8$V$ o czasie trwania między 50$ns$ a 200$ns$ i częstotliwości osiągającej nawet do 2.5 $MHZ$.
 Sygnał ten na potrzeby rozwiązań softwarowych jest modyfikowany przez translator poziomów do poziomów logicznych 0 - 3.6$V$ i zostaje wybierana ósemka z szesnastu kanałów przez multiplexer.    
 Tak otrzymane sygnały należy zliczyć na płytce Arduino Due w ściśle określonym czasie oraz przekazać dane do dalszej obróbki bodź wizualizacji na zewnętrznym komputerze.
 
-W poniższych rozdziałach opisane są testowane sposoby wykonania tego zadania. 
+W poniższych rozdziałach opisane są proponowane sposoby wykonania tego zadania. 
+
+Cały proces kompilacji kodu C++ do kodu Asemblera został wykonany na kompilatorze ARM gcc 4.6.4 (linux). 
 
 \subsection{Rozwiązanie softwarowe na platformie Arduino}
 Bezpośrednie zliczenie sygnałów z wykorzystaniem przerwań sprzętowych w frameworku Arduino. Projekt ten zakłada użycie przerwań sprzętowych na wyjściach cyfrowych. 
@@ -199,10 +221,63 @@ Po ograniczeniu sygnałów do ośmiu wyjść przez multiplexer każde ze zboczy 
 
 Poniżej znajduje się fragment prototypowego kodu użytego do badań. Na potrzeby badania zostaje uwzględniony tylko pojedyńczy kanał.
 
-\lstinputlisting[language=C++, firstline=95, lastline=117]{code_source/arduino/monocanal_rst.cpp}
+\begin{kod}
+        \lstinputlisting[language=C++, firstline=95, lastline=117]{code_source/arduino/monocanal_rst.cpp}
+        \caption{Fragment kodu użytego do testowania rozwiązania z przerwaniami systemowymi.}
+        \label{code_ard_IRS}
+\end{kod}
+
+
+Używana płytka rozwojowa Arduino Due, używa microkontrolera AT91SAM3X8E w architekturze 32 bitowej i taktowaniu głównego procesora równemu 84 $MHz$.
+
+Pomimo krótkiej operacji wewnątrz IRS - \textit{add} (tabela \ref{decompile add}) proces wejścia do rutyny przerwania i wyjścia zabiera nieporównywalnie więcej cykli procesora, co powoduje że cały proces wywołania przerwania jest kosztowny w czasie. 
+Ilość cykli procesora koniecznych do wywołania funkcji przerwania używając nieoptymalizowanego kodu Arduino może wymagać nawet do 355 cykli procesora \cite{ard_opt_git}, dodatkowo powrót do głównego wątku programu może wymagać kolejne 128 cykli \cite{ard_opt_git}.
+
+\begin{table}
+        \begin{center}
+        \caption{Estymacja ilości cyklów procesora koniecznych do wykonania instrukcji umieszczonych w funkcji \textit{add} }
+        \label{decompile add}
+        \begin{tabular}{c|c|c}
+                kod C++ & pseudo kod Asemblera & Ilość cylki procesora \cite{cycles} \\ \hline
+                val++ & LDR & 1-2 \\
+                        & ADD & 1 \\
+                        & STR & 1-2 \\ 
+                        \hline \hline
+                        &   &  3-5 
+        \end{tabular}
+        \end{center}
+\end{table}
+
+Pojedyńczy cykl procesora zgodnie z wzorem \ref{Cykli w sec} dla układu Arduino Due trwa ~$ 11.9 ns $. 
+Oznacza to że wykonanie instrukcji \textit{val ++} zgodnie z najgorszą estymacja (tabela \ref{decompile add}) trwa ~ $59.52 ns$. 
+Jednak po dodaniu czasu koniecznego na wywołanie i powrót z IRS otrzymywany jest czas $ (355 + 128 + 5) * 11.9 ns =  5.8072 \mu s $. 
+
+Podczas wywołania przerwania o tym samym priorytecie co priorytet tego właśnie wykonywanego, sygnał wywołujący zostanie zapamiętany i ewaluowany zaraz po wyjściu z właśnie wykonywanego IRS  \cite{datasheet}. 
+Oznacza to że w przypadku generowania sygnałów o większej częstotliwości niż jest możliwa ich ewaluacja, doprowadzamy do sytuacji kiedy nigdy nie wrócimy do normalnego przebiegu programu. 
+
+Zgodnie z wymaganiami zadania uzyskiwane sygnały wymagające zliczenia mogą przychodzić z częstotliwością $2.5MHz$ co oznacza kolejny sygnał co $0.4\mu s$.
+Taka częstotliwość oznacza że już dla pojedyńczego kanału takie rozwiązanie jest niewystarczające. 
 
 \subsection{Rozwiązanie softwarowe w standardzie CMSIS}
-Bezpośrednie zliczenie sygnałów z układu RXHDR\_V2 z wykorzystaniem przerwań sprzętowych w frameworku architektury ARM32 dla procesora AT91SAM3X8E, znajdującego się na płytce Arduino Due.
+%Bezpośrednie zliczenie sygnałów z układu RXHDR\_V2 z wykorzystaniem przerwań sprzętowych w frameworku architektury ARM32 dla procesora AT91SAM3X8E, znajdującego się na płytce Arduino Due.
+Główną filozofią platformy Arduiono jest możliwość przenoszenia kodu między różnymi urządzeniami należącymi do dużej rodziny Arduino oraz łatwość programowania.
+W celu osiągnięcia tych dwóch celów często poświęcana jest szybkość działania. 
+
+Dodatkowo platforma Arduino implementuje funkcję których działanie może wpływać na pracę mikrokontrolera nawet bez ich wywoływania. 
+Przykładowo na potrzeby działania funkcji \textit{milis()} konieczna jest specyficzna konfiguracja głównego zegara i cykliczne wywoływanie przerwań w celu implementacji licznika.  
+
+
+CMSIS to biblioteka udostępniająca warstwę abstrakcji dla mikrokontrolerów używających procesorów grupy ARM Cortex. 
+Pozwala ona na niskopoziomowe programowanie na procesory tego typu ze skupieniem na szybkość działania.
+
+Zgodnie z notą producenta \cite{interupt latency} w najbardziej optymalnej sytuacji dla procesora \textit{Cortex-M3} wejście do funkcji przerwania sprzętowego to 12 cykli i wyjście równe 10 cyklom. 
+Przy tak optymistycznej estymacji możliwe byłoby osiągnięcie częstotliwości zliczeń nawet do $\frac{1}{11.9ns*27} = ~ 3.11 Mhz$, jednak ponieważ zliczenia z różnych kanałów nie mogą być ewaluowane równolegle wynik ten nadal jest niewystarczający. 
+
+Dodatkowo bez dostępu do debugera rozwiązywanie problemów pojawiających się podczas programowania w tym podejściu okazały się niewarte włożonej procy. 
+
+Z tych dwóch powodów rozwiązanie to zostało porzucone i nie wykonano prób w tym podejściu. 
+
+
 \subsection{Rozwiązanie z użyciem dodatkowego układu elektronicznego.}
 
 Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu frameworku Arduino
@@ -232,7 +307,27 @@ Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu 
         \bibitem{arduino}
 	 Arduino 2018,
 	 \url{https://www.arduino.cc/reference/en/}
-	Odwiedzono: Wrzesień 13, 2018	 
+        Odwiedzono: Wrzesień 13, 2018	 
+        
+        \bibitem{cycles}
+        1995-2020 Arm Limited (or its affiliates)
+        \url{https://developer.arm.com/docs/ddi0337/latest/programmers-model/instruction-set-summary/cortex-m3-instructions#ftn.CCHCDDFI}
+        Odwiedzono: Kwiecień 2020
+
+        \bibitem{ard_opt_git}
+        \url{https://github.com/manitou48/DUEZoo}
+        Odwiedzono: Kwiecień 2020
+
+        \bibitem{datasheet}
+        Atmel Corporation
+        \textit{Atmel | SMART ARM-based MC  / Datasheet}
+        \detokenize{ Atmel-11057C-ATARM-SAM3X-SAM3A-Datasheet_23-Mar-15. }
+
+        \bibitem{interupt latency}
+        Atmel Corporation
+        \url{http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.faqs/ka16366.html}
+        Odwiedzono Kwiecień 2020
+
 \end{thebibliography}
 
 
