@@ -185,26 +185,53 @@ Na kolejnych dwóch stronach proszę dołączyć kolejno recenzje pracy popełni
 \section{Wprowadzenie}
 
 
-W celu obliczenia ilości cykli które procesor wykonuje w przeciągu sekundy można skorzystać z równości. 
-\begin{equation}
-        \label{Cykli w sec}
-        N [1]= \frac{1}{T [Hz]}
-\end{equation} 
-Gdzie:\\
-$N$ - ilość cykli procesora wykonywanych w przeciągu sekundy
-$T$ - taktowanie procesora w Hz
+
 \subsection{Cel pracy}
 
 Celem pracy było zaprojektowanie i skonstruowanie układu wspierającego system detekcji promieniowania X: RXHDR\_V2 \cite{master}.\\
 Cele szczegółowe:
 \begin{itemize}
-        \item Szesnasto-kanałowy odczyt i zliczenie impulsów o częstotliwości osiągającej do 2MHz/kanał z wykorzystaniem mikrokontrolera \textit{Arduiono Due}.
+        \item Szesnasto-kanałowy odczyt i zliczenie impulsów o częstotliwości osiągającej do 2.5$\frac{MHz}{kanał}$ z wykorzystaniem mikrokontrolera \textit{Arduiono Due}.
         \item Stworzenie oprogramowania pozwalającego na komunikację pomiędzy mikrokontrolerem a komputerem wspierajacym. 
         \item Wizualizacja i archiwizacja uzyskanych danych. 
 \end{itemize}
 
 \subsection{Wstęp teoretyczny}
+
+\subsection{Czas egzekucji programu}
+
+By wyznaczyć czas konieczny na wykonanie programu lub fragmentu programu można użyć prawa wydajności procesora:
+
+\begin{equation}
+        \label{Iron Law}
+        \frac{Czas}{Program} =  \frac{Instrukcje}{Program} * \frac{Cykle}{Instrukcje} * \frac{Czas}{Cykl}
+\end{equation}
+
+Elementy tego równania są zależne od różnych elementów układu komputerowego:
+\begin{itemize}
+        \item $\frac{Instrukcje}{Program}$ - powiązany z językiem programowania, optymalizacji kompilatora i długości programu. 
+        \item $\frac{Cykle}{Instrukcje}$ - Zależy od mikroarchitektury komputera oraz modelu programowego procesora.
+        \item $\frac{Czas}{Cykl}$ -  zależny od prędkości taktowania procesora i technologi chipu. 
+\end{itemize} 
+
+
+W celu obliczenia ilości cykli które procesor wykonuje w przeciągu sekundy ($\frac{Czas}{Cykl}$) można skorzystać z równości:
+\begin{equation}
+        \label{Cykli w sec}
+        N [1]= \frac{1}{T [Hz]}
+\end{equation} 
+Gdzie:\\
+$N$ - ilość cykli procesora wykonywanych w przeciągu sekundy \\
+$T$ - taktowanie procesora w Hz
+
 %compiling process
+%przerwania systemowe
+%piping i niskie działanie procesora
+%iron law
+%mulithreading programing deadlock's
+%typy plików z danymi
+%pipelining
+%microarchitektura i ISA
 \section{Projekt}
 
 Zgodnie z dokumentacją RXHDR\_V2 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8$V$ o czasie trwania między 50$ns$ a 200$ns$ i częstotliwości osiągającej nawet do 2.5 $MHZ$.
@@ -292,6 +319,11 @@ Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu 
 
 \newpage
 \begin{thebibliography}{99}
+
+        \bibitem{arch}
+        John L. Hennessy, David A. Patterson 
+        \textit{Computer Architecture: A Quantitative Approach  5th Edition }
+        The Morgan Kaufmann Series in Computer Architecture and Design
 
         \bibitem{master}
 	W. Dąbrowski, T. Fiutowski, P. Wiącek 
