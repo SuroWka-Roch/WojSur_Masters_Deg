@@ -185,7 +185,6 @@ Na kolejnych dwóch stronach proszę dołączyć kolejno recenzje pracy popełni
 \section{Wprowadzenie}
 
 
-
 \subsection{Cel pracy}
 
 Celem pracy było zaprojektowanie i skonstruowanie układu wspierającego system detekcji promieniowania X: RXHDR\_V2 \cite{master}.\\
@@ -198,7 +197,9 @@ Cele szczegółowe:
 
 \subsection{Wstęp teoretyczny}
 
-\subsection{Czas egzekucji programu}
+\subsubsection{Proces kompilacji programu na przykładzie \textit{gcc}}
+
+\subsubsection{Czas egzekucji programu}
 
 By wyznaczyć czas konieczny na wykonanie programu lub fragmentu programu można użyć prawa wydajności procesora:
 
@@ -215,7 +216,7 @@ Elementy tego równania są zależne od różnych elementów układu komputerowe
 \end{itemize} 
 
 
-W celu obliczenia ilości cykli które procesor wykonuje w przeciągu sekundy ($\frac{Czas}{Cykl}$) można skorzystać z równości:
+W celu obliczenia ilości cykli które procesor wykonuje w przeciągu sekundy ($\frac{Czas}{Cykl}$), dla architektury w której jeden cykl zegara głównego to jeden cykl procesora, można skorzystać z równości:
 \begin{equation}
         \label{Cykli w sec}
         N [1]= \frac{1}{T [Hz]}
@@ -223,6 +224,72 @@ W celu obliczenia ilości cykli które procesor wykonuje w przeciągu sekundy ($
 Gdzie:\\
 $N$ - ilość cykli procesora wykonywanych w przeciągu sekundy \\
 $T$ - taktowanie procesora w Hz
+
+\subsubsection{Potokowość}
+
+W celu ograniczenia ilości cykli przypadających na jedną instrukcję używa się technologi potokowości. 
+Oznacza to że pojedyńczą instrukcję dzielimy na mniejsze części i pozwalamy zasobom które odpowiadają tym częścią pracować nad następną częścią polecenia zanim całość instrukcji zostanie wykonane.
+
+Przykładowy podział instrukcji może wyglądać następująco:
+\begin{enumerate}
+        \item IF - (instruction feach) - pobranie instrukcji
+        \item ID - (instruction decode) -  zdekodowanie instrukcji
+        \item EX - (execute) - wykonanie instrukcji - arytmetyka
+        \item MEM - (memory acces) - dostęp do pamięci
+        \item WB - (write back) - zapisanie wyniku
+\end{enumerate}
+
+Dzięki takiemu rozbiciu w idealnym przypadku możemy osiągnąć architekturę pozwalającą wykonywać każdą instrukcję w jednym cyklu procesora. 
+
+\begin{table}{h}
+        \centering
+        \caption{Przykład pracy procesora z wykorzystaniem potokowości w idealnym przypadku.}
+        \label{pipelining}
+        \begin{tabular}{lcccccccc}
+                Time & $t_0$&$t_1$&$t_2$&$t_3$&$t_4$&$t_5$&$t_6$&$t_7$ \\ \hline
+                Instrukcja 1 & IF & ID & EX & MEM & WB &    & \\
+                Instrukcja 2 &    & IF & ID & EX & MEM & WB & \\
+                Instrukcja 3 &    &    & IF & ID & EX & MEM & WB \\
+                Instrukcja 4 &    &    &    & IF & ID & EX & MEM & WB
+        \end{tabular}
+\end{table}
+
+
+Taki przypadek jest wizualizowany w tabeli \ref{pipelining}. Jak widać żaden z zasobów nie jest wykorzystywany równocześnie przez dwie instrukcje.
+Dodatkowo tabela \ref{pipelining} pokazuje że każda następna instrukcja jest wykonywana w kolejnym czasie $t$. 
+Czas $t$ jest równy czasowi najdłuższego etapu z dodatkiem czasu wymaganego przez elektronikę zarządzającej potokowościowi \cite{arch}.
+Równość ta może być zapisana wzorem:
+\begin{equation}
+        t = T_{e_{max}} + T_{+}
+\end{equation}
+Gdzie:
+        $t$ - minimalny czas cyklu procesora \\
+        $T_{e_{max}}$ - czas konieczny na wykonanie najdłuższego etapu \\
+        $T_{+}$ - dodatkowy czas wymagany przez rejestry \\
+
+
+Powyższy przykład pokazuje jedynie pięcio-etapową potokowość jednak procesory komercyjne stosują różne rozkazania tak przykładowo SMART SAM3X/A stosuje try etapową pokojowość\cite{datasheet} a mikroarchitektura Intala o nazwie Nehalem może zawierać od 20 - 24\cite{pipelining intel}.
+
+Jednak podczas rozwiązań tego typu nie zawsze trafimy na sytuacje kiedy pojedyńczy cykl przypada dla pojedyńczej instrukcji. 
+Rozwiązanie potokowości przynosi ze sobą pewne zagrożenia. Poniżej znajdują się krótkie opisy takich sytuacji. 
+
+\begin{itemize}
+        \item Dane - sytuacja gdy instrukcja wymaga informacji wytworzonej przez instrukcję ciągle realizowaną w potoku. 
+        \item Zasoby - gdy polecenie wymaga użycia zasobu (RAM, PC lub ALU) który aktualnie jest używany przez inny etap potoku. 
+        \item Rozwidlenia - Sytuacje gdy program zmienia swój naturalny bieg, czy to przez przerwanie systemowe czy skoki warunkowe. 
+\end{itemize}
+
+Jest wiele rozwiązań pozwalających zmniejszyć ilość wystąpień takich sytuacji lub ograniczyć straty powodowane przez takie sytuacje, jednak nadal konieczne są zastosowania chwilowego zatrzymania elementów potoku, lub w najgorszym wypadku całkowitego oczyszczenia.
+Powoduje to że niektóre z instrukcji mogą wymagać większej ilości cykli niż jeden, jednak przy zastosowaniu takich technik jak
+\textit{Out-of-order execution}, \textit{branch prediction} oraz równoległe programowanie sprawia że przewidzenie czasu koniecznego na wykonanie programu metodami analitycznymi staje się trudne . 
+Z tego też powodu w tym celu stosuje się metody statystyczne oraz testowanie wzorcowe. 
+        
+        
+
+
+
+
+
 
 %compiling process
 %przerwania systemowe
@@ -232,9 +299,10 @@ $T$ - taktowanie procesora w Hz
 %typy plików z danymi
 %pipelining
 %microarchitektura i ISA
+%Alu
 \section{Projekt}
 
-Zgodnie z dokumentacją RXHDR\_V2 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8$V$ o czasie trwania między 50$ns$ a 200$ns$ i częstotliwości osiągającej nawet do 2.5 $MHZ$.
+Zgodnie z dokumentacją RXHDR\_V2 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8$V$ o czasie trwania między 50$ns$ a 200$ns$ i częstotliwości osiągającej nawet do 2.5 $MHz$.
 Sygnał ten na potrzeby rozwiązań softwarowych jest modyfikowany przez translator poziomów do poziomów logicznych 0 - 3.6$V$ i zostaje wybierana ósemka z szesnastu kanałów przez multiplexer.    
 Tak otrzymane sygnały należy zliczyć na płytce Arduino Due w ściśle określonym czasie oraz przekazać dane do dalszej obróbki bodź wizualizacji na zewnętrznym komputerze.
 
@@ -260,7 +328,7 @@ Używana płytka rozwojowa Arduino Due, używa microkontrolera AT91SAM3X8E w arc
 Pomimo krótkiej operacji wewnątrz IRS - \textit{add} (tabela \ref{decompile add}) proces wejścia do rutyny przerwania i wyjścia zabiera nieporównywalnie więcej cykli procesora, co powoduje że cały proces wywołania przerwania jest kosztowny w czasie. 
 Ilość cykli procesora koniecznych do wywołania funkcji przerwania używając nieoptymalizowanego kodu Arduino może wymagać nawet do 355 cykli procesora \cite{ard_opt_git}, dodatkowo powrót do głównego wątku programu może wymagać kolejne 128 cykli \cite{ard_opt_git}.
 
-\begin{table}
+\begin{table}{h}
         \begin{center}
         \caption{Estymacja ilości cyklów procesora koniecznych do wykonania instrukcji umieszczonych w funkcji \textit{add} }
         \label{decompile add}
@@ -330,6 +398,12 @@ Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu 
 	\textit{\detokenize{RXHDR_v2} - SPECIFICATION},
 	AGH University of Science and Technology
         Faculty of Physics and Applied Computer Science 
+
+        \bibitem{pipelining intel}
+        bit-tech.net
+        \url{https://www.bit-tech.net/reviews/tech/cpus/intel-core-i7-nehalem-architecture-dive/5/}
+        Odwiedzono:
+        Kwiecień 2020
 
         \bibitem{pyserial}
 	Chris Liechti,	
