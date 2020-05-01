@@ -22,7 +22,6 @@
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
-
 \lstset{frame=tb,
   language=python,
   aboveskip=3mm,
@@ -190,7 +189,7 @@ Na kolejnych dwóch stronach proszę dołączyć kolejno recenzje pracy popełni
 Celem pracy było zaprojektowanie i skonstruowanie układu wspierającego system detekcji promieniowania X: RXHDR\_V2 \cite{master}.\\
 Cele szczegółowe:
 \begin{itemize}
-        \item Szesnasto-kanałowy odczyt i zliczenie impulsów o częstotliwości osiągającej do 2.5$\frac{MHz}{kanał}$ z wykorzystaniem mikrokontrolera \textit{Arduiono Due}.
+        \item Szesnasto-kanałowy odczyt i zliczenie impulsów o częstotliwości osiągającej do 2.5$\frac{MHz}{kanal}$ z wykorzystaniem mikrokontrolera \textit{Arduiono Due}.
         \item Stworzenie oprogramowania pozwalającego na komunikację pomiędzy mikrokontrolerem a komputerem wspierajacym. 
         \item Wizualizacja i archiwizacja uzyskanych danych. 
 \end{itemize}
@@ -198,6 +197,43 @@ Cele szczegółowe:
 \subsection{Wstęp teoretyczny}
 
 \subsubsection{Proces kompilacji programu na przykładzie \textit{gcc}}
+
+Językiem rozumianym przez procesory jest kod maszynowy składający się jedynie z ciągu zer i jedynek.
+Sprawia to że jest on trudny do pisania kodu i próba tworzenia w ten sposób często niesie ze sobą wiele błędów. 
+Dlatego też w przeciągu lat były budowane inne języki programowania które dzięki procesowi kompilacji przetwarzają kod języka na kod maszynowy. 
+Jednym z ważniejszych języków programowania stał się język \textit{c} z kompilatorem \textit{gcc - gnu c compiler}. 
+
+Ten wysokopoziomowy język dzieli proces kompilacji na 4 podzielne części
+
+\paragraph{Preprocesing}
+
+Pierwszym etapem kompilacji jest preprocesing, podczas którego linie rozpoczynające się od \# są interpretowane jako komendy preprocesora.  
+Za pomocą tych poleceń możemy między innymi:
+\begin{itemize}
+        \item Definiować zmienne - pozwala to na łatwiejszą konfigurację programu podczas fazy testów
+        \item Definiować makra - ułatwiając późniejsze ponowne użycie kodu w innej części programu
+        \item Warunkowo pomijać fragmenty programu - ułatwia tworzenie różnych konfiguracji programu i redukuje ilość nie używanego kodu
+        \item Rozwiązywać komplikacje kompilacyjne (header guards)
+\end{itemize}
+Warto dodać że wszelka logika i czynności wykonane przez prepocesor nie będą wykonywane przy każdej egzekucji programu, co może pozwolić na drobne optymalizacje działania. 
+
+\paragraph{Kompilacja}
+
+Podczas tego etapu wcześniej przygotowany program zostaje przetłumaczony na język asemblera. 
+
+Ten niskopoziomowy język jest już bardzo zależny od architektury procesora, i każda z  instrukcji asemblera bardzo mocno odpowiada kodzie maszynowemu danego procesora. 
+Ze względu na bardzo dobrą kontrolę wykonywanych przez procesor czynności, pisanie lub edytowanie kodu w asemblerze pozwala, przy odpowiednich umiejętnościach, na ostateczną optymalizację. 
+Każda z poleceń asemblera składa się z dwóch części, z mnemoniki najczęściej odpowiadający odpowiedniemu kodowi operacji procesora oraz dodatkowych danych takich jak używane rejestry lub elementy pamięci. 
+
+\paragraph{Asemblacja}
+
+W tym kroku przetworzony zostaje kod asemblera na język maszynowy, każda z części programu tworzy pliki z domyślnym charakterystycznym rozszerzeniem \textit{.o}.
+Są to tak zwane pliki obiektowe.
+Te binarne pliki już zawierające instrukcje kodu maszynowego, nie tworzą spójnej całości. Jest to zbiór elementów odpowiadający każdemu z użytych plików źródłowych.
+
+\paragraph{Konsolidacja}
+Konsolidator (eng. linker) program łączący wszystkie pliki obiektowe w jeden wykonywalny program. To właśnie na tym etapie dodaje się statyczne biblioteki oraz sprawdza obecność wcześniej zadeklarowanych zmiennych oraz upewnia się że nie pojawia się konflikt oznaczeń. Po zakończeniu tego procesu otrzymujemy gotowy program. 
+
 
 \subsubsection{Czas egzekucji programu}
 
@@ -280,25 +316,13 @@ Rozwiązanie potokowości przynosi ze sobą pewne zagrożenia. Poniżej znajduj�
 \end{itemize}
 
 Jest wiele rozwiązań pozwalających zmniejszyć ilość wystąpień takich sytuacji lub ograniczyć straty powodowane przez takie sytuacje, jednak nadal konieczne są zastosowania chwilowego zatrzymania elementów potoku, lub w najgorszym wypadku całkowitego oczyszczenia.
-Powoduje to że niektóre z instrukcji mogą wymagać większej ilości cykli niż jeden, jednak przy zastosowaniu takich technik jak
+Powoduje to że niektóre z instrukcji mogą wymagać większej ilości cykli niż jeden. Jednakże przy zastosowaniu takich technik jak
 \textit{Out-of-order execution}, \textit{branch prediction} oraz równoległe programowanie sprawia że przewidzenie czasu koniecznego na wykonanie programu metodami analitycznymi staje się trudne . 
 Z tego też powodu w tym celu stosuje się metody statystyczne oraz testowanie wzorcowe. 
         
-        
-
-
-
-
-
-
-%compiling process
 %przerwania systemowe
-%piping i niskie działanie procesora
-%iron law
 %mulithreading programing deadlock's
 %typy plików z danymi
-%pipelining
-%microarchitektura i ISA
 %Alu
 \section{Projekt}
 
@@ -392,6 +416,12 @@ Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu 
         John L. Hennessy, David A. Patterson 
         \textit{Computer Architecture: A Quantitative Approach  5th Edition }
         The Morgan Kaufmann Series in Computer Architecture and Design
+
+        \bibitem{gcc}
+        988-2019 Free Software Foundation
+        \textit{Using GCC: The GNU Compiler Collection Reference Manual, v. 3.3}
+        GNU press
+
 
         \bibitem{master}
 	W. Dąbrowski, T. Fiutowski, P. Wiącek 
