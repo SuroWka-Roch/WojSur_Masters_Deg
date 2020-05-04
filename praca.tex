@@ -319,6 +319,53 @@ Jest wiele rozwiązań pozwalających zmniejszyć ilość wystąpień takich syt
 Powoduje to że niektóre z instrukcji mogą wymagać większej ilości cykli niż jeden. Jednakże przy zastosowaniu takich technik jak
 \textit{Out-of-order execution}, \textit{branch prediction} oraz równoległe programowanie sprawia że przewidzenie czasu koniecznego na wykonanie programu metodami analitycznymi staje się trudne . 
 Z tego też powodu w tym celu stosuje się metody statystyczne oraz testowanie wzorcowe. 
+
+\subsubsection{Programowanie wielowątkowe}
+
+Wątek (eng. thread) jest to część programu która może być oddzielnie zarządzana przez dypozytor (eng. scheduler). 
+Pozwala to na egzekucje wielu wątków równocześnie w przypadku procesorów wielowątkowych lub częste zmiany uwagi między zadaniami w procesorach jednowątkowych.
+W przeciwieństwie do osobnych procesów wątki dzielą wspólną przestrzeń adresową (korzystają z tych samych danych) oraz współdzielą zasoby systemowe.
+
+Użycie metod programowania wielowątkowego niesie ze sobą wiele zalet:
+\begin{itemize}
+        \item Oprogramowanie korzystające z interfejsu użytkownika może pozostać gotowe na nowe informację od użytkownika nawet podczas wykonywania trudnych obliczeń jeżeli zadanie odpowiedzialne za UI będzie osobnym wątkiem do tego wykonywającego obliczenia.
+        \item Ponieważ zasoby są współdzielone między wątkami podejście wielowątkowe może być bardziej oszczędne w zasoby w porównaniu z użyciem osobnych procesów. 
+        \item Program może działać szybciej i z mniejszym opóźnieniem, dzięki programowaniu z użyciem większej ilości wątków, ponieważ pozwala to na lepsze wykorzystanie popularnej architektury wielordzeniowej procesorów komercyjnych. 
+        \item Każda część programu którego obliczenia mogą zostać wykonane równolegle może zyskać na szybkości przy użyciu wielowątkowego podejścia zgodnie z prawem Amdahala \cite{arch}. 
+        Jednak dl przypadku obliczeń które nie pozwalają na równoległe wyliczenia, proces tworzenia wątków oraz wymaganie czekania na zwolnienie zasobów może spowodować że prędkość programu się obniży.
+\end{itemize}
+Jak widać użycie programowania wielowątkowego niesie ze sobą wiele korzyści,
+jednak wraz z zaletami tego rozwiązania spotykamy się z pewnymi zagrożeniami i wymaganiami.
+
+\paragraph{Synchronizacja i współdzielenie zasobów}
+
+Tak jak było to wcześniej opisane w przeciwieństwie do rozpoczęcia nowego procesu na nowe obliczenia, programowanie wielowątkowe pozwala na kontynuowanie obliczeń bez kopiowania zasobów. 
+Powoduje to jednak że wymagane są sposoby sygnalizacji między wątkami oraz sposoby ochrony zasobów przed równoczesnym dostępnie przez więcej niż jedno zadanie. 
+Ta potrzeba spowodowała tworzenie powtarzalnych struktur które są implementowane w najpopularniejszych językach programowania. 
+Poniżej znajduje się ich opis bez skupienia na specyfice którejkolwiek z implementacji. 
+\begin{itemize}
+        \item mutex/lock - obiekt który ma dwa stany zablokowany/otwarty.
+        Kiedy wątek próbuje zablokować mutex/lock który już jest zablokowany powoduje to przejście wątku w stan czekania aż do chwili odblokowania przez zadanie które pierwotnie zablokowało mutex.
+        Daje to możliwość wykorzystania tej struktury w celu ochrony zasobu. Przed rozpoczęciem zadania który wymaga wyłączności blokujemy mutex dając sygnał korzystania z zasobu do którego ten lock należy. 
+        Po zakończeniu obliczeń zwalniamy/otwieramy mutex pozwalając pracować innym wątkom. Obiekt ten może być jedynie zwolniony przez wątek który go zablokował. 
+        W ten właśnie sposób unika się równoczesnego korzystania z zasobów. 
+        \item semafor (end. semaphore) - zasada działania jest podobna do mutexu jednak w przeciwieństwie do wcześniej wymienionej struktury semafor może być odblokowywany przez inne wątki niż te które zablokowały obiekt. Dodatkowo w częstej implementacji semafor może mieć więcej niż jeden stopień blokady. 
+        Jest on przydatny w przypadku potrzeby synchronizacji obliczeń jeden z wątków może oznajmić że skończył swoje obliczenia i oczekuje na wynik z równoległych obliczeń, a inny wątek po zakończeniu swojej części może odblokować semafor po wykonaniu swojego zadania.   
+        \item monitor - obiekt ten ma zapisaną listę aktualnie używanych zasobów i jeżeli wątek próbuje (korzystając z funkcji monitora) skorzystać z zasobu spowoduje to przejście w stan wstrzymania wątku aż do zwolnienia zasobu. 
+        Monitor zapewnia funkcjonalność mutex/lock dla dowolnego zasobu, jednak korzystanie z tej funkcjonalności sprawia trudności w tworzeniu fragmentów kodu który jest krytyczny gdyż w takim przypadku konieczne byłoby skorzystanie z monitora w celu zablokowania każdego z zasobów z osobna w przeciwieństwie do mutexu który może być odpowiedzialny za wiele zasobów jednocześnie.   
+\end{itemize} 
+
+Korzystanie z funkcji synchronizujących jest konieczne w celu uniknięcia błędów występujących w wyniku korzystania z programowania wielowątkowego.
+
+\paragraph{Race condition}
+
+\paragraph{Dead lock}
+
+
+\subsubsection{Otwarte formaty danych}
+
+Pliki o otwartych formatach danych to takie pliki tekstowe których metadane oraz semantyka jest ogólnie dostępna.
+Oznacza to że nie tylko są to formaty które są często implementowane w wielu programach ale również umożliwiają ręczną manipulację danymi przez użytkownika.   
         
 %przerwania systemowe
 %mulithreading programing deadlock's
@@ -422,7 +469,21 @@ Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu 
         \textit{Using GCC: The GNU Compiler Collection Reference Manual, v. 3.3}
         GNU press
 
+        \bibitem{multi thread problem}
+        Edward A. Lee
+        \textit{The Problem with Threads}
+        Electrical Engineering and Computer Sciences
+        University of California at Berkeley
+        Technical Report No. UCB/EECS-2006-1
+        \url{http://www.eecs.berkeley.edu/Pubs/TechRpts/2006/EECS-2006-1.html}
+        January 10, 2006
 
+        \bibitem{multithreding microsoft}
+        Microsoft 2020
+        \textit{Managed threading best practices}
+        \url{https://docs.microsoft.com/en-us/dotnet/standard/threading/managed-threading-best-practices}
+        Odwiedzono: Maj 2020
+        
         \bibitem{master}
 	W. Dąbrowski, T. Fiutowski, P. Wiącek 
 	\textit{\detokenize{RXHDR_v2} - SPECIFICATION},
