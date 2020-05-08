@@ -52,7 +52,7 @@
 
 \author{Wojciech Surówka}
 
-\graphicspath{{fig/}}
+\graphicspath{{fig/} {./fig/wykresy/}}
 \geometry{hmargin={2cm, 2cm}, height=10.0in}
 
 \begin{document}
@@ -195,6 +195,8 @@ Cele szczegółowe:
 \end{itemize}
 
 \subsection{Wstęp teoretyczny}
+
+W celu stworzenia programu dla tego projektu konieczne jest zrozumienie niskopoziomowego i wysokopoziomowego działania programów. Część z zagadnień koniecznych do stworzenia prototypu opisana jest poniżej. 
 
 \subsubsection{Proces kompilacji programu na przykładzie \textit{gcc}}
 
@@ -359,14 +361,88 @@ Korzystanie z funkcji synchronizujących jest konieczne w celu uniknięcia błę
 
 \paragraph{Race condition}
 
-\paragraph{Dead lock}
+\begin{figure}[t]
+        \centering
+        \includegraphics[width = \textwidth]{race_condition.png}
+        \caption{Schematy układów w których występuje \textit{race condition}. Po lewej \textit{(a)} przykład układu elektronicznego a po prawej \textit{{b}} schemat działania programu wielowątkowego. }
+        \label{race condition}
+\end{figure}
 
+W elektronice race condition to hazard spowodowany przez czas propagacji elementów układu powodujący niezamierzane efekty. Przykład układu elektronicznego w którym występuje takowy hazard jest wizualizowany na rysunku \ref{race condition}(a). 
+Race condition dzieli się na statyczny i dynamiczny. Statyczny to taki w którym obserwujemy zmianę na wyjściu w chwili gdy, dla układów o zerowej propagacji elementów spodziewalibyśmy się niezmienionego stanu.
+W hazardzie dynamicznym spotykamy się z odwrotną sytuacją. 
+
+W przypadku programowania wielowątkowego tego typu hazard nie jest powodowany przez czas propagacji elementów lecz przez nieznany czas i kolejność wykonywania operacji przez równolegle pracujące wątki. Przykład schematu programu dla takiego przypadku znajduje się na rysunku \ref{race condition}(b). Schemat przedstawia prostą bazę danych i dwa wątki mające za zadanie podniesienie wartości zmiennej \textit{N} o jeden.
+Prosty proces zmiany zmiennej składa się z trzech oddzielnych części, pobranie wartości zmiennej, zwiększenie wartości oraz ponowne zapisanie zmiennej w pamięci. 
+Dla podanego przykładu w typowym przebiegu gdy obydwa wątki zwiększą wartość zmiennej o 1 spodziewany jest wynik $N = n+2$, jednak rzadkim przypadku może zaistnieć sytuacja że drugi wątek pobierze wartość N do obliczeń przed zapisaniem wyniku z pierwszej operacji. Spowoduje to trudny do odnalezienia i odtworzenia błąd sprawiający że zignorowane zostają obliczenia wątku który pierwszy pobrał wartość, zatem końcowy wynik będzie równy $N = n+1$.
+Jest to jeden z powodów dlaczego zabezpiecza się zasoby za pomocą muteksów lub semaforów. 
+
+Mimo sposobów na unikanie takich sytuacji programowanie wielowątkowe wymaga dużej staranności a potencjalne błędy mogą pozostawać ukryte nawet latami. To też jest powód dla którego nie należy stosować takich rozwiązań jeżeli mogą zostać pominięte\cite{multi thread problem}.
+\paragraph{Zakleszczenie}
+
+Zakleszczenie (ang. deadlock) to sytuacja gdy dwie operacje czekają na siebie wzajemnie więc żadna z nich nie może się zakończyć. 
+Zakleszczenie może występować w procesach, wątkach jak i również w świecie fizycznym przykładowo w ruchu drogowym podczas blokady rąda w korku drogowym.  
+Prostym przykładem takiej sytuacji jest chwila gdy dwa procesy w celu przeprowadzenia potrzebują dwóch muteksów i w chwili gdy każdy z nich zablokuje jeden z nich przechodzą w stan wstrzymania oczekując na zwolnienie tego trzymanego przez konkurujący proces. 
+Jest to jednak trudna sytuacja do przewidzenia, gdyż w bardziej rozbudowanych sytuacjach kiedykolwiek występuje graf cykliczny zapotrzebowania zasobów, deadlock może zaistnieć. 
+
+W celu uniknięcia takiej sytuacji można wprowadzić pewne środki zapobiegawcze\\cite{coffman}:
+\begin{itemize}
+        \item Proces/wątek blokuje zasoby dopiero kiedy wszystkie są dostępne. Jest to mało optymalne rozwiązanie i może spowodować że operacja nigdy nie zostanie przeprowadzona
+        \item Ustalenie mechanizmu wywłaszczania zasobów oraz hierarchii dostępu. 
+        \item Przed przejściem w stan oczekiwania proces może zwolnić wszystkie przetrzymywane zasoby. 
+        \item Usunięcie wymagania wyłączności. Jeżeli zasób może być używany przez wiele wątków/procesów jednocześnie to nie należy go blokować.  
+        \item Projektowanie programu tak by proces/wątek wymagał jednocześnie dostępu jedynie do jednego zasobu na raz. 
+\end{itemize} 
+
+Jest to kolejny powód dla którego należy bardzo rozsądnie podchodzić do projektowania programu przy decyzji programowania wielowątkowego oraz nie nadużywać w sytuacjach gdy jest to niekonieczne. 
 
 \subsubsection{Otwarte formaty danych}
 
 Pliki o otwartych formatach danych to takie pliki tekstowe których metadane oraz semantyka jest ogólnie dostępna.
-Oznacza to że nie tylko są to formaty które są często implementowane w wielu programach ale również umożliwiają ręczną manipulację danymi przez użytkownika.   
-        
+Oznacza to że nie tylko są to formaty które są często implementowane w wielu programach, ale również umożliwiają ręczną manipulację danymi przez użytkownika.  
+Poniżej znajdują się krótkie opisy najpopularniejszych formatów.
+
+\paragraph{CSV}
+CSV (ang. comma seperated values, wartości dzielone przecinkami) jest to prosty format plików w którym zgodnie z nazwą każda z wartości jest oddzielana przecinkiem od kolejnej. Wartości dzielą się na rekodry oddzielane znakami końca linii CRLF oraz wartości oddzielane przecinkami. Zamiast przecinków mogą być używane znaki specjalne jak średniki lub tabulatury chociaż jest to niezalecane. Jeżeli plik z danymi zawiera tablicę to ilość wartości powinna być jednakowa w każdym z rekordów. 
+
+\paragraph{XML}
+
+XML (eng. Extensible Markup Language) jest to uniwersalny język znaków służący do przenoszenia danych. Jego skupieniem była łatwość w pisaniu programów interpretujących ten standard.
+Jest to język na podstawie którego stworzono wiele ważnych pochodnych formatów takich Microsoft Office XML formats, Trusted Data Format i HTML5.
+
+Poniżej znajduje się prosty przykład takowego dokumentu:
+\begin{kod}
+        \lstinputlisting[language=XML]{code_source/XML.xml}
+        \caption{Schematyczny przykład zawartości pliku napisanego w języku XML}
+        \label{XML code}
+\end{kod}
+
+Dokument XML składa się z elementów, atrybutów oraz tagów. 
+Tagi znajdują się między symbolami < > oraz każdy z nich wymaga zamknięcia przez tag o tej samej nazwie rozpoczynając się od symbolu \\.
+Atrybuty to pary wartość klucz znajdujące się między symbolami < > gdzie wartość zawsze musi być zawarta między znakami ".
+Wartości to tekst lub kolejne elementy znajdujące się między tagami. 
+Pierwsza linia to opcjonalny prolog zawierający informację o wersji XML oraz typie kodowania.  
+Dokument XML musi zawierać element początkowy. W przykładowym kodzie \ref{XML code} jest to tag <root>.
+
+
+
+\paragraph{JSON -  Java script object notation}
+
+Mimo że nie jest standardem otwartych plików danych, lecz formą języka JavaScript to spełnia warunki czytelności przez człowieka jak i maszynę. 
+Forma obiektu w tym języku stała się w przeciągu lat popularnym sposobem na przekazywanie danych między aplikacjami. Stało się tak ze względu na prostotę sematyki oraz uniwersalność. 
+
+Każdy obiekt JSON zaczyna się symbolem \{ i kończy \} każda z wartości składa się z pary atrybut wartość przedzielona dwukropkiem, a każda z kolejnych par oddziela się przecinkiem. Typami wartości są:
+\begin{itemize}
+        \item liczba, 
+        \item tekstowy typ danych (eng. string),
+        \item logiczny typ danych,
+        \item tablica - zaczyna się od [ kończy na ],
+        \item obiekt,
+        \item wartość pusta - null. 
+\end{itemize}
+
+Format ten wspierany jest przez wiele języków między innymi C, C++, C\#, Java, JavaScript, Perl, Python\cite{json}.
+
 %przerwania systemowe
 %mulithreading programing deadlock's
 %typy plików z danymi
@@ -477,6 +553,16 @@ Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu 
         Technical Report No. UCB/EECS-2006-1
         \url{http://www.eecs.berkeley.edu/Pubs/TechRpts/2006/EECS-2006-1.html}
         January 10, 2006
+
+        \bibitem{coffman}
+        Coffman conditions
+        \url{http://personal.kent.edu/~rmuhamma/OpSystems/Myos/deadlockCondition.htm}
+        Odwiedzono: maj 2020
+
+        \bibitem{json}
+        Introducing JSON
+        \url{https://www.json.org/json-en.html}
+        Odwiedzono: maj 2020
 
         \bibitem{multithreding microsoft}
         Microsoft 2020
