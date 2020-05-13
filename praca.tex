@@ -52,7 +52,7 @@
 
 \author{Wojciech Surówka}
 
-\graphicspath{{fig/} {./fig/wykresy/}}
+\graphicspath{{fig/} {./fig/wykresy/} {./fig/schematy/}}
 \geometry{hmargin={2cm, 2cm}, height=10.0in}
 
 \begin{document}
@@ -198,7 +198,7 @@ Cele szczegółowe:
 
 W celu stworzenia programu dla tego projektu konieczne jest zrozumienie niskopoziomowego i wysokopoziomowego działania programów. Część z zagadnień koniecznych do stworzenia prototypu opisana jest poniżej. 
 
-\subsubsection{Proces kompilacji programu na przykładzie \textit{gcc}}
+\subsubsection{Proces kompilacji programu na przykładzie \textit{gcc}\cite{gcc}}
 
 Językiem rozumianym przez procesory jest kod maszynowy składający się jedynie z ciągu zer i jedynek.
 Sprawia to że jest on trudny do pisania kodu i próba tworzenia w ten sposób często niesie ze sobą wiele błędów. 
@@ -214,30 +214,32 @@ Za pomocą tych poleceń możemy między innymi:
 \begin{itemize}
         \item Definiować zmienne - pozwala to na łatwiejszą konfigurację programu podczas fazy testów
         \item Definiować makra - ułatwiając późniejsze ponowne użycie kodu w innej części programu
-        \item Warunkowo pomijać fragmenty programu - ułatwia tworzenie różnych konfiguracji programu i redukuje ilość nie używanego kodu
-        \item Rozwiązywać komplikacje kompilacyjne (header guards)
+        \item Warunkowo pomijać fragmenty kodu - ułatwia tworzenie różnych konfiguracji programu i redukuje ilość nie używanego kodu
+        \item Wskazywać potrzebne biblioteki oraz lokalizację innych plików źródłowych.
+        \item Rozwiązywać problemy kompilacyjne (header guards)
 \end{itemize}
-Warto dodać że wszelka logika i czynności wykonane przez prepocesor nie będą wykonywane przy każdej egzekucji programu, co może pozwolić na drobne optymalizacje działania. 
+Warto dodać że wszelka logika i czynności wykonane przez prepocesor nie będą wykonywane przy każdej egzekucji programu, co może pozwolić na optymalizacje działania. 
 
 \paragraph{Kompilacja}
 
 Podczas tego etapu wcześniej przygotowany program zostaje przetłumaczony na język asemblera. 
 
-Ten niskopoziomowy język jest już bardzo zależny od architektury procesora, i każda z  instrukcji asemblera bardzo mocno odpowiada kodzie maszynowemu danego procesora. 
-Ze względu na bardzo dobrą kontrolę wykonywanych przez procesor czynności, pisanie lub edytowanie kodu w asemblerze pozwala, przy odpowiednich umiejętnościach, na ostateczną optymalizację. 
+Ten niskopoziomowy język jest już bardzo zależny od architektury procesora, każda z  instrukcji asemblera bardzo mocno odpowiada kodzie maszynowemu danego procesora. 
+Dlatego też analiza programu po procesie kompilacji do kodu asemblera pozwala na dokładne przewidzenie działania programu, dodatkowo
+ze względu na bardzo dobrą kontrolę wykonywanych przez procesor czynności pisanie lub edytowanie kodu w asemblerze pozwala, przy odpowiednich umiejętnościach, na ostateczną optymalizację. 
 Każda z poleceń asemblera składa się z dwóch części, z mnemoniki najczęściej odpowiadający odpowiedniemu kodowi operacji procesora oraz dodatkowych danych takich jak używane rejestry lub elementy pamięci. 
 
 \paragraph{Asemblacja}
 
 W tym kroku przetworzony zostaje kod asemblera na język maszynowy, każda z części programu tworzy pliki z domyślnym charakterystycznym rozszerzeniem \textit{.o}.
 Są to tak zwane pliki obiektowe.
-Te binarne pliki już zawierające instrukcje kodu maszynowego, nie tworzą spójnej całości. Jest to zbiór elementów odpowiadający każdemu z użytych plików źródłowych.
+Te binarne pliki już zawierają instrukcje kodu maszynowego, ale nie tworzą spójnej całości. Jest to zbiór elementów odpowiadający każdemu z użytych plików źródłowych.
 
 \paragraph{Konsolidacja}
 Konsolidator (eng. linker) program łączący wszystkie pliki obiektowe w jeden wykonywalny program. To właśnie na tym etapie dodaje się statyczne biblioteki oraz sprawdza obecność wcześniej zadeklarowanych zmiennych oraz upewnia się że nie pojawia się konflikt oznaczeń. Po zakończeniu tego procesu otrzymujemy gotowy program. 
 
 
-\subsubsection{Czas egzekucji programu}
+\subsubsection{Czas egzekucji programu\cite{arch}}
 
 By wyznaczyć czas konieczny na wykonanie programu lub fragmentu programu można użyć prawa wydajności procesora:
 
@@ -248,7 +250,7 @@ By wyznaczyć czas konieczny na wykonanie programu lub fragmentu programu można
 
 Elementy tego równania są zależne od różnych elementów układu komputerowego:
 \begin{itemize}
-        \item $\frac{Instrukcje}{Program}$ - powiązany z językiem programowania, optymalizacji kompilatora i długości programu. 
+        \item $\frac{Instrukcje}{Program}$ - powiązany z językiem programowania, optymalizacją kompilatora oraz długością programu. 
         \item $\frac{Cykle}{Instrukcje}$ - Zależy od mikroarchitektury komputera oraz modelu programowego procesora.
         \item $\frac{Czas}{Cykl}$ -  zależny od prędkości taktowania procesora i technologi chipu. 
 \end{itemize} 
@@ -257,7 +259,7 @@ Elementy tego równania są zależne od różnych elementów układu komputerowe
 W celu obliczenia ilości cykli które procesor wykonuje w przeciągu sekundy ($\frac{Czas}{Cykl}$), dla architektury w której jeden cykl zegara głównego to jeden cykl procesora, można skorzystać z równości:
 \begin{equation}
         \label{Cykli w sec}
-        N [1]= \frac{1}{T [Hz]}
+        N [1/s]= \frac{1}{T [Hz]}
 \end{equation} 
 Gdzie:\\
 $N$ - ilość cykli procesora wykonywanych w przeciągu sekundy \\
@@ -266,7 +268,7 @@ $T$ - taktowanie procesora w Hz
 \subsubsection{Potokowość}
 
 W celu ograniczenia ilości cykli przypadających na jedną instrukcję używa się technologi potokowości. 
-Oznacza to że pojedyńczą instrukcję dzielimy na mniejsze części i pozwalamy zasobom które odpowiadają tym częścią pracować nad następną częścią polecenia zanim całość instrukcji zostanie wykonane.
+Oznacza to że pojedyńczą instrukcję dzielimy na mniejsze części i pozwalamy zasobom które odpowiadają za wykonanie tych części pracować nad następnym zadaniem zanim całość instrukcji zostanie wykonana.
 
 Przykładowy podział instrukcji może wyglądać następująco:
 \begin{enumerate}
@@ -284,7 +286,7 @@ Dzięki takiemu rozbiciu w idealnym przypadku możemy osiągnąć architekturę 
         \caption{Przykład pracy procesora z wykorzystaniem potokowości w idealnym przypadku.}
         \label{pipelining}
         \begin{tabular}{lcccccccc}
-                Time & $t_0$&$t_1$&$t_2$&$t_3$&$t_4$&$t_5$&$t_6$&$t_7$ \\ \hline
+                Czas & $t_0$&$t_1$&$t_2$&$t_3$&$t_4$&$t_5$&$t_6$&$t_7$ \\ \hline
                 Instrukcja 1 & IF & ID & EX & MEM & WB &    & \\
                 Instrukcja 2 &    & IF & ID & EX & MEM & WB & \\
                 Instrukcja 3 &    &    & IF & ID & EX & MEM & WB \\
@@ -295,7 +297,7 @@ Dzięki takiemu rozbiciu w idealnym przypadku możemy osiągnąć architekturę 
 
 Taki przypadek jest wizualizowany w tabeli \ref{pipelining}. Jak widać żaden z zasobów nie jest wykorzystywany równocześnie przez dwie instrukcje.
 Dodatkowo tabela \ref{pipelining} pokazuje że każda następna instrukcja jest wykonywana w kolejnym czasie $t$. 
-Czas $t$ jest równy czasowi najdłuższego etapu z dodatkiem czasu wymaganego przez elektronikę zarządzającej potokowościowi \cite{arch}.
+Czas $t$ jest równy czasowi najdłuższego etapu z dodatkiem czasu wymaganego przez elektronikę zarządzającą potokowością \cite{arch}.
 Równość ta może być zapisana wzorem:
 \begin{equation}
         t = T_{e_{max}} + T_{+}
@@ -306,7 +308,7 @@ Gdzie:
         $T_{+}$ - dodatkowy czas wymagany przez rejestry \\
 
 
-Powyższy przykład pokazuje jedynie pięcio-etapową potokowość jednak procesory komercyjne stosują różne rozkazania tak przykładowo SMART SAM3X/A stosuje try etapową pokojowość\cite{datasheet} a mikroarchitektura Intala o nazwie Nehalem może zawierać od 20 - 24\cite{pipelining intel}.
+Powyższy przykład pokazuje jedynie pięcio-etapową potokowość jednak procesory komercyjne stosują różne rozwiązania. Przykładowo SMART SAM3X/A stosuje trój etapową pokojowość\cite{datasheet} a mikroarchitektura Intala o nazwie Nehalem może zawierać 20 - 24 etapów\cite{pipelining intel}.
 
 Jednak podczas rozwiązań tego typu nie zawsze trafimy na sytuacje kiedy pojedyńczy cykl przypada dla pojedyńczej instrukcji. 
 Rozwiązanie potokowości przynosi ze sobą pewne zagrożenia. Poniżej znajdują się krótkie opisy takich sytuacji. 
@@ -319,7 +321,7 @@ Rozwiązanie potokowości przynosi ze sobą pewne zagrożenia. Poniżej znajduj�
 
 Jest wiele rozwiązań pozwalających zmniejszyć ilość wystąpień takich sytuacji lub ograniczyć straty powodowane przez takie sytuacje, jednak nadal konieczne są zastosowania chwilowego zatrzymania elementów potoku, lub w najgorszym wypadku całkowitego oczyszczenia.
 Powoduje to że niektóre z instrukcji mogą wymagać większej ilości cykli niż jeden. Jednakże przy zastosowaniu takich technik jak
-\textit{Out-of-order execution}, \textit{branch prediction} oraz równoległe programowanie sprawia że przewidzenie czasu koniecznego na wykonanie programu metodami analitycznymi staje się trudne . 
+\textit{Out-of-order execution}, \textit{branch prediction} oraz programowanie równoległe  sprawia że przewidzenie czasu koniecznego na wykonanie programu metodami analitycznymi staje się trudne . 
 Z tego też powodu w tym celu stosuje się metody statystyczne oraz testowanie wzorcowe. 
 
 \subsubsection{Programowanie wielowątkowe}
@@ -330,8 +332,8 @@ W przeciwieństwie do osobnych procesów wątki dzielą wspólną przestrzeń ad
 
 Użycie metod programowania wielowątkowego niesie ze sobą wiele zalet:
 \begin{itemize}
-        \item Oprogramowanie korzystające z interfejsu użytkownika może pozostać gotowe na nowe informację od użytkownika nawet podczas wykonywania trudnych obliczeń jeżeli zadanie odpowiedzialne za UI będzie osobnym wątkiem do tego wykonywającego obliczenia.
-        \item Ponieważ zasoby są współdzielone między wątkami podejście wielowątkowe może być bardziej oszczędne w zasoby w porównaniu z użyciem osobnych procesów. 
+        \item Oprogramowanie korzystające z interfejsu użytkownika (GUI - grafic user interface) może pozostać gotowe na nowe informację nawet podczas wykonywania trudnych obliczeń jeżeli zadanie odpowiedzialne za UI (eng. User interface - interfejs użytkownika) będzie osobnym wątkiem niż ten wykonywający obliczenia.
+        \item Ponieważ zasoby są współdzielone między wątkami podejście wielowątkowe może być bardziej oszczędne w zasoby w porównaniu z użyciem osobnych procesów, które wymagałoby przekopiowania danych.
         \item Program może działać szybciej i z mniejszym opóźnieniem, dzięki programowaniu z użyciem większej ilości wątków, ponieważ pozwala to na lepsze wykorzystanie popularnej architektury wielordzeniowej procesorów komercyjnych. 
         \item Każda część programu którego obliczenia mogą zostać wykonane równolegle może zyskać na szybkości przy użyciu wielowątkowego podejścia zgodnie z prawem Amdahala \cite{arch}. 
         Jednak dl przypadku obliczeń które nie pozwalają na równoległe wyliczenia, proces tworzenia wątków oraz wymaganie czekania na zwolnienie zasobów może spowodować że prędkość programu się obniży.
@@ -344,7 +346,7 @@ jednak wraz z zaletami tego rozwiązania spotykamy się z pewnymi zagrożeniami 
 Tak jak było to wcześniej opisane w przeciwieństwie do rozpoczęcia nowego procesu na nowe obliczenia, programowanie wielowątkowe pozwala na kontynuowanie obliczeń bez kopiowania zasobów. 
 Powoduje to jednak że wymagane są sposoby sygnalizacji między wątkami oraz sposoby ochrony zasobów przed równoczesnym dostępnie przez więcej niż jedno zadanie. 
 Ta potrzeba spowodowała tworzenie powtarzalnych struktur które są implementowane w najpopularniejszych językach programowania. 
-Poniżej znajduje się ich opis bez skupienia na specyfice którejkolwiek z implementacji. 
+Poniżej znajduje się ich krótki opis bez skupienia na specyfice którejkolwiek z implementacji. 
 \begin{itemize}
         \item mutex/lock - obiekt który ma dwa stany zablokowany/otwarty.
         Kiedy wątek próbuje zablokować mutex/lock który już jest zablokowany powoduje to przejście wątku w stan czekania aż do chwili odblokowania przez zadanie które pierwotnie zablokowało mutex.
@@ -352,9 +354,9 @@ Poniżej znajduje się ich opis bez skupienia na specyfice którejkolwiek z impl
         Po zakończeniu obliczeń zwalniamy/otwieramy mutex pozwalając pracować innym wątkom. Obiekt ten może być jedynie zwolniony przez wątek który go zablokował. 
         W ten właśnie sposób unika się równoczesnego korzystania z zasobów. 
         \item semafor (end. semaphore) - zasada działania jest podobna do mutexu jednak w przeciwieństwie do wcześniej wymienionej struktury semafor może być odblokowywany przez inne wątki niż te które zablokowały obiekt. Dodatkowo w częstej implementacji semafor może mieć więcej niż jeden stopień blokady. 
-        Jest on przydatny w przypadku potrzeby synchronizacji obliczeń jeden z wątków może oznajmić że skończył swoje obliczenia i oczekuje na wynik z równoległych obliczeń, a inny wątek po zakończeniu swojej części może odblokować semafor po wykonaniu swojego zadania.   
+        Jest on przydatny w przypadku potrzeby synchronizacji obliczeń. Jeden z wątków może zablokować semafor oznajmiając że skończył swoje obliczenia i oczekuje na wynik z równoległych obliczeń, a inny wątek po zakończeniu swojej części może odblokować semafor. 
         \item monitor - obiekt ten ma zapisaną listę aktualnie używanych zasobów i jeżeli wątek próbuje (korzystając z funkcji monitora) skorzystać z zasobu spowoduje to przejście w stan wstrzymania wątku aż do zwolnienia zasobu. 
-        Monitor zapewnia funkcjonalność mutex/lock dla dowolnego zasobu, jednak korzystanie z tej funkcjonalności sprawia trudności w tworzeniu fragmentów kodu który jest krytyczny gdyż w takim przypadku konieczne byłoby skorzystanie z monitora w celu zablokowania każdego z zasobów z osobna w przeciwieństwie do mutexu który może być odpowiedzialny za wiele zasobów jednocześnie.   
+        Monitor zapewnia funkcjonalność mutex/lock dla dowolnego zasobu, jednak korzystanie z tej funkcjonalności sprawia trudności w tworzeniu fragmentów kodu który jest krytyczny gdyż w takim przypadku konieczne byłoby skorzystanie z monitora w celu zablokowania każdego z zasobów z osobna podczas gdy mutex/lock może być odpowiedzialny za wiele zasobów jednocześnie.   
 \end{itemize} 
 
 Korzystanie z funkcji synchronizujących jest konieczne w celu uniknięcia błędów występujących w wyniku korzystania z programowania wielowątkowego.
@@ -369,12 +371,12 @@ Korzystanie z funkcji synchronizujących jest konieczne w celu uniknięcia błę
 \end{figure}
 
 W elektronice race condition to hazard spowodowany przez czas propagacji elementów układu powodujący niezamierzane efekty. Przykład układu elektronicznego w którym występuje takowy hazard jest wizualizowany na rysunku \ref{race condition}(a). 
-Race condition dzieli się na statyczny i dynamiczny. Statyczny to taki w którym obserwujemy zmianę na wyjściu w chwili gdy, dla układów o zerowej propagacji elementów spodziewalibyśmy się niezmienionego stanu.
+Race condition dzieli się na statyczny i dynamiczny. Statyczny to taki w którym obserwujemy zmianę na wyjściu w chwili gdy dla układów o zerowej propagacji elementów spodziewalibyśmy się niezmienionego stanu.
 W hazardzie dynamicznym spotykamy się z odwrotną sytuacją. 
 
 W przypadku programowania wielowątkowego tego typu hazard nie jest powodowany przez czas propagacji elementów lecz przez nieznany czas i kolejność wykonywania operacji przez równolegle pracujące wątki. Przykład schematu programu dla takiego przypadku znajduje się na rysunku \ref{race condition}(b). Schemat przedstawia prostą bazę danych i dwa wątki mające za zadanie podniesienie wartości zmiennej \textit{N} o jeden.
 Prosty proces zmiany zmiennej składa się z trzech oddzielnych części, pobranie wartości zmiennej, zwiększenie wartości oraz ponowne zapisanie zmiennej w pamięci. 
-Dla podanego przykładu w typowym przebiegu gdy obydwa wątki zwiększą wartość zmiennej o 1 spodziewany jest wynik $N = n+2$, jednak rzadkim przypadku może zaistnieć sytuacja że drugi wątek pobierze wartość N do obliczeń przed zapisaniem wyniku z pierwszej operacji. Spowoduje to trudny do odnalezienia i odtworzenia błąd sprawiający że zignorowane zostają obliczenia wątku który pierwszy pobrał wartość, zatem końcowy wynik będzie równy $N = n+1$.
+Dla podanego przykładu w typowym przebiegu gdy obydwa wątki zwiększą wartość zmiennej o 1 spodziewany jest wynik $N = n+2$. Jednak rzadkim przypadku może zaistnieć sytuacja że drugi wątek pobierze wartość N do obliczeń przed zapisaniem wyniku z pierwszej operacji. Spowoduje to trudny do odnalezienia i odtworzenia błąd sprawiający że zignorowane zostają obliczenia wątku który pierwszy pobrał wartość, zatem końcowy wynik będzie równy $N = n+1$.
 Jest to jeden z powodów dlaczego zabezpiecza się zasoby za pomocą muteksów lub semaforów. 
 
 Mimo sposobów na unikanie takich sytuacji programowanie wielowątkowe wymaga dużej staranności a potencjalne błędy mogą pozostawać ukryte nawet latami. To też jest powód dla którego nie należy stosować takich rozwiązań jeżeli mogą zostać pominięte\cite{multi thread problem}.
@@ -382,8 +384,10 @@ Mimo sposobów na unikanie takich sytuacji programowanie wielowątkowe wymaga du
 
 Zakleszczenie (ang. deadlock) to sytuacja gdy dwie operacje czekają na siebie wzajemnie więc żadna z nich nie może się zakończyć. 
 Zakleszczenie może występować w procesach, wątkach jak i również w świecie fizycznym przykładowo w ruchu drogowym podczas blokady rąda w korku drogowym.  
-Prostym przykładem takiej sytuacji jest chwila gdy dwa procesy w celu przeprowadzenia potrzebują dwóch muteksów i w chwili gdy każdy z nich zablokuje jeden z nich przechodzą w stan wstrzymania oczekując na zwolnienie tego trzymanego przez konkurujący proces. 
-Jest to jednak trudna sytuacja do przewidzenia, gdyż w bardziej rozbudowanych sytuacjach kiedykolwiek występuje graf cykliczny zapotrzebowania zasobów, deadlock może zaistnieć. 
+Prostym przykładem takiej sytuacji jest chwila gdy dwa procesy w celu przeprowadzenia obliczeń potrzebują dwóch muteksów i w chwili gdy każdy z nich zablokuje jeden z nich przechodzą w stan wstrzymania oczekując na zwolnienie tego trzymanego przez konkurujący proces. 
+
+ Kiedykolwiek występuje graf cykliczny zapotrzebowania zasobów deadlock może zaistnieć. 
+ Powoduje to że jest to trudna sytuacja do przewidzenia w bardziej rozbudowanych programach.
 
 W celu uniknięcia takiej sytuacji można wprowadzić pewne środki zapobiegawcze\\cite{coffman}:
 \begin{itemize}
@@ -394,23 +398,24 @@ W celu uniknięcia takiej sytuacji można wprowadzić pewne środki zapobiegawcz
         \item Projektowanie programu tak by proces/wątek wymagał jednocześnie dostępu jedynie do jednego zasobu na raz. 
 \end{itemize} 
 
-Jest to kolejny powód dla którego należy bardzo rozsądnie podchodzić do projektowania programu przy decyzji programowania wielowątkowego oraz nie nadużywać w sytuacjach gdy jest to niekonieczne. 
+Jest to kolejny powód dla którego należy bardzo rozsądnie podchodzić do projektowania programu przy decyzji programowania wielowątkowego oraz nie nadużywać tego podejścia w sytuacjach gdy jest to niekonieczne. 
 
 \subsubsection{Otwarte formaty danych}
 
-Pliki o otwartych formatach danych to takie pliki tekstowe których metadane oraz semantyka jest ogólnie dostępna.
+Pliki o otwartych formatach danych to takie pliki tekstowe których metadane oraz semantyka jest ogólnie dostępna. 
+Celem tych plików jest łatwość interpretacji zarówno przez człowieka jak i maszynę. 
 Oznacza to że nie tylko są to formaty które są często implementowane w wielu programach, ale również umożliwiają ręczną manipulację danymi przez użytkownika.  
 Poniżej znajdują się krótkie opisy najpopularniejszych formatów.
 
 \paragraph{CSV}
-CSV (ang. comma seperated values, wartości dzielone przecinkami) jest to prosty format plików w którym zgodnie z nazwą każda z wartości jest oddzielana przecinkiem od kolejnej. Wartości dzielą się na rekodry oddzielane znakami końca linii CRLF oraz wartości oddzielane przecinkami. Zamiast przecinków mogą być używane znaki specjalne jak średniki lub tabulatury chociaż jest to niezalecane. Jeżeli plik z danymi zawiera tablicę to ilość wartości powinna być jednakowa w każdym z rekordów. 
+CSV (eng. comma seperated values, wartości dzielone przecinkami) jest to prosty format plików w którym zgodnie z nazwą każda z wartości jest oddzielana przecinkiem od kolejnej. Wartości dzielą się na rekodry oddzielane znakami końca linii CRLF oraz wartości oddzielane przecinkami. Zamiast przecinków mogą być używane znaki specjalne jak średniki lub tabulatury chociaż jest to niezalecane. Jeżeli plik z danymi zawiera tablicę to ilość wartości powinna być jednakowa w każdym z rekordów. 
 
 \paragraph{XML}
 
 XML (eng. Extensible Markup Language) jest to uniwersalny język znaków służący do przenoszenia danych. Jego skupieniem była łatwość w pisaniu programów interpretujących ten standard.
-Jest to język na podstawie którego stworzono wiele ważnych pochodnych formatów takich Microsoft Office XML formats, Trusted Data Format i HTML5.
+Jest to język na podstawie którego stworzono wiele ważnych pochodnych formatów takich jak Microsoft Office XML formats, Trusted Data Format i HTML5.
 
-Poniżej znajduje się prosty przykład takowego dokumentu:
+Poniżej znajduje się prosty przykład takiego dokumentu:
 \begin{kod}
         \lstinputlisting[language=XML]{code_source/XML.xml}
         \caption{Schematyczny przykład zawartości pliku napisanego w języku XML}
@@ -418,11 +423,11 @@ Poniżej znajduje się prosty przykład takowego dokumentu:
 \end{kod}
 
 Dokument XML składa się z elementów, atrybutów oraz tagów. 
-Tagi znajdują się między symbolami < > oraz każdy z nich wymaga zamknięcia przez tag o tej samej nazwie rozpoczynając się od symbolu \\.
+Tagi znajdują się między symbolami < > oraz każdy z nich wymaga zamknięcia przez tag o tej samej nazwie rozpoczynając się od znaku \textbackslash.
 Atrybuty to pary wartość klucz znajdujące się między symbolami < > gdzie wartość zawsze musi być zawarta między znakami ".
 Wartości to tekst lub kolejne elementy znajdujące się między tagami. 
 Pierwsza linia to opcjonalny prolog zawierający informację o wersji XML oraz typie kodowania.  
-Dokument XML musi zawierać element początkowy. W przykładowym kodzie \ref{XML code} jest to tag <root>.
+Dokument XML musi zawierać element początkowy, w przykładowym kodzie \ref{XML code} jest to tag <root>.
 
 
 
@@ -443,15 +448,28 @@ Każdy obiekt JSON zaczyna się symbolem \{ i kończy \} każda z wartości skł
 
 Format ten wspierany jest przez wiele języków między innymi C, C++, C\#, Java, JavaScript, Perl, Python\cite{json}.
 
-%przerwania systemowe
-%mulithreading programing deadlock's
-%typy plików z danymi
-%Alu
+\subsubsection{Rejestr przesuwający}
+Rejestr to taki układ elektroniczny którego celem jest przechowywanie oraz umożliwienie dostępu do danych. Funkcja ta jest podobna do funkcji pamięci jednak w przeciwieństwie do pamięci rejestry mogą mieć dodatkową funkcję sprzętową.
+Przykładowo rejestry mogą służyć w celu komunikacji między kodem a urządzeniami wejścia/wyjścia.
+
+Specjalnym przykładem rejestru jest rejestr przesuwający którego dane, przy sygnale z wspólnego sygnału, będą przekazywane do kolejnego miejsca przetrzymywania informacji. 
+Najczęściej rejestry przesuwne są skonstruowane jako kaskada przerzutników gdzie wejście danych jest połączone z wyjściem poprzedniego.
+
+Istnieją 4 typy rejestrów przesuwających różniących się ze względu na sposób wprowadzania i odbioru danych:
+\begin{itemize}
+        \item szeregowo-szeregowy,
+        \item równolegle-szeregowy,
+        \item szeregowo-równoległy,
+        \item równolegle-równoległy zwany rejestrem buforowym  
+\end{itemize} 
+
+
 \section{Projekt}
 
 Zgodnie z dokumentacją RXHDR\_V2 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8$V$ o czasie trwania między 50$ns$ a 200$ns$ i częstotliwości osiągającej nawet do 2.5 $MHz$.
-Sygnał ten na potrzeby rozwiązań softwarowych jest modyfikowany przez translator poziomów do poziomów logicznych 0 - 3.6$V$ i zostaje wybierana ósemka z szesnastu kanałów przez multiplexer.    
-Tak otrzymane sygnały należy zliczyć na płytce Arduino Due w ściśle określonym czasie oraz przekazać dane do dalszej obróbki bodź wizualizacji na zewnętrznym komputerze.
+Sygnał ten na potrzeby rozwiązań softwarowych jest modyfikowany przez translator poziomów do poziomów logicznych 0 - 3.6$V$ i zostaje wybierana ósemka z szesnastu kanałów przez dyskryminator.   
+Tak wybrane ósemki mają nazwę 1A0-7 dla pierwszej oraz 2A0-7 dlea drugiej części wyjść.   
+Tak otrzymane sygnały należy zliczyć na płytce Arduino Due w ściśle określonym czasie oraz przekazać dane do dalszej obróbki bądź wizualizacji na zewnętrznym komputerze.
 
 W poniższych rozdziałach opisane są proponowane sposoby wykonania tego zadania. 
 
@@ -473,7 +491,7 @@ Poniżej znajduje się fragment prototypowego kodu użytego do badań. Na potrze
 Używana płytka rozwojowa Arduino Due, używa microkontrolera AT91SAM3X8E w architekturze 32 bitowej i taktowaniu głównego procesora równemu 84 $MHz$.
 
 Pomimo krótkiej operacji wewnątrz IRS - \textit{add} (tabela \ref{decompile add}) proces wejścia do rutyny przerwania i wyjścia zabiera nieporównywalnie więcej cykli procesora, co powoduje że cały proces wywołania przerwania jest kosztowny w czasie. 
-Ilość cykli procesora koniecznych do wywołania funkcji przerwania używając nieoptymalizowanego kodu Arduino może wymagać nawet do 355 cykli procesora \cite{ard_opt_git}, dodatkowo powrót do głównego wątku programu może wymagać kolejne 128 cykli \cite{ard_opt_git}.
+Ilość cykli procesora koniecznych do wywołania funkcji przerwania używając nieoptymalizowanego kodu Arduino może wymagać nawet do 355 cykli procesora \cite{ard_opt_git}, dodatkowo powrót do głównego wątku programu może wymagać kolejnych 128 cykli \cite{ard_opt_git}.
 
 \begin{table}{h}
         \begin{center}
@@ -501,30 +519,150 @@ Zgodnie z wymaganiami zadania uzyskiwane sygnały wymagające zliczenia mogą pr
 Taka częstotliwość oznacza że już dla pojedyńczego kanału takie rozwiązanie jest niewystarczające. 
 
 \subsection{Rozwiązanie softwarowe w standardzie CMSIS}
-%Bezpośrednie zliczenie sygnałów z układu RXHDR\_V2 z wykorzystaniem przerwań sprzętowych w frameworku architektury ARM32 dla procesora AT91SAM3X8E, znajdującego się na płytce Arduino Due.
 Główną filozofią platformy Arduiono jest możliwość przenoszenia kodu między różnymi urządzeniami należącymi do dużej rodziny Arduino oraz łatwość programowania.
 W celu osiągnięcia tych dwóch celów często poświęcana jest szybkość działania. 
 
 Dodatkowo platforma Arduino implementuje funkcję których działanie może wpływać na pracę mikrokontrolera nawet bez ich wywoływania. 
-Przykładowo na potrzeby działania funkcji \textit{milis()} konieczna jest specyficzna konfiguracja głównego zegara i cykliczne wywoływanie przerwań w celu implementacji licznika.  
+Przykładowo na potrzeby działania funkcji \textit{milis()} konieczna jest specyficzna konfiguracja głównego zegara i cykliczne wywoływanie przerwań w celu implementacji licznika. Powoduje to kolejne spowolnienia działania programów. 
 
 
 CMSIS to biblioteka udostępniająca warstwę abstrakcji dla mikrokontrolerów używających procesorów grupy ARM Cortex. 
-Pozwala ona na niskopoziomowe programowanie na procesory tego typu ze skupieniem na szybkość działania.
+Pozwala ona na niskopoziomowe programowanie na procesory tego typu ze skupieniem na szybkości działania.
 
 Zgodnie z notą producenta \cite{interupt latency} w najbardziej optymalnej sytuacji dla procesora \textit{Cortex-M3} wejście do funkcji przerwania sprzętowego to 12 cykli i wyjście równe 10 cyklom. 
 Przy tak optymistycznej estymacji możliwe byłoby osiągnięcie częstotliwości zliczeń nawet do $\frac{1}{11.9ns*27} = ~ 3.11 Mhz$, jednak ponieważ zliczenia z różnych kanałów nie mogą być ewaluowane równolegle wynik ten nadal jest niewystarczający. 
 
-Dodatkowo bez dostępu do debugera rozwiązywanie problemów pojawiających się podczas programowania w tym podejściu okazały się niewarte włożonej procy. 
+Dodatkowo bez dostępu do debugera rozwiązywanie problemów pojawiających się podczas programowania w tym podejściu okazały się niewarte włożonej pracy. 
 
-Z tych dwóch powodów rozwiązanie to zostało porzucone i nie wykonano prób w tym podejściu. 
+Z tych dwóch powodów rozwiązanie to zostało porzucone i nie wykonano badań w tym podejściu. 
 
 
 \subsection{Rozwiązanie z użyciem dodatkowego układu elektronicznego.}
 
-Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu frameworku Arduino
+Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu frameworku Arduino. Celem dodatkowego elementu elektronicznego jest ułatwienie odczytu zliczeń przez mikrokontroler oraz zmniejszenie wymaganej częstotliwości zliczania. 
 
 \subsubsection{Układ liczników zewnętrznych}
+
+W celu rozwiązania problemu wysokiej częstotliwości zliczeń otrzymywanych z układu RXHDR\_V2 \cite{master} zastosowano zestaw osmiu binarnych liczników 4-bitowych \cite{licznik doc}. 
+
+
+\begin{figure}[]
+        \centering
+        \includegraphics[width=\textwidth]{Elektronika_flow_chart.png}
+        \caption{Schemat działania układu liczników zewnętrzych i sygnałów kontrolujących}
+        \label{licznik flowchart}
+\end{figure}
+
+Schemat ideowy układu znajduje się na obrazku \ref{licznik flowchart}.
+Na tym schemacie znajdują się sygnały kontrolujące pracę układu. Poniżej zdefiniowane jest nazwenictwo sygnałów na schematach elektronicznych i ich funkcja.  
+\begin{itemize}
+        \item ReadCLC - Sygnał zmiany licznika - pojedyńcze przejście stanu z niskiego na wyskoki powoduje wybór kolejnego licznika do odczytu
+        \item RC\_B - Sygnał wyzerowania licznika - stan niski powoduje wyzerowanie liczników i ustawienie układów do stanu początkowego.
+        \item DIS\_S - Sygnał wyboru dyskriminatora - Stan niski powoduje wybranie sygnałów 1A0-7 a wysoki 2A0-7
+        \item ENP0-7 - Sygnał wyboru licznika - osiem osobnych lini których stan niski pozwala na wybór licznika do odczytu. Podczas odczytu tylko jeden z sygnałów powinien być w stanie niskim reszta powinna utrzymywać stan wysoki. 
+\end{itemize}
+Sygnał otrzymywany przez układ RXHDR\_V2 jest przepuszczany przez tranzlator poziomów w celu zmiany logiki z 0-1.8$V$ do 0-3.6$V$. Następnie z 16 kanałow zostaje wybrane 8, tak opracowane sygnały trafiaja na układ liczników.
+
+\paragraph{Układ liczników \cite{licznik doc}\cite{slave}}
+
+4-bitowy binarny licznik SN74LV161A ma 9 wejść logicznych. 
+W tym układzie licznik znajduje się w następującej konfiguracji:
+\begin{itemize}
+        \item $CLC$ - Tu podawany jest sygnał zliczeń i on jest zliczany aż do przepełnienia licznika.
+        \item $\overline{CLR}$ - Połączone z linią RC\_B, stan niski powoduje wstrzymanie pracy i wyzerowanie wartości przechowywanych w liczniku. 
+        \item $ENT,ENP$ - w celu stabilizacji układu na czas odczytywania wartości chcemy wstrzymać zliczanie dlatego też ustalamy stan wysoki dla wejścia ENT i wejście ENP łączymy z kanałem ENP0-7 odpowiadającym odpowiedniemu licznikowi.
+        Sprawia to że wraz z wyborem licznika układ ustala swój stan i nie zmienia go aż do chwili wyboru następnego. 
+        Jest to sposób na uniknięcie niepewności i błędów wynikających z odczytywania zmieniającej się wartości, jednak powoduje to powstanie czasu martwego w układzie podczas którego wartości nie będą zliczane na odczytywanym liczniku.
+        \item $A,B,C,D$ - funkcja ładowania wartości nie jest używana wejścia te są uziemione
+        \item $\overline{LOAD}$ - funkcja ładowania wartości nie jest używana wejście to jest uziemione
+\end{itemize} 
+
+Na wyjściu wykorzystane są jedynie wyjścia Q0-3 to one podają binarnie przechowywaną wartość. 
+Tak skonfigurowane liczniki będą zliczać wartości otrzymywane przez wejście $CLC$ aż do osiągnięcia wartości 15 kiedy to licznik zostaje przepełniony i wraca do 0. 
+
+\paragraph{Układ wyboru sygnału}
+
+Celem tego układu jest zmiana sygnału zmiany licznika na sygnał wyboru licznika. W tym celu wykorzystany jest rejest przesuwany. 
+Wybrany układ służący temu zadaniu to SN74LV164A\cite{shift doc}, jest on szerogowo-równoległym rejestrem co oznacza ze dane wejściowe sa dostarczane szeregowo a otrzymywana jest informacja równoległa która jest przesówana wraz z kolejnymi sygnałami zegara. Dokumentacja rejestru SN74LV164A mówi o dwuch wejściach jednak są one bezpośrednio wporowadzanę na bramkę logiczną AND co sprawia że układ ten spełnia warunek pojedyńczego wejścia rejestru szeregowo-równoległego. W konfiguracji tego układu gdzie oba wejścia są ze sobą zwartę bramka logiczna AND jest ignorowana.
+Shemat układu wyboru licznika znajduje się rysunku \ref{wybor schema}. 
+
+\begin{figure}
+        \begin{multicols}{2}
+                \includegraphics[width=0.45\textwidth]{shift_register.png}
+                \caption{Schemat układu wyboru licznika wykorzystujący rejestr przesówny.}
+                \label{wybor schema}
+                \par
+                \hfill
+                \includegraphics[width=0.45\textwidth]{Licznik.png}
+                \caption{Schemat konfuguracji jednego z używanych liczników wraz z częścią multiplexera wyjściowego.}
+                \label{licznik}
+                \par
+                \hfill
+        \end{multicols} 
+\end{figure}
+
+W celu osiągnięcia efektu pojedyńczej wartości logicznej która przesuwa się z każdym rosnącym zboczem sygnału na wejściu rejestru musimy dostarczyć pojedyńczy niski, stan podczas pierszego cyklu pracy, a następnie trzymać stan wysoki aż do chwili potrzeby powtórzenia cyklu. 
+Za pomocą bramek NOR układu SN74LV02A oraz bramek AND układu SN74LV21A osiągamy równanie logiczne:
+\begin{equation}
+        NOROUT = \overline{(QR1*QR2)} + \overline{(QR3*QR4)} + \overline{(QR5*QR6)} + \overline{(QR7*QR8)}
+\end{equation}
+Gdzie:
+\begin{itemize}
+        \item $NOROUT$ - Sygnał wejściowy rejestru 
+        \item $QR1-8$ - Wyjścia rejestru. 
+\end{itemize}
+
+\begin{table}
+        \centering
+        \caption{Cylkl działania rejestru przesuwnego ukladu wyboru licznika}
+        \label{shift sygnal}
+        \begin{tabular}{lccccccccc}
+                Czas &$QR1$&$QR2$&$QR3$&$QR4$&$QR5$&$QR6$&$QR7$&$QR8$  &NOROUT\\ \hline     
+                T1&H&H&H&H&H&H&H&H &L\\
+                T2&L&H&H&H&H&H&H&H &H\\
+                T3&H&L&H&H&H&H&H&H &H\\
+                T4&H&H&L&H&H&H&H&H &H\\
+                T5&H&H&H&L&H&H&H&H &H\\
+                T6&H&H&H&H&L&H&H&H &H\\
+                T7&H&H&H&H&H&L&H&H &H\\
+                T8&H&H&H&H&H&H&L&H &H\\
+                T9&H&H&H&H&H&H&H&L &H\\
+                T10&H&H&H&H&H&H&H&H &L\\
+        \end{tabular}
+\end{table}
+
+Sekwencja sygnału pokazana jest w tabeli \ref{shift sygnal}. Na tej wizualizacji widać że gdyby w konfiguracji zastąpić linię $QR8$ połączeniem do zasilania możliwe byłoby ograniczenie liczby sekwencji w cyklu do 8. Jednak dzięki tej pojedyńczej sekwencji gdy żadej z liczników nie jest odczytywany otrzymujemy cykl podczas którego żaden z liczników nie jest zablokowany i wszystkie kontynuują liczenie. 
+
+Otrzynywany sygnał następnie jest negowany przez układ SN74LV540 i dostarczany do multiplexera pokazanego na rysunku \ref{licznik}.
+Tu zestaw wzmacniaczy operacujnych sprawia ze tylko tylko licznik dla odpowiadającego sygnału ENP o niskim stanie ustala stan na zewnętrznych wyjściach. 
+
+\paragraph{Czas martwy i szybkość odczytu układu licznika}
+Podczas odczytu licznika informacja o zliczeniach zostaje tracona oznacza to że układ ten generuje czas martwy. 
+Procentowa długość tego czasu może być wyznaczona na podstawie wzoru:
+\begin{equation}
+        T_d = \frac{T_o/N_l}{T_o+T_e} * 100\%
+\end{equation}
+Gdzie:
+\begin{itemize}
+        \item $T_d$ - czas martwy licznika.
+        \item $T_o$ - czas odczytu.
+        \item $N_l$ - liczba liczników w seqwencji odczytu. W używanej konfiguracji jest to osiem liczników. 
+        \item $T_e$ - czas pustego czyklu.
+\end{itemize}
+
+Oznacza to że przedłużając czas pustego cyklu zmniejszamy czas martwy układu, jednak pownieważ liczniki mogą jedynie 16 stanów to konieczne jest odczytanie ich przed zliczeniem 16 liczby. 
+Oznacza to że:
+\begin{equation}
+        T_o+T_e * F < 15
+\end{equation}
+        Gdzie:
+\begin{itemize}
+        \item $F$ - spodziewana częstotliwość zliczeń
+\end{itemize}
+
+Dla podanych wymagań 2.5$MHz$ zliczeń, można wyliczyć że suma czasu odczytu i pustych sekwencji powinna być mniejsza niż 6$\mu s$.
+Oznacza to że sekwencja odczytu powinna zmieścić się w 504 cyklach procesora. 
+
 \subsubsection{Oprogramowanie microkontrolera}
 \subsection{Program kontroli, wizualizacji oraz archiwizacji danych}
 
@@ -559,6 +697,12 @@ Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu 
         \url{http://personal.kent.edu/~rmuhamma/OpSystems/Myos/deadlockCondition.htm}
         Odwiedzono: maj 2020
 
+        \bibitem{licznik doc}
+        \textit{4-bit synchronous binary counters}
+        \url{http://www.ti.com/lit/ds/symlink/sn74lv161a.pdf?&ts=1589124298582}
+        Texas Instruments Incorporated
+        
+
         \bibitem{json}
         Introducing JSON
         \url{https://www.json.org/json-en.html}
@@ -575,6 +719,17 @@ Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu 
 	\textit{\detokenize{RXHDR_v2} - SPECIFICATION},
 	AGH University of Science and Technology
         Faculty of Physics and Applied Computer Science 
+
+        \bibitem{slave}
+	W. Dąbrowski, T. Fiutowski, P. Wiącek 
+        \textit{\detokenize{RXHDR_v1_Int&ADC}}
+        AGH University of Science and Technology
+        Faculty of Physics and Applied Computer Science 
+
+        \bibitem{shift register}
+        Shift Registers: Introduction, Types, Working and Applications
+        \url{https://circuitdigest.com/tutorial/what-is-shift-register-types-applications/}
+        Odwiedzono: Maj 2020
 
         \bibitem{pipelining intel}
         bit-tech.net
@@ -605,6 +760,11 @@ Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu 
         Atmel Corporation
         \textit{Atmel | SMART ARM-based MC  / Datasheet}
         \detokenize{ Atmel-11057C-ATARM-SAM3X-SAM3A-Datasheet_23-Mar-15. }
+
+        \bibitem{shift doc}
+        Texas Instruments Incorporated
+        SNx4LV164A8-Bit Parallel-OutSerial Shift Registers
+        \url{https://www.ti.com/lit/ds/symlink/sn74lv164a.pdf?&ts=1589131215869}
 
         \bibitem{interupt latency}
         Atmel Corporation
