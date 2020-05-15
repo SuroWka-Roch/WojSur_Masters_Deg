@@ -37,7 +37,7 @@
   breaklines=true,
   breakatwhitespace=true,
   tabsize=2,
-  basicstyle=\small
+  basicstyle=\footnotesize
 }
 
 \usepackage{float}
@@ -644,7 +644,7 @@ Procentowa długość tego czasu może być wyznaczona na podstawie wzoru:
 \end{equation}
 Gdzie:
 \begin{itemize}
-        \item $T_d$ - czas martwy licznika.
+        \item $T_d$ - procentowy czas martwy licznika.
         \item $T_o$ - czas odczytu.
         \item $N_l$ - liczba liczników w seqwencji odczytu. W używanej konfiguracji jest to osiem liczników. 
         \item $T_e$ - czas pustego czyklu.
@@ -660,10 +660,25 @@ Oznacza to że:
         \item $F$ - spodziewana częstotliwość zliczeń
 \end{itemize}
 
-Dla podanych wymagań 2.5$MHz$ zliczeń, można wyliczyć że suma czasu odczytu i pustych sekwencji powinna być mniejsza niż 6$\mu s$.
+Dla podanych wymagań: 2.5 miliona zliczeń na sekundę, można wyliczyć że suma czasu odczytu i pustych sekwencji powinna być mniejsza niż 6$\mu s$.
 Oznacza to że sekwencja odczytu powinna zmieścić się w 504 cyklach procesora. 
 
 \subsubsection{Oprogramowanie microkontrolera}
+
+Zadaniem mikrokontrolera jest odebranie danych z układu wspomagającego w czasie uniemożliwiającym przepełnienie licznikówk i wysłanie sformatowanych danych na komputer zewnętrzy.
+
+\begin{kod}
+        \lstinputlisting[language=C++, firstline=76, lastline=103]{code_source/arduino/final.cpp}
+        \caption{Fragment kodu odpowiedzialnego za akwizycję danych}
+        \label{code aqw}
+\end{kod}
+
+\begin{kod}
+        \lstinputlisting[language={[Motorola68k]Assembler},firstline=30, lastline=48]{code_source/asembler/loop_final.S}
+        \caption{Fragment kodu asemblera utworzonego przez kompilację części kodu \ref{code aqw}. }
+        \label{code_ard_IRS}
+\end{kod}
+
 \subsection{Program kontroli, wizualizacji oraz archiwizacji danych}
 
 \section{Wyniki badań}
