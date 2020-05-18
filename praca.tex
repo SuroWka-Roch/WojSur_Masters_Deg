@@ -15,6 +15,7 @@
 
 \usepackage{lipsum} 
 \usepackage{indentfirst}
+\usepackage{tabularx}
 
 \usepackage{listings}
 \usepackage{color}
@@ -542,6 +543,7 @@ Z tych dwóch powodów rozwiązanie to zostało porzucone i nie wykonano badań 
 Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu frameworku Arduino. Celem dodatkowego elementu elektronicznego jest ułatwienie odczytu zliczeń przez mikrokontroler oraz zmniejszenie wymaganej częstotliwości zliczania. 
 
 \subsubsection{Układ liczników zewnętrznych}
+\label{section licziki}
 
 W celu rozwiązania problemu wysokiej częstotliwości zliczeń otrzymywanych z układu RXHDR\_V2 \cite{master} zastosowano zestaw osmiu binarnych liczników 4-bitowych \cite{licznik doc}. 
 
@@ -665,7 +667,32 @@ Oznacza to że sekwencja odczytu powinna zmieścić się w 504 cyklach procesora
 
 \subsubsection{Oprogramowanie microkontrolera}
 
-Zadaniem mikrokontrolera jest odebranie danych z układu wspomagającego w czasie uniemożliwiającym przepełnienie licznikówk i wysłanie sformatowanych danych na komputer zewnętrzy.
+Zadaniem mikrokontrolera jest odebranie danych z układu wspomagającego w czasie uniemożliwiającym przepełnienie licznikówk i wysłanie sformatowanych danych na komputer zewnętrzy. 
+
+\paragraph{Wymagane połączenie}
+W celu utworzenia funkcjąnującego układu akwizycji zliczeń konieczne jest połączenie kablem USB2.0 typ A/micro-USB typ B mięczy komputerem sterującym a natywnym portem Arduino Due (Port bliżej przycisku resetu).
+
+Dodatkowo wymagane jest połączenie z płytką zewnętrzną. Konieczne połączenia to:
+\begin{itemize}
+        \item Połączenia $DOC\_0-4\_ext$ w domyślnej konfuguracji powinny być połączone z wyjściami arduino o pinach 33-36 - są to wyjścia liczników.
+        \item $RC\_B\_ext$ - arduino pin 46 - wyjście sygnału resetu liczników 
+        \item $DIS\_S\_ext$ - arduino pin 46 - wyjście sygnału wybolu diskriminatora
+\end{itemize}
+
+Są to wyjścia w domyślnej konfiguracji i można dokonać zmiay poprzez modyfikację pliku \textit{USER\_CONFIG.h}.
+
+
+
+\paragraph{Akwizycja danych}
+Dane otrzymywane z zewnętrznego układu elektronicznego (dział \ref{section licziki}) mają postać binarnej liczby 4-pozycyjnej rosnącej do wartości 15 a następnie zawijające się ponownie do liczby 0. 
+Dzięki tej formie prezentacji danych po odczytaniu stanów logicznych na urządzeniu peryferyjnym i odpowiedznim przesunięciu logicznym w prosty sposób otrzymujemy wartość na liczniku. 
+Podejście to jednak wymaga specyficznego połączenia oraz uwzględnienia potencjalnego przepełnienia licznika. 
+
+W jednym cyklu akwizycji zostaje wybierany piewsze osiem liczników 1A0-7 następnie przez czas akwizycji, korygowanej o czas martwy, są zbierane dane z liczników i dodawane do miejsca w talbiczy odpowiadajcemu odpowiedniemu licznikowi i następnie zmieniana jest ósemka badanych liczników i proces ponownie jest powtarzany. 
+
+Proces akwizycji danych musi być bardzo dokładnie kontrolowany pod względem czasu wykonania.
+Czas pobierania danych jest regulowany przez ilość pętli odbierających dane.
+Przykład tej pętli znajduje się w fragmęcie kodu \ref{code aqw}.
 
 \begin{kod}
         \lstinputlisting[language=C++, firstline=76, lastline=103]{code_source/arduino/final.cpp}
@@ -673,11 +700,74 @@ Zadaniem mikrokontrolera jest odebranie danych z układu wspomagającego w czasi
         \label{code aqw}
 \end{kod}
 
+Jak widać ilość iteracji jest ustalana przez wymagany czas w milisekundach po korekcjach o czas martwy licznika oraz z uwzględnieniem ilości czasu przypadającege na pojedyńczą pętlę. 
+Warunkiem koniecznym takiego podejścia jest stały czas wykonywania iteracji pentli. 
+Różnice w czasie mogą być powodowane przez operacje dostępu do pamięci kiedy to w różnych iteracjach stosujemy dostęp do pamięci a w innych wykorzystujemy wcześniej przygotowane rejestry.
+Drugim powodem mogą być rozwidlenia pracy programu, sytuacje kiedy przebieg programu jest uwarunkowany wynikiem jakiegoś warunku i dwie drogi potrzebują różną ilość cyki procesora na wykonanie. 
+W celu analizy takich sytuacji przydatna jest analiza skompilowanego kodu c do kodu asemblera.
+Fragmęt krytycznego fragmętu programu jest przedstawiony w fragmęcie kodu \ref{asembly}.
+
 \begin{kod}
         \lstinputlisting[language={[Motorola68k]Assembler},firstline=30, lastline=48]{code_source/asembler/loop_final.S}
         \caption{Fragment kodu asemblera utworzonego przez kompilację części kodu \ref{code aqw}. }
-        \label{code_ard_IRS}
+        \label{asembly}
 \end{kod}
+
+Po analizie kodu \ref{asembly} można stwierdzić że nie zdarza się sytuacja żeby w różnych iteracjach występowała różna ilość dostępów do pamięci.
+Jak jednak widać w fragmęcie programu \ref{code aqw} w przypadku wystąpienia przepełnienia licznika konieczne jest dodanie wartości pełnego licznika do otrzymanej liczby. 
+Powoduje to że wymagana jest dodatkowa instrukcja add.
+
+Jednak proces warunkowego dodania jest realizowany przez specyficzną instrukcję it.
+Należy ona do zestawu instrukcji Thumb®-2 i pozwala na uniknięcie problemów wynikających z warunkowej zmiany biegu programu dla krótkich instrukcji. 
+Zgodnie z dokumentacją\cite{cycles} cortex-M3 czas potrzebny na wykonanie tej intrukcji to jeden cykl procesora, jednak jest dosprecyzowane że instrukcja może być dołączona do następnej intrukcji pozwalając na wykonanie w tym samym czasie co następna komenda.
+Tak się dzieje w przypadku spełnienia warunku gt (eng. greater then - większy niż) poprzedniej instrukcji cmp. Jednak jeżeli warunek ten nie zostaje spełniony to ewaluacja instrukji it zwiększa się do jednego cyklu i przechodzi do warunku then (druga instrukcja w kolejności).
+Cały ten proces sprawia że tak samo w przypadku spełniania warunku gt jak i w przypadku niezgodności ten fragmęt kodu wymaga dwóch cykli procesora.
+$$it(1c) + rsb(1c) = it(0c) + add(1c) + rsb(1c)$$
+
+\paragraph{Komunikacja z komputerem zewnętrznym}
+Ze względu na fakt że proces akwizycji danych jest tak wrażliwy na wszelkie zmiany ilości poleceń konieczne jest wyłączenie obsługi przerwań w trakcjie wykonywania kluczowego fragmętu programu. 
+Sprawia to że w trakcjie akwizycji obsługa komunikacji z zewnętrznymi urządzeniami przez układy komunikacji seryjnej jest niemożliwa. 
+Oznacza to że wymagana jest bardzo dokładna obsługa komunikacji z zwróceniem szczególnej uwagi na potencjalne błędy. 
+
+W tabeli \ref{komunikacja} znajdują się komendy i odpowiedzi stosowane w komunikacji między użądzeniami. 
+Forma wszelkich stałych komunikacyjnych znajduje się w osobnym pliku \textit{USER\_CONFIG.h} pozwalającym na łatwą zmianę prezentowanych komend.
+
+\begin{table}
+        \centering
+        \caption{Tabela komend stodowanych w celu komunikacji między komputerem zewnętrznym a mikrokontrolerem}
+        \label{komunikacja}
+        \begin{tabularx}{\textwidth}{|c|c|X|}
+                \hline
+                komenda & odpowiedź & opis \\ \hline
+
+                \textbackslash n & Ready to read\textbackslash n & 
+                Krótki znak rozpoczynający komunikację.
+                Po otrzymaniu tego symbolu mikrokontroler wstrzymuje proces akwizycji i oczekuje na dalsze polecenia.
+                Przed wysłaniem dowonej komendy konieczne jest poprzedzenie tym symbolem, w celu upewnienia się że mikrokontroler jest gotowy na zmiane trybu pracy.
+                \\ \hline
+
+                42a\textbackslash n & 42b\textbackslash n& Krótka komenda, nie zmieniająca nic w pracy licznika. Pozwala na sprawdzenie komunikacji między licznikiem a komputerem zewnętrzym. \\ \hline
+
+                atm{TIME}\textbackslash n & TIME\textbackslash n& TIME to czas w milisekundach, jest on ustalany jako czas akwizycji licznika. \\ \hline
+
+                stp\textbackslash n& fin\textbackslash n& Wstrzymuje pracę licznika. \\ \hline
+
+                srt\textbackslash n& - & Rozpoczyna pracę licznika \\ \hline
+
+        \end{tabularx}
+\end{table}
+
+Po zakończonej akwizycji dane zostają wysłane w jednym kawałku na komputer zewnętrzny w postaci:
+\begin{itemize}
+        \item \detokenize{<~+~>}'\textbackslash n'
+        \item {Nazwa kanału}'\textbackslash t'{wynik}'\textbackslash n' -  przykład: \\
+        1A1\quad 1234 \\
+        1A2\quad 1234 \\
+        \dots \\
+        2A8\quad 1234
+        \item \detokenize{~<+>~}'\textbackslash n'
+\end{itemize}
+Długi symbol początku i końca danych pozwala na łatwe odnalezienie miejsca w komunikacji które zawiera dane pomiarowe. 
 
 \subsection{Program kontroli, wizualizacji oraz archiwizacji danych}
 
@@ -718,7 +808,7 @@ Zadaniem mikrokontrolera jest odebranie danych z układu wspomagającego w czasi
         Texas Instruments Incorporated
         
 
-        \bibitem{json}
+        \bibitem{json}USER\_CONFIG.h
         Introducing JSON
         \url{https://www.json.org/json-en.html}
         Odwiedzono: maj 2020
