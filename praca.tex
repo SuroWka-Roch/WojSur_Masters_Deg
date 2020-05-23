@@ -53,7 +53,7 @@
 
 \author{Wojciech Surówka}
 
-\graphicspath{{fig/} {./fig/wykresy/} {./fig/schematy/}}
+\graphicspath{{fig/} {./fig/wykresy/} {./fig/schematy/} {./fig/zdjecia/}}
 \geometry{hmargin={2cm, 2cm}, height=10.0in}
 
 \begin{document}
@@ -720,7 +720,7 @@ Powoduje to że wymagana jest dodatkowa instrukcja add.
 Jednak proces warunkowego dodania jest realizowany przez specyficzną instrukcję it.
 Należy ona do zestawu instrukcji Thumb®-2 i pozwala na uniknięcie problemów wynikających z warunkowej zmiany biegu programu dla krótkich instrukcji. 
 Zgodnie z dokumentacją\cite{cycles} cortex-M3 czas potrzebny na wykonanie tej intrukcji to jeden cykl procesora, jednak jest dosprecyzowane że instrukcja może być dołączona do następnej intrukcji pozwalając na wykonanie w tym samym czasie co następna komenda.
-Tak się dzieje w przypadku spełnienia warunku gt (eng. greater then - większy niż) poprzedniej instrukcji cmp. Jednak jeżeli warunek ten nie zostaje spełniony to ewaluacja instrukji it zwiększa się do jednego cyklu i przechodzi do warunku then (druga instrukcja w kolejności).
+Tak się dzieje w przypadku spełnienia warunku gt (eng. greater then - większy niż) poprzedniej instrukcji cmp. Jednak jeżeli warunek ten nie zostaje spełniony to ewaluacja instrukji it zwiększa się do jednego cyklu i przechodzi do warunku else (druga instrukcja w kolejności).
 Cały ten proces sprawia że tak samo w przypadku spełniania warunku gt jak i w przypadku niezgodności ten fragmęt kodu wymaga dwóch cykli procesora.
 $$it(1c) + rsb(1c) = it(0c) + add(1c) + rsb(1c)$$
 
@@ -748,7 +748,7 @@ Forma wszelkich stałych komunikacyjnych znajduje się w osobnym pliku \textit{U
 
                 42a\textbackslash n & 42b\textbackslash n& Krótka komenda, nie zmieniająca nic w pracy licznika. Pozwala na sprawdzenie komunikacji między licznikiem a komputerem zewnętrzym. \\ \hline
 
-                atm{TIME}\textbackslash n & TIME\textbackslash n& TIME to czas w milisekundach, jest on ustalany jako czas akwizycji licznika. \\ \hline
+                atm{TIME}\textbackslash n & TIME\textbackslash n& TIME to czas w milisekundach, jest on ustalany jako czas akwizycji licznika. Musi on być podany jako liczba całkowita.\\ \hline
 
                 stp\textbackslash n& fin\textbackslash n& Wstrzymuje pracę licznika. \\ \hline
 
@@ -760,16 +760,111 @@ Forma wszelkich stałych komunikacyjnych znajduje się w osobnym pliku \textit{U
 Po zakończonej akwizycji dane zostają wysłane w jednym kawałku na komputer zewnętrzny w postaci:
 \begin{itemize}
         \item \detokenize{<~+~>}'\textbackslash n'
-        \item {Nazwa kanału}'\textbackslash t'{wynik}'\textbackslash n' -  przykład: \\
-        1A1\quad 1234 \\
-        1A2\quad 1234 \\
-        \dots \\
-        2A8\quad 1234
+        \item {Nazwa kanału}'\textbackslash t'{wynik}'\textbackslash n'
         \item \detokenize{~<+>~}'\textbackslash n'
 \end{itemize}
+Przykład komunikacji wygląda następująco:
+\begin{lstlisting}
+<~+~>
+1A1     1234
+1A2     1234 
+    ...
+2A8     1234
+~<+>~
+\end{lstlisting}
+
 Długi symbol początku i końca danych pozwala na łatwe odnalezienie miejsca w komunikacji które zawiera dane pomiarowe. 
 
 \subsection{Program kontroli, wizualizacji oraz archiwizacji danych}
+
+Program używany na komputerze podłączonym do mikrokontrolera został napisany z wykorzystaniem języka Python i frameworku PyQt.
+Szczególowe zadania programu to:
+\begin{itemize}
+        \item Komunikacja z mikrokontrolerem w celu:
+        \begin{itemize}
+                \item Upewnienia się o sprawnym działaniu programu na płytce arduino.
+                \item Ustawienia czasu akwizycji.
+                \item Odebraniu danych o zliczeniach. 
+        \end{itemize}
+        \item Umożliwienie wyboru konfiguracji pracy programów przez interfejs użytkownika.
+        \item Analiza otrzymanych danych pomiarowych.
+        \item Wizualizacja danych pomiarowych.
+        \item Archiwizycja danych pomiarowych w wybranym formacie danych.
+\end{itemize}
+
+Program podzielony jest na dwie zależne od siebie części. Fasadę (eng. front-end) zawierającą graficzny interfejs użytkownika (eng. GUI) oraz wnętrze (eng. back-end).
+
+\paragraph{Wnętrze}
+
+Głównym celem tej części programu jest komunikacja z mikrokontrolerem. 
+W tym celu wykrzystywana jest biblioteka PySerial\cite{pyserial} pozwalająca na łatwą obsługę portu szeregowego USB. 
+
+By umożliwić jednoczesną wizualizację danych wraz z odbieraniem informacji z mikrokontrolera konieczna była implementacja wątku zajmującego się ciągłym odbiorem danych. 
+Dlatego też jedyny cel funkcji \textit{back\_end\_deamon} jest nasłuchiwanie w ciągłej pętli oraz zapisywanie danych w logu komunikacyjnym. 
+Na podstawie klasy tego logu wątek główny programy okresowo aktualizuje klasę \textit{CountRateData} która jest wykorzystywana przez w wizualizacji. 
+
+Wizualizacja elementów programu wraz z muteksami które chronią przed błędami jednoczesnego dostępu zwizualizowane są na rysunku \ref{program zapotrzebowanie}.
+
+\begin{figure}
+        \centering
+        \includegraphics[width=0.5\textwidth]{Schemat_zapotrzebowania.png}
+        \caption{Schemat zapotrzebowania na zasoby przez elementy programu}
+        \label{program zapotrzebowanie}
+\end{figure}
+
+Klasa \textit{CountRateData} oprócz przetrzymywania danych o zlizeniach dla każdego kanału również zawiera informacje o czasie akwizycji, dzięki temu możliwe jest przekazywanie informacji do wizualizacji już jako częstotliwości zliczeń. 
+
+Dodatkową funkcjonalnością programu jest możliwość przeprowadzenia pojedyńczego badania nazywanego \textit{Single Shoot} lub skrótowo \textit{ss}.
+Funkcja ta pozwala na wizualizację w postaci wykresu słupkowego pojedyńczego badania w przeciwieństwie do domyślnego układu wizualizacji który jest stale aktualizowany. 
+W celu przeprowadzenia takiego pomiaru wątek \textit{get\_ss\_mesurements} zamyka muteksy odpowiedzialne za port seryjny oraz clasę logu. 
+Tym sposobem wstrzymywane są inne funkcje programu aż do zakończenia pomiaru \textit{Single Shoot}.
+Pomiar kończy się komendą wstrzymania pracy licznika pozwalając na zmianę konfiguracji przed kolejnymi pomiarami.  
+
+Dane pomiarowe są zapisywane w chwili gdy: Program zostanie zamknięty, wciśnięty zostanie guzik \textit{force save}, lub minie czas auto zapisu ustawiany w interfejsie użytkownika. 
+
+Przed zapisem tworzony zostaje folder z aktualną datą, w formacie DD-MM-YYYY, w wybranej przez użytkownika ścieżce. Nazwa pliku to godzina zapisu pliku w formacie HH:MM
+Pliki są zapisywane w ustalonym formacie: JSON lub CSV.
+
+\paragraph{Fasada}
+
+Gotowy interfejs graficzny widoczny jest na rysunku \ref{Gui pic}. Jest on podzielony na cztery zakładki:
+\begin{itemize}
+        \item Configuration - miejsce pozwalające na rozpoczęcie pracy licznika, zatrzymanie i wszelką konfigurację dotyczącą pracy programu. 
+        \item Data - prezentacja danych w postaci liczbowej 
+        \item Visualization - prezentacja danych w relatywnej dziedzinie czasu. 
+        \item Single Shot - Zakładka odpowiedzialna za przeprowadzenie pojedyńczego badania.
+\end{itemize}
+
+Za interfejs użytkownika odpowiedzialny jest główny wątek programu, instancje klasy PyQt5.QtCore.QTimer\cite{doc pyqt} generują sygnały aktualizyjące dane licznika oraz wykresy zliczeń. 
+Do generowania wykresów zastosowana zostła biblioteka matplotlib\cite{doc matplotlib}. 
+
+Przy wykresach znajduje się pole które po odznaczeniu pozwala na wizualizację danych w logarytmicznej sali częstotliwości zliczeń.
+
+\begin{figure}
+        \begin{multicols}{2}
+        
+        \includegraphics[width=0.49\textwidth]{configuration.png}\par
+        
+        
+        \includegraphics[width=0.49\textwidth]{digits.png}\par
+        
+        
+        \end{multicols}\hfill
+        
+        \begin{multicols}{2}
+        
+        
+        \includegraphics[width=0.49\textwidth]{wizualization.png}\par
+        
+        
+        \includegraphics[width=0.49\textwidth]{wiz_ss.png}\par
+        
+        \end{multicols}
+        \caption{Wygląd interfejsu użytkownika (linux)}
+        \label{Gui pic}
+        \end{figure}
+
+
 
 \section{Wyniki badań}
 
@@ -808,7 +903,7 @@ Długi symbol początku i końca danych pozwala na łatwe odnalezienie miejsca w
         Texas Instruments Incorporated
         
 
-        \bibitem{json}USER\_CONFIG.h
+        \bibitem{json}
         Introducing JSON
         \url{https://www.json.org/json-en.html}
         Odwiedzono: maj 2020
@@ -843,7 +938,8 @@ Długi symbol początku i końca danych pozwala na łatwe odnalezienie miejsca w
         Kwiecień 2020
 
         \bibitem{pyserial}
-	Chris Liechti,	
+        Chris Liechti,	
+        PySerial Documentation
 	\url{https://pyserial.readthedocs.io/en/latest/pyserial_api.html}
         Odwiedzono: Wrzesień 2, 2018
         
@@ -865,6 +961,17 @@ Długi symbol początku i końca danych pozwala na łatwe odnalezienie miejsca w
         Atmel Corporation
         \textit{Atmel | SMART ARM-based MC  / Datasheet}
         \detokenize{ Atmel-11057C-ATARM-SAM3X-SAM3A-Datasheet_23-Mar-15. }
+
+        \bibitem{doc pyqt}
+        Riverbank Computing Limited
+        PyQt5 Reference Guide
+        \url{https://www.riverbankcomputing.com/static/Docs/PyQt5/}
+        Odwiedzono: Luty 2020
+
+        \bibitem{doc matplotlib}
+        2012 John Hunter, Darren Dale, Eric Firing, Michael Droettboom and the Matplotlib development team,
+        matplotlib documentation
+        \url{https://matplotlib.org/}
 
         \bibitem{shift doc}
         Texas Instruments Incorporated
