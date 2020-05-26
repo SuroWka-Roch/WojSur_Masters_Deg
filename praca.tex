@@ -12,6 +12,7 @@
 \usepackage{gensymb}
 \usepackage{multirow}
 \usepackage{multicol}
+\usepackage{ amssymb }
 
 \usepackage{lipsum} 
 \usepackage{indentfirst}
@@ -183,8 +184,6 @@ Na kolejnych dwóch stronach proszę dołączyć kolejno recenzje pracy popełni
 
 
 \section{Wprowadzenie}
-
-
 \subsection{Cel pracy}
 
 Celem pracy było zaprojektowanie i skonstruowanie układu wspierającego system detekcji promieniowania X: RXHDR\_V2 \cite{master}.\\
@@ -199,14 +198,14 @@ Cele szczegółowe:
 
 W celu stworzenia programu dla tego projektu konieczne jest zrozumienie niskopoziomowego i wysokopoziomowego działania programów. Część z zagadnień koniecznych do stworzenia prototypu opisana jest poniżej. 
 
-\subsubsection{Proces kompilacji programu na przykładzie \textit{gcc}\cite{gcc}}
+\subsubsection{Proces kompilacji programu na przykładzie \textit{gcc}}
 
 Językiem rozumianym przez procesory jest kod maszynowy składający się jedynie z ciągu zer i jedynek.
 Sprawia to że jest on trudny do pisania kodu i próba tworzenia w ten sposób często niesie ze sobą wiele błędów. 
 Dlatego też w przeciągu lat były budowane inne języki programowania które dzięki procesowi kompilacji przetwarzają kod języka na kod maszynowy. 
-Jednym z ważniejszych języków programowania stał się język \textit{c} z kompilatorem \textit{gcc - gnu c compiler}. 
+Jednym z ważniejszych języków programowania stał się język \textit{c} z kompilatorem \textit{gcc - gnu c compiler}\cite{gcc}. 
 
-Ten wysokopoziomowy język dzieli proces kompilacji na 4 podzielne części
+Ten wysokopoziomowy język dzieli proces kompilacji na 4 części
 
 \paragraph{Preprocesing}
 
@@ -464,24 +463,24 @@ Istnieją 4 typy rejestrów przesuwających różniących się ze względu na sp
         \item równolegle-równoległy zwany rejestrem buforowym  
 \end{itemize} 
 
-
+\newpage
 \section{Projekt}
 
-Zgodnie z dokumentacją RXHDR\_V2 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8$V$ o czasie trwania między 50$ns$ a 200$ns$ i częstotliwości osiągającej nawet do 2.5 $MHz$.
-Sygnał ten na potrzeby rozwiązań softwarowych jest modyfikowany przez translator poziomów do poziomów logicznych 0 - 3.6$V$ i zostaje wybierana ósemka z szesnastu kanałów przez dyskryminator.   
+Zgodnie z dokumentacją RXHDR\_V2 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8V o czasie trwania między 50ns a 200ns i częstotliwości osiągającej nawet do 2.5 MHz.
+Sygnał ten na potrzeby rozwiązań softwarowych jest modyfikowany przez translator poziomów do poziomów logicznych 0 - 3.6V i zostaje wybierana ósemka z szesnastu kanałów przez dyskryminator.   
 Tak wybrane ósemki mają nazwę 1A0-7 dla pierwszej oraz 2A0-7 dla drugiej części wyjść.   
-Tak otrzymane sygnały należy zliczyć na płytce Arduino Due w ściśle określonym czasie oraz przekazać dane do dalszej obróbki bądź wizualizacji na zewnętrznym komputerze.
-
-W poniższych rozdziałach opisane są proponowane sposoby wykonania tego zadania. 
+Otrzymane sygnały należy zliczyć na płytce Arduino Due w ściśle określonym czasie oraz przekazać dane do dalszej obróbki bądź wizualizacji na zewnętrznym komputerze.
 
 Cały proces kompilacji kodu C++ do kodu Asemblera został wykonany na kompilatorze ARM gcc 4.6.4 (linux). 
 
+W poniższych rozdziałach opisane są proponowane sposoby wykonania tego zadania. 
+
 \subsection{Rozwiązanie softwarowe na platformie Arduino}
 \label{dzial arduino}
-Bezpośrednie zliczenie sygnałów z wykorzystaniem przerwań sprzętowych w frameworku Arduino. Projekt ten zakłada użycie przerwań sprzętowych na wyjściach cyfrowych. 
-Po ograniczeniu sygnałów do ośmiu wyjść przez dyskryminator każde ze zboczy powoduje wywołanie krótkiej dedykowanej funkcji zwiększającej wartość licznika o jeden. 
+Założeniem rozwiązania jest bezpośrednie zliczenie sygnałów z wykorzystaniem przerwań sprzętowych w frameworku Arduino. W tym celu stosowane są wyjścia cyfrowe płytki Arduino due oraz dyskriminatora sygnałów zmniejszającego liczbę wyjść płytki z 16 do 8.
+Zbocze każdego z tak dyskryminowanego sygnału  powoduje wywołanie krótkiej dedykowanej funkcji zwiększającej wartość licznika o jeden. 
 
-Poniżej znajduje się fragment prototypowego kodu użytego do badań. Na potrzeby badania zostaje uwzględniony tylko pojedynczy kanał.
+Fragment kodu \ref{code_ard_IRS} jest częścią programu użytego do badań. Na potrzeby badania zostaje uwzględniony tylko pojedynczy kanał.
 
 \begin{kod}
         \lstinputlisting[language=C++, firstline=95, lastline=117]{code_source/arduino/monocanal_rst.cpp}
@@ -490,9 +489,9 @@ Poniżej znajduje się fragment prototypowego kodu użytego do badań. Na potrze
 \end{kod}
 
 
-Używana płytka rozwojowa Arduino Due, używa mikrokontrolera AT91SAM3X8E w architekturze 32 bitowej i taktowaniu głównego procesora równemu 84 $MHz$.
+Używana płytka rozwojowa Arduino Due, używa mikrokontrolera AT91SAM3X8E w architekturze 32 bitowej o taktowaniu głównego procesora równemu 84 MHz.
 
-Pomimo krótkiej operacji wewnątrz IRS - \textit{add} (tabela \ref{decompile add}) proces wejścia do rutyny przerwania i wyjścia zabiera nieporównywalnie więcej cykli procesora, co powoduje że cały proces wywołania przerwania jest kosztowny w czasie. 
+Pomimo krótkiej operacji wewnątrz IRS (eng. interupt service rutine) - \textit{add} (tabela \ref{decompile add}) proces wejścia do rutyny przerwania i wyjścia zabiera nieporównywalnie więcej cykli procesora, co powoduje że cały proces wywołania przerwania jest kosztowny w czasie. 
 Ilość cykli procesora koniecznych do wywołania funkcji przerwania używając nieoptymalizowanego kodu Arduino może wymagać nawet do 355 cykli procesora \cite{ard_opt_git}, dodatkowo powrót do głównego wątku programu może wymagać kolejnych 128 cykli \cite{ard_opt_git}.
 
 \begin{table}{h}
@@ -517,8 +516,8 @@ Jednak po dodaniu czasu koniecznego na wywołanie i powrót z IRS otrzymywany je
 Podczas wywołania przerwania o tym samym priorytecie co priorytet tego właśnie wykonywanego, sygnał wywołujący zostanie zapamiętany i ewaluowany zaraz po wyjściu z właśnie wykonywanego IRS  \cite{datasheet}. 
 Oznacza to że w przypadku generowania sygnałów o większej częstotliwości niż jest możliwa ich ewaluacja, doprowadzamy do sytuacji kiedy nigdy nie wrócimy do normalnego przebiegu programu. 
 
-Zgodnie z wymaganiami zadania uzyskiwane sygnały wymagające zliczenia mogą przychodzić z częstotliwością $2.5MHz$ co oznacza kolejny sygnał co $0.4\mu s$.
-Taka częstotliwość oznacza że już dla pojedynczego kanału takie rozwiązanie jest niewystarczające. 
+Zgodnie z wymaganiami projektu uzyskiwane sygnały wymagające zliczenia mogą przychodzić z częstotliwością nawet do $2.5MHz$ co oznacza kolejny sygnał przychodzący co $0.4\mu s$.
+Takie wymagania oznaczają że już dla pojedynczego kanału takie rozwiązanie jest niewystarczające. 
 
 \subsection{Rozwiązanie softwarowe w standardzie CMSIS}
 Główną filozofią platformy Arduiono jest możliwość przenoszenia kodu między różnymi urządzeniami należącymi do dużej rodziny Arduino oraz łatwość programowania.
@@ -529,19 +528,18 @@ Przykładowo na potrzeby działania funkcji \textit{milis()} konieczna jest spec
 
 
 CMSIS to biblioteka udostępniająca warstwę abstrakcji dla mikrokontrolerów używających procesorów grupy ARM Cortex. 
-Pozwala ona na niskopoziomowe programowanie na procesory tego typu ze skupieniem na szybkości działania.
+Pozwala ona na niskopoziomowe programowanie procesorów tego typu ze skupieniem na szybkości działania.
 
-Zgodnie z notą producenta \cite{interupt latency} w najbardziej optymalnej sytuacji dla procesora \textit{Cortex-M3} wejście do funkcji przerwania sprzętowego to 12 cykli i wyjście równe 10 cyklom. 
+Zgodnie z notą producenta \cite{interupt latency} w najbardziej optymalnej sytuacji dla procesora \textit{Cortex-M3} wejście do funkcji przerwania sprzętowego wymaga 12 cykli, a wyjście można osiągnąć w 10 cyklach. 
 Przy tak optymistycznej estymacji możliwe byłoby osiągnięcie częstotliwości zliczeń nawet do $\frac{1}{11.9ns*27} = ~ 3.11 MHz$, jednak ponieważ zliczenia z różnych kanałów nie mogą być ewaluowane równolegle wynik ten nadal jest niewystarczający. 
 
 Dodatkowo bez dostępu do debugera rozwiązywanie problemów pojawiających się podczas programowania w tym podejściu okazały się niewarte włożonej pracy. 
 
-Z tych dwóch powodów rozwiązanie to zostało porzucone i nie wykonano badań w tym podejściu. 
-
+Z tych dwóch powodów rozwiązanie to zostało porzucone i nie wykonano badań w takim układzie. 
 
 \subsection{Rozwiązanie z użyciem dodatkowego układu elektronicznego.}
 
-Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu frameworku Arduino. Celem dodatkowego elementu elektronicznego jest ułatwienie odczytu zliczeń przez mikrokontroler oraz zmniejszenie wymaganej częstotliwości zliczania. 
+Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu frameworku Arduino. Celem dodatkowego elementu elektronicznego jest ułatwienie odczytu zliczeń przez mikrokontroler oraz zmniejszenie wymaganej częstotliwości zliczeń. 
 
 \subsubsection{Układ liczników zewnętrznych}
 \label{section licziki}
@@ -580,13 +578,13 @@ W tym układzie licznik znajduje się w następującej konfiguracji:
         \item $\overline{LOAD}$ - funkcja ładowania wartości nie jest używana wejście to jest uziemione
 \end{itemize} 
 
-Na wyjściu wykorzystane są jedynie wyjścia Q0-3 to one podają binarnie przechowywaną wartość. 
-Tak skonfigurowane liczniki będą zliczać wartości otrzymywane przez wejście $CLC$ aż do osiągnięcia wartości 15 kiedy to licznik zostaje przepełniony i wraca do 0. 
+Na wyjściu wykorzystane są jedynie linie Q0-3 to one podają binarnie przechowywaną wartość. 
+Tak skonfigurowane liczniki będą zliczać wartości otrzymywane przez wejście $CLC$ aż do osiągnięcia wartości 16 kiedy to licznik zostaje przepełniony i podawana przez niego wartość wraca do 0. 
 
 \paragraph{Układ wyboru sygnału}
 
 Celem tego układu jest zmiana sygnału zmiany licznika na sygnał wyboru licznika. W tym celu wykorzystany jest rejestr przesuwany. 
-Wybrany układ służący temu zadaniu to SN74LV164A\cite{shift doc}, jest on szeregowo-równoległym rejestrem co oznacza ze dane wejściowe są dostarczane szeregowo a otrzymywana jest informacja równoległa która jest przesuwana wraz z kolejnymi sygnałami zegara. Dokumentacja rejestru SN74LV164A mówi o dwóch wejściach jednak są one bezpośrednio wyprowadzane na bramkę logiczną AND co sprawia że układ ten spełnia warunek pojedynczego wejścia rejestru szeregowo-równoległego. W konfiguracji tego układu gdzie oba wejścia są ze sobą zwartą bramka logiczna AND jest ignorowana.
+Wybrany układ służący temu zadaniu to SN74LV164A\cite{shift doc}, jest on szeregowo-równoległym rejestrem co oznacza ze dane wejściowe są dostarczane szeregowo a otrzymywana jest informacja równoległa która jest przesuwana wraz z kolejnymi sygnałami zegara. Dokumentacja rejestru SN74LV164A mówi o dwóch wejściach jednak są one bezpośrednio wyprowadzane na bramkę logiczną AND co sprawia że układ ten spełnia warunek pojedynczego wejścia rejestru szeregowo-równoległego. W konfiguracji tego układu gdzie oba wejścia są ze sobą zwarte, bramka logiczna AND jest ignorowana.
 Schemat układu wyboru licznika znajduje się rysunku \ref{wybor schema}. 
 
 \begin{figure}
@@ -636,7 +634,7 @@ Gdzie:
 
 Sekwencja sygnału pokazana jest w tabeli \ref{shift sygnal}. Na tej wizualizacji widać że gdyby w konfiguracji zastąpić linię $QR8$ połączeniem do zasilania możliwe byłoby ograniczenie liczby sekwencji w cyklu do 8. Jednak dzięki tej pojedynczej sekwencji gdy żaden z liczników nie jest odczytywany otrzymujemy cykl podczas którego żaden z liczników nie jest zablokowany i wszystkie kontynuują liczenie. 
 
-Otrzymywany sygnał następnie jest negowany przez układ SN74LV540 i dostarczany do multipleksera pokazanego na rysunku \ref{licznik}.
+W ten sposób otrzymywany sygnał następnie jest negowany przez układ SN74LV540 i dostarczany do multipleksera pokazanego na rysunku \ref{licznik}.
 Tu zestaw wzmacniaczy operacyjnych sprawia ze tylko tylko licznik dla odpowiadającego sygnału ENP o niskim stanie ustala stan na zewnętrznych wyjściach. 
 
 \paragraph{Czas martwy i szybkość odczytu układu licznika}
@@ -656,7 +654,7 @@ Gdzie:
 Oznacza to że przedłużając czas pustego cyklu zmniejszamy czas martwy układu, jednak ponieważ liczniki mogą jedynie 16 stanów to konieczne jest odczytanie ich przed zliczeniem 16 liczby. 
 Oznacza to że:
 \begin{equation}
-        T_o+T_e * F < 15
+        T_o+T_e * F \leqslant 15
 \end{equation}
         Gdzie:
 \begin{itemize}
@@ -689,10 +687,10 @@ Dane otrzymywane z zewnętrznego układu elektronicznego (dział \ref{section li
 Dzięki tej formie prezentacji danych po odczytaniu stanów logicznych na urządzeniu peryferyjnym i odpowiednim przesunięciu logicznym w prosty sposób otrzymujemy wartość na liczniku. 
 Podejście to jednak wymaga specyficznego połączenia oraz uwzględnienia potencjalnego przepełnienia licznika. 
 
-W jednym cyklu akwizycji zostaje wybierany pierwsze osiem liczników 1A0-7 następnie przez czas akwizycji, korygowanej o czas martwy, są zbierane dane z liczników i dodawane do miejsca w tablicy odpowiadającemu odpowiedniemu licznikowi i następnie zmieniana jest ósemka badanych liczników i proces ponownie jest powtarzany. 
+W jednym cyklu akwizycji zostaje wybierany pierwsze osiem liczników 1A0-7 następnie przez czas akwizycji, korygowanej o czas martwy, zbierane są dane z liczników i dodawane do miejsca w tablicy odpowiadającemu odpowiedniemu licznikowi, następnie zmieniana jest ósemka badanych liczników i proces ponownie jest powtarzany. 
 
 Proces akwizycji danych musi być bardzo dokładnie kontrolowany pod względem czasu wykonania.
-Czas pobierania danych jest regulowany przez ilość pętli odbierających dane.
+Czas pobierania danych jest regulowany przez ilość pętli Podczas których dokonywana jest akwizycja danych. 
 Przykład tej pętli znajduje się w fragmencie kodu \ref{code aqw}.
 
 \begin{kod}
@@ -774,11 +772,11 @@ Przykład komunikacji wygląda następująco:
 ~<+>~
 \end{lstlisting}
 
-Długi symbol początku i końca danych pozwala na łatwe odnalezienie miejsca w komunikacji które zawiera dane pomiarowe. 
+Długi symbol początku i końca danych pozwala na łatwe odnalezienie fragmentu komunikacji które zawiera dane pomiarowe. 
 
 \subsection{Program kontroli, wizualizacji oraz archiwizacji danych}
 
-Program używany na komputerze podłączonym do mikrokontrolera został napisany z wykorzystaniem języka Python i frameworku PyQt.
+Program używany na komputerze podłączonym do mikrokontrolera został napisany z wykorzystaniem języka Python i frameworku PyQt5.
 Szczegółowe zadania programu to:
 \begin{itemize}
         \item Komunikacja z mikrokontrolerem w celu:
@@ -802,13 +800,13 @@ W tym celu wykorzystywana jest biblioteka PySerial\cite{pyserial} pozwalająca n
 
 By umożliwić jednoczesną wizualizację danych wraz z odbieraniem informacji z mikrokontrolera konieczna była implementacja wątku zajmującego się ciągłym odbiorem danych. 
 Dlatego też jedyny cel funkcji \textit{back\_end\_deamon} jest nasłuchiwanie w ciągłej pętli oraz zapisywanie danych w logu komunikacyjnym. 
-Na podstawie klasy tego logu wątek główny programy okresowo aktualizuje klasę \textit{CountRateData} która jest wykorzystywana przez w wizualizacji. 
+Na podstawie klasy tego logu wątek główny programy okresowo aktualizuje klasę \textit{CountRateData} która jest wykorzystywana przez fasadę w celu wizualizacji. 
 
-Wizualizacja elementów programu wraz z mutexami które chronią przed błędami jednoczesnego dostępu zwizualizowane są na rysunku \ref{program zapotrzebowanie}.
+Schemat elementów programu wraz z mutexami które chronią przed błędami jednoczesnego dostępu zwizualizowane są na rysunku \ref{program zapotrzebowanie}.
 
 \begin{figure}
         \centering
-        \includegraphics[width=0.5\textwidth]{Schemat_zapotrzebowania.png}
+        \includegraphics[width=0.65\textwidth]{Schemat_zapotrzebowania.png}
         \caption{Schemat zapotrzebowania na zasoby przez elementy programu}
         \label{program zapotrzebowanie}
 \end{figure}
@@ -826,21 +824,9 @@ Dane pomiarowe są zapisywane w chwili gdy: Program zostanie zamknięty, wciśni
 Przed zapisem tworzony zostaje folder z aktualną datą, w formacie DD-MM-YYYY, w wybranej przez użytkownika ścieżce. Nazwa pliku to godzina zapisu pliku w formacie HH:MM
 Pliki są zapisywane w ustalonym formacie: JSON lub CSV.
 
+Archiwizacja danych z akwizycji \textit{Single Shoot} jest przeprowadzana zaraz po zakończeniu pomiaru w osobnym folderze zgodnie z wcześniej przedstawioną zasadą. 
+
 \paragraph{Fasada}
-
-Gotowy interfejs graficzny widoczny jest na rysunku \ref{Gui pic}. Jest on podzielony na cztery zakładki:
-\begin{itemize}
-        \item Configuration - miejsce pozwalające na rozpoczęcie pracy licznika, zatrzymanie i wszelką konfigurację dotyczącą pracy programu. 
-        \item Data - prezentacja danych w postaci liczbowej 
-        \item Visualization - prezentacja danych w relatywnej dziedzinie czasu. 
-        \item Single Shot - Zakładka odpowiedzialna za przeprowadzenie pojedynczego badania.
-\end{itemize}
-
-Za interfejs użytkownika odpowiedzialny jest główny wątek programu, instancje klasy PyQt5.QtCore.QTimer\cite{doc pyqt} generują sygnały aktualizujące dane licznika oraz wykresy zliczeń. 
-Do generowania wykresów zastosowana została biblioteka matplotlib\cite{doc matplotlib}. 
-
-Przy wykresach znajduje się pole które po odznaczeniu pozwala na wizualizację danych w logarytmicznej sali częstotliwości zliczeń.
-
 \begin{figure}
         \begin{multicols}{2}
         
@@ -865,16 +851,28 @@ Przy wykresach znajduje się pole które po odznaczeniu pozwala na wizualizację
         \label{Gui pic}
         \end{figure}
 
+Gotowy interfejs graficzny widoczny jest na rysunku \ref{Gui pic}. Jest on podzielony na cztery zakładki:
+\begin{itemize}
+        \item Configuration - miejsce pozwalające na rozpoczęcie pracy licznika, zatrzymanie i wszelką konfigurację dotyczącą pracy programu. 
+        \item Data - prezentacja danych w postaci liczbowej 
+        \item Visualization - prezentacja danych w relatywnej dziedzinie czasu. 
+        \item Single Shot - Zakładka odpowiedzialna za przeprowadzenie pojedynczego badania.
+\end{itemize}
 
+Za interfejs użytkownika odpowiedzialny jest główny wątek programu, instancje klasy QTimer\cite{doc pyqt} generują one sygnały aktualizujące dane licznika oraz stgnały aktualizacji wykresu zliczeń. 
+Do generowania grafik zastosowana została biblioteka matplotlib\cite{doc matplotlib}. 
 
+Przy wykresach znajduje się pole które po odznaczeniu pozwala na wizualizację danych w logarytmicznej sali częstotliwości zliczeń.
+
+\newpage
 \section{Wyniki badań}
 
-\subsection{Rowiązanie softwarowe na platformie Arduino}
+\subsection{Rozwiązanie softwarowe na platformie Arduino}
 
-Przeprowadzono testy polegające na bezpośrenim zliczaniu sygnałów generowanych przez generator zewnętrzy. 
-Napięciem, kształetem oraz długością odpowiadały tym produkowanym przez układ RXHDR\_V2.
+Przeprowadzono testy polegające na bezpośrednim zliczaniu sygnałów generowanych przez generator zewnętrzy. 
+Napięciem, kształtem oraz długością odpowiadały tym produkowanym przez układ RXHDR\_V2.
 
-Przeprowadzono po pięc badań na każdą częstotliwość i wyliczono błąd względem spodziewanego wyniku. 
+Przeprowadzono po pięć badań na każdą częstotliwość i wyliczono błąd względem spodziewanego wyniku. 
 Czas akwizycji ustalono na jedną sekundę sprawiając że liczba spodziewanych zliczeń jest równa częstotliwości generowanych sygnałów.
 
 Wyniki znajdujące się w tabeli \ref{rts table} zwizualizowane są na wykresie \ref{rts wyniki}.
@@ -883,7 +881,7 @@ Wyniki znajdujące się w tabeli \ref{rts table} zwizualizowane są na wykresie 
 \begin{figure}[]
         \centering
         \includegraphics[width=\textwidth]{rts.jpg}
-        \caption{Wyniki testów z wykorzystaniem przerwań stystemowych}
+        \caption{Wyniki testów z wykorzystaniem przerwań systemowych}
         \label{rts wyniki}
 \end{figure}
 
@@ -891,33 +889,33 @@ Wyniki znajdujące się w tabeli \ref{rts table} zwizualizowane są na wykresie 
         \centering
         \caption{Wyniki rozwiązania z zastosowaniem przerwań systemowych}
         \label{rts table}
-	\begin{tabular}{|c|c|c|c|c|}  
-              \hline 
-              Częstotlwość [kHz] & Estymowana ilość & Otrzymana ilość & Różnica  & Błąd względny [\%]\\ 
-              &  zliczeń &  zliczeń & w zliczeniach & \\ \hline
-              1 & 1000 & 1001 & 1 & 0.1000\\ \hline 
-              1.414 & 1414 & 1415 & 1 & 0.0707\\ \hline 
-              2 & 2000 & 2001 & 1 & 0.0500\\ \hline 
-              2.82 & 2820 & 2820 & 0 & 0.0000\\ \hline 
-              4 & 4000 & 3999 & 1 & 0.0250\\ \hline 
-              5.65 & 5650 & 5650 & 0 & 0.0000\\ \hline 
-              8 & 8000 & 7996 & 4 & 0.0500\\ \hline 
-              11.3 & 11300 & 11298 & 2 & 0.0177\\ \hline 
-              16 & 16000 & 15989 & 11 & 0.0688\\ \hline 
-              22.62 & 22620 & 22605 & 15 & 0.0663\\ \hline 
-              32 & 32000 & 31986 & 14 & 0.0438\\ \hline 
-              45.25 & 45250 & 45230 & 20 & 0.0442\\ \hline 
-              64 & 64000 & 63948 & 52 & 0.0813\\ \hline 
-              90.5 & 90500 & 90499 & 1 & 0.0011\\ \hline 
-              128 & 128000 & 127943 & 57 & 0.0445\\ \hline 
-              181 & 181000 & 180874 & 126 & 0.0696\\ \hline 
-              256 & 256000 & 255758 & 242 & 0.0945\\ \hline 
-              362 & 362000 & 361962 & 38 & 0.0105\\ \hline 
-              512 & 512000 & 511920 & 80 & 0.0156\\ \hline 
-              700 & 700000 & 699937 & 63 & 0.0090\\ \hline 
-              710 & 710000 & 709686 & 314 & 0.0442\\ \hline 
-              715 & 715000 & 714941 & 59 & 0.0083\\ \hline
-      \end{tabular}
+        \begin{tabular}{|c|c|c|c|c|}  
+                \hline 
+                Częstotliwość [kHz] & Estymowana ilość & Otrzymana ilość & Różnica  & Błąd względny [\%]\\ 
+                &  zliczeń &  zliczeń & w zliczeniach & \\ \hline
+                1 & 1000 & 1001 & 1 & 0.1000\\ \hline 
+                1.414 & 1414 & 1415 & 1 & 0.0707\\ \hline 
+                2 & 2000 & 2001 & 1 & 0.0500\\ \hline 
+                2.82 & 2820 & 2820 & 0 & 0.0000\\ \hline 
+                4 & 4000 & 3999 & 1 & 0.0250\\ \hline 
+                5.65 & 5650 & 5650 & 0 & 0.0000\\ \hline 
+                8 & 8000 & 7996 & 4 & 0.0500\\ \hline 
+                11.3 & 11300 & 11298 & 2 & 0.0177\\ \hline 
+                16 & 16000 & 15989 & 11 & 0.0688\\ \hline 
+                22.62 & 22620 & 22605 & 15 & 0.0663\\ \hline 
+                32 & 32000 & 31986 & 14 & 0.0438\\ \hline 
+                45.25 & 45250 & 45230 & 20 & 0.0442\\ \hline 
+                64 & 64000 & 63948 & 52 & 0.0813\\ \hline 
+                90.5 & 90500 & 90499 & 1 & 0.0011\\ \hline 
+                128 & 128000 & 127943 & 57 & 0.0445\\ \hline 
+                181 & 181000 & 180874 & 126 & 0.0696\\ \hline 
+                256 & 256000 & 255758 & 242 & 0.0945\\ \hline 
+                362 & 362000 & 361962 & 38 & 0.0105\\ \hline 
+                512 & 512000 & 511920 & 80 & 0.0156\\ \hline 
+                700 & 700000 & 699937 & 63 & 0.0090\\ \hline 
+                710 & 710000 & 709686 & 314 & 0.0442\\ \hline 
+                715 & 715000 & 714941 & 59 & 0.0083\\ \hline
+        \end{tabular}
 \end{table}
 
 Wyniki pokazują dokładność mieszczącą się w  1\textperthousand, 
@@ -925,22 +923,23 @@ jednak błąd w otrzymanym wyniku zależy od częstotliwości generowanych zlicz
 Może to być spowodowane interferencją przerwania powodującego zliczenie z innymi przerwaniami wymaganymi do działania mikrokontrolera.
 
 Po osiągnięciu częstotliwości granicznej > 0.715 [MHz] program mikrokontrolera przestaje wysyłać dane na komputer zewnętrzny.
-Jest to spowodowane tym że zaraz po wyjściu z obsługi przerwania systemowego program natychmiast zaczyna osbługę następnego przerwania. 
+Jest to spowodowane tym że zaraz po wyjściu z obsługi przerwania systemowego program natychmiast zaczyna obsługę następnego przerwania. 
 Liczba graniczna pozwala przybliżyć czas konieczny na wykonanie jednego przerwania na podstawie przekształcenia wzoru \ref{Cykli w sec}. 
 $$ t_p = \frac{1}{f_p} = \sim 1.3986 [\mu s] $$
 $$ N_c = \frac{t_p}{t_c} =  \frac{1.3986 \mu s}{11.9 ns} =\sim 118$$
 gdzie: \\
- \indent $t_p$ -  czas potrzebny na obsługą przerwania\\
- \indent $t_c$ -  czas jednego cyklu procesora (dział \ref{dzial arduino}) \\
- \indent $f_p$ -  częstotliwość graniczna przerwań \\
- \indent $N_c$ -  ilość czykli koniecznych na pojedyńcze przerwanie \\
+        \indent $t_p$ -  czas potrzebny na obsługą przerwania\\
+        \indent $t_c$ -  czas jednego cyklu procesora (dział \ref{dzial arduino} ) \\
+        \indent $f_p$ -  częstotliwość graniczna przerwań \\
+        \indent $N_c$ -  ilość cykli koniecznych na pojedyncze przerwanie \\
 
 Liczba cykli na przerwanie jest mniejsza niż ta szacowana w dziale \ref{dzial arduino} (355 + 128)\cite{ard_opt_git}, wynika to z faktu że poprzednia estymacja była wykonana dla najgorszego przypadku dla nieoptymalizowanego kodu.
-Mimo leprzych osiągów niż te szacowane wynik ten nadal odbiega od optymalnego czasu wywołania przerwania \cite{interupt latency}(12 + 10) i wciąż jest znacznie poniżej wymagań projektu. 
+Mimo lepszych osiągów niż te szacowane wynik ten nadal odbiega od optymalnego czasu wywołania przerwania (12 + 10) \cite{interupt latency} i wciąż jest znacznie poniżej wymagań projektu. 
 
-Dodatkowe testy potwierdziły że wraz z zwiększeniem ilości badanych kanałów częstotliowść graniczna zmniejsza się jak $\frac{1}{n}$ gdzie $n$ to ilość badanych kanałów. 
+Dodatkowe testy potwierdziły że wraz z zwiększeniem ilości badanych kanałów częstotliwość graniczna zmniejsza się jak $\frac{1}{n}$ gdy $n$ to ilość badanych kanałów. 
 
 
+\newpage
 \section{Podsumowanie}
 
 \newpage
