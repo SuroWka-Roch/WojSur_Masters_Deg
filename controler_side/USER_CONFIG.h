@@ -21,12 +21,14 @@
 //CONFIG
 #define STARTING_MULTIPLEXER_STATE 0
 
-//4.618us per circle 
-#define CIRCLES_FOR_1MS (21656.0/100.0)
-#define DEAD_TIME_CORRECTION (1.14503073835)
+// 5.43us    old value = 4.618us per circle  (21656.0/100.0)
+#define CIRCLES_FOR_1MS (184162.062615/1000.0)
+#define DEAD_TIME_CORRECTION (1.0)    //(1.14503073835)
 
 //pinout set up
 //All output is done on periferal PC 
+
+#ifdef N_D_per
 #define CLC_PIN_NUM 19 //Arduino pin 44
 #define CLC_PIN_VAL 0x1<<CLC_PIN_NUM  //2^19
 
@@ -35,5 +37,18 @@
 
 #define CLEAR_PIN_NUM 17 //Arduino pin 46
 #define CLEAR_PIN_VAL 0x1<<CLEAR_PIN_NUM 
+
+#else
+
+#define CLC_PIN_NUM 0 //Arduino pin 25
+#define CLC_PIN_VAL 0x1<<CLC_PIN_NUM 
+
+#define MULTIPLEXER_PIN_NUM 2 //Arduino pin 27
+#define MULTIPLEXER_PIN_VAL 0x1<<MULTIPLEXER_PIN_NUM  
+
+#define CLEAR_PIN_NUM 1 //Arduino pin 26
+#define CLEAR_PIN_VAL 0x1<<CLEAR_PIN_NUM 
+
+#endif
 
 #endif 

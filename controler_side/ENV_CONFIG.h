@@ -31,6 +31,7 @@
 #define SYSCLC *(volatile uint32_t *) 0x400E0610 // I can't find the clc makro - Register for perifrel clc control
 #define NOP __asm__("nop")
 void(* resetFunc) (void) = 0; //declare reset function at address 0
+#define REG_PIOC_OSR    (*(__I  uint32_t*)0x400E1218U) /**< \brief (PIOC) Output Status Register */
 
 #define MULTIPLEXER_NR(canal_nr) ((((canal_nr)/8)%2)+1)
 /**************************************************************************************/
