@@ -220,7 +220,7 @@ def run_window():
     update_count_data_timer = QtCore.QTimer()
     update_count_data_timer.timeout.connect(
         lambda: update_count_data(count_data, log))
-    update_count_data_timer.start(1000)
+    update_count_data_timer.start(100)
 
     save_data_timer = QtCore.QTimer()
     save_data_timer.timeout.connect(lambda: save_data(
