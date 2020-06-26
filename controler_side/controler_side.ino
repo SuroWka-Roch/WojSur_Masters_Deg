@@ -66,13 +66,13 @@ void aquisition(double time){
   
   noInterrupts(); 
 
-  for(int j = 0; j<2; j++){ // j is eighter 1 or 0 
+  for(int j = 0; j<2; j++){ // j is either 1 or 0 
     set_multiplexer(!j);
     counts_pointer = &counts[8*j];
     clear_int_table(previousValue,8);
 
     REG_PIOD_CODR = CLEAR_PIN_VAL;
-    REG_PIOD_SODR = CLEAR_PIN_VAL; //Reset value on counter - idk if realy needed - probably due to removal
+    REG_PIOD_SODR = CLEAR_PIN_VAL; //Reset value on counter 
     
     //read value on bus
     for(f=0;f< (int)(CIRCLES_FOR_1MS * DEAD_TIME_CORRECTION * time); f++){
