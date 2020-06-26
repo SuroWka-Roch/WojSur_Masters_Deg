@@ -75,7 +75,17 @@ void aquisition(double time){
     REG_PIOD_SODR = CLEAR_PIN_VAL; //Reset value on counter 
     
     //read value on bus
-    for(f=0;f< (int)(CIRCLES_FOR_1MS * DEAD_TIME_CORRECTION * time); f++){
+    for(f=0;f < (int)(CIRCLES_FOR_1MS * DEAD_TIME_CORRECTION * time); f++){
+
+      /*
+       * Reset signal from CLEAR_PIN makes first loop unreliable due to discriminator uncertanty
+       * For optimalization purpuses first loop is done before the working loop in order to save 
+       * clock circles od working loop
+       */
+      first_loop(previousValue);
+
+
+      //working loop
       for(i=0;i<8;i++){
         
         REG_PIOD_SODR = CLC_PIN_VAL; //send signal to clc, change is triggered on rinsing edge but time is needed for hardwere to set it's state
@@ -139,9 +149,11 @@ void set_multiplexer(int state_to_set){
 
   if(state_to_set){
     REG_PIOD_SODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for HIGH.
+    REG_PIOD_PUER = MULTIPLEXER_PIN_VAL; // set coresponding pull up for stability
   }
   else{
     REG_PIOD_CODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for LOW.
+    REG_PIOD_PUDR = MULTIPLEXER_PIN_VAL; // set coresponding pull up for stability
   }
 
   multiplexer_state_flag = state_to_set;
@@ -246,4 +258,21 @@ void clear_int_table(int* table, int len){
    *table = 0;
     table++; 
   }
+}
+
+void first_loop(int* previousValue){
+  int val;
+  int i;
+
+  for(i=0;i<8;i++){
+    REG_PIOD_SODR = CLC_PIN_VAL; //send signal to clc, change is triggered on rinsing edge but time is needed for hardwere to set it's state
+    REG_PIOD_CODR = CLC_PIN_VAL; //turn of clc
+      
+    val = (REG_PIOC_PDSR & pin_mask)>>1; //read value
+    
+    previousValue[i] = val;
+  }
+
+  REG_PIOD_SODR = CLC_PIN_VAL; //reset clc empty shift register circle 
+  REG_PIOD_CODR = CLC_PIN_VAL;  
 }
