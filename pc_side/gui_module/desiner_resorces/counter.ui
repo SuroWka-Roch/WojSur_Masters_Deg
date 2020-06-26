@@ -22,7 +22,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="Configuration">
        <attribute name="title">
@@ -150,7 +150,7 @@
           <item row="3" column="1">
            <widget class="QLabel" name="label_save_period">
             <property name="text">
-             <string>Auto save period</string>
+             <string>Auto save period [mm:ss]</string>
             </property>
            </widget>
           </item>
@@ -170,7 +170,7 @@
             </item>
             <item>
              <property name="text">
-              <string>Exel compliant</string>
+              <string>CSV</string>
              </property>
             </item>
            </widget>
@@ -272,10 +272,18 @@
            </widget>
           </item>
           <item row="6" column="1">
-           <widget class="QLCDNumber" name="lcdNumber_7"/>
+           <widget class="QLCDNumber" name="lcdNumber_7">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QLCDNumber" name="lcdNumber_4"/>
+           <widget class="QLCDNumber" name="lcdNumber_4">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="7" column="2">
            <widget class="QLabel" name="label_16">
@@ -292,7 +300,11 @@
            </widget>
           </item>
           <item row="7" column="1">
-           <widget class="QLCDNumber" name="lcdNumber_8"/>
+           <widget class="QLCDNumber" name="lcdNumber_8">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="4" column="0">
            <widget class="QLabel" name="label_5">
@@ -309,13 +321,25 @@
            </widget>
           </item>
           <item row="5" column="1">
-           <widget class="QLCDNumber" name="lcdNumber_6"/>
+           <widget class="QLCDNumber" name="lcdNumber_6">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLCDNumber" name="lcdNumber_1"/>
+           <widget class="QLCDNumber" name="lcdNumber_1">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QLCDNumber" name="lcdNumber_5"/>
+           <widget class="QLCDNumber" name="lcdNumber_5">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="3" column="2">
            <widget class="QLabel" name="label_12">
@@ -339,7 +363,11 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLCDNumber" name="lcdNumber_2"/>
+           <widget class="QLCDNumber" name="lcdNumber_2">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="4" column="2">
            <widget class="QLabel" name="label_13">
@@ -398,31 +426,67 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QLCDNumber" name="lcdNumber_3"/>
+           <widget class="QLCDNumber" name="lcdNumber_3">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="0" column="3">
-           <widget class="QLCDNumber" name="lcdNumber_9"/>
+           <widget class="QLCDNumber" name="lcdNumber_9">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="1" column="3">
-           <widget class="QLCDNumber" name="lcdNumber_10"/>
+           <widget class="QLCDNumber" name="lcdNumber_10">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="2" column="3">
-           <widget class="QLCDNumber" name="lcdNumber_11"/>
+           <widget class="QLCDNumber" name="lcdNumber_11">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="3" column="3">
-           <widget class="QLCDNumber" name="lcdNumber_12"/>
+           <widget class="QLCDNumber" name="lcdNumber_12">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="4" column="3">
-           <widget class="QLCDNumber" name="lcdNumber_13"/>
+           <widget class="QLCDNumber" name="lcdNumber_13">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="5" column="3">
-           <widget class="QLCDNumber" name="lcdNumber_14"/>
+           <widget class="QLCDNumber" name="lcdNumber_14">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="6" column="3">
-           <widget class="QLCDNumber" name="lcdNumber_15"/>
+           <widget class="QLCDNumber" name="lcdNumber_15">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
           <item row="7" column="3">
-           <widget class="QLCDNumber" name="lcdNumber_16"/>
+           <widget class="QLCDNumber" name="lcdNumber_16">
+            <property name="digitCount">
+             <number>7</number>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -433,20 +497,7 @@
         <string>Visualisation</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
-        <item row="1" column="0">
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="0" column="0" colspan="2">
+        <item row="0" column="0" colspan="3">
          <widget class="QFrame" name="frame_vis_fig">
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
@@ -461,12 +512,32 @@
           </layout>
          </widget>
         </item>
-        <item row="1" column="1">
+        <item row="1" column="2">
          <widget class="QCheckBox" name="checkBox_vis_logscale">
           <property name="text">
            <string>Logaritmic scale</string>
           </property>
          </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="pushButton_vis_refresh">
+          <property name="text">
+           <string>Refresh </string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>
