@@ -74,17 +74,15 @@ void aquisition(double time){
     REG_PIOD_CODR = CLEAR_PIN_VAL;
     REG_PIOD_SODR = CLEAR_PIN_VAL; //Reset value on counter 
     
+    /*
+      * Reset signal from CLEAR_PIN makes first loop unreliable due to discriminator uncertanty
+      * For optimalization purpuses first loop is done before the working loop in order to save 
+      * clock circles od working loop
+      */
+    first_loop(previousValue);
+
     //read value on bus
     for(f=0;f < (int)(CIRCLES_FOR_1MS * DEAD_TIME_CORRECTION * time); f++){
-
-      /*
-       * Reset signal from CLEAR_PIN makes first loop unreliable due to discriminator uncertanty
-       * For optimalization purpuses first loop is done before the working loop in order to save 
-       * clock circles od working loop
-       */
-      first_loop(previousValue);
-
-
       //working loop
       for(i=0;i<8;i++){
         
