@@ -128,10 +128,10 @@ void write_output(){
   for(int i=0;i<16;i++){
     sprintf(printf_buffer, "%dA%d\t%d\0",
             MULTIPLEXER_NR(i), (i-((MULTIPLEXER_NR(i)-1)*8))+1,
-            counts[i]);
+            counts[15-i]);
     SerialUSB.println(printf_buffer);
     clear_char_table(printf_buffer,PRINTF_BUFFER_SIZE);
-    counts[i]=0;
+    counts[15-i]=0;
   }
   
   SerialUSB.println(STOP_DATA);
