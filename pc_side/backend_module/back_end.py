@@ -34,6 +34,7 @@ class CountRateData(object):
         self.dataDict = {}
         self.canal_names = canal_names
         self.nr_of_averages = 1
+        self.vis_data_pointer = 0 #how much data from beginin not to visualise
 
         for name in canal_names:
             self.dataDict[name] = []  # create empty list for each canal
@@ -99,7 +100,7 @@ class CountRateData(object):
 
     def data_for_plot(self):
         #@breief Returns data prepared for ploting
-        len = self._shortest()
+        len = self._shortest() - self.vis_data_pointer
 
         if self.akw_time == None or len < self.nr_of_averages:
             return None, None, None
@@ -112,7 +113,7 @@ class CountRateData(object):
             with self.lock:
                 for canal in self.canal_names:
                     y.append([x/(self.akw_time/1000)
-                              for x in self.dataDict[canal][-len:]])
+                              for x in self.dataDict[canal][-(len):]])
 
             return self.canal_names, x, y
         else:
@@ -133,17 +134,26 @@ class CountRateData(object):
         short = min([len(self.dataDict[key]) for key in self.dataDict.keys()])
         return short
 
+    def set_vis_to_now(self):
+        with self.lock:
+            self.vis_data_pointer = self._shortest() 
+
     def change_nr_of_averages(self, new_number):
         with self.lock:
             self.nr_of_averages = new_number
 
     def last_values(self):
+        if self.nr_of_averages > self._shortest():
+            return [-1 for _ in range(16)]
+
         with self.lock:
             try:
-                values = [self.dataDict[key][-1] /
+                values = [average(self.dataDict[key][-(self.nr_of_averages):]) /
                           (self.akw_time/1000) for key in self.canal_names]
                 return values
             except IndexError as e:
+                return [-1 for _ in range(16)]
+            except TypeError as e:
                 return [-1 for _ in range(16)]
 
     def clear(self, file_name="exit_data"):

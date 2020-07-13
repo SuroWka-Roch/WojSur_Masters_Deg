@@ -92,6 +92,11 @@ def try_port(SerialPort, current_configuration_data, silence=False):
 
 def configuration_buttom_func(ui, current_configuration_data, serial_port, log, semaphore, count_data, save_data_timer):
     get_vis_configuration_info(ui, current_configuration_data, count_data)
+
+    #fix a bug conserning changind akw time and visualisation
+    if current_configuration_data["akw_time"] != count_data.akw_time:
+        count_data.set_vis_to_now()
+
     count_data.set_akw_time(current_configuration_data["akw_time"])
     count_data.change_nr_of_averages(current_configuration_data["nr_of_averages"])
     save_data_timer.setInterval(
@@ -133,6 +138,8 @@ def connect_backend(ui, current_configuration_data, serial_port, log, semaphore,
 
     ui.pushButton_ss_run.clicked.connect(lambda: ss_run_buttom_function(
         ui, serial_port, log, semaphore, current_configuration_data, count_data, save_data_timer))
+    
+    ui.pushButton_vis_refresh.clicked.connect(lambda: count_data.set_vis_to_now())
 
 
 def ss_run_buttom_function(ui, serial_port, log, port_semaphore, current_configuration_data, count_data, save_data_timer):
