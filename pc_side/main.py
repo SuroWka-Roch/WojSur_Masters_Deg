@@ -326,13 +326,15 @@ def get_vis_configuration_info(ui, current_configuration_data, count_data):
 
     save_type = ui.comboBox_conf_save_type.currentText()
     port_name = ui.comboBox_conf_Port_name.currentText()
+    low_rate = ui.comboBox_Low_Rate.currentText()
+    ENBLR =  ui.comboBox_ENBLR.currentText()
 
     logger.info("Have configuration data")
 
     old_configuration_data = deepcopy(current_configuration_data)
 
     new_configuration_data = ConfigurationData(
-        akw_time, nr_of_averages, save_period_seconds, save_loc, save_type, port_name)
+        akw_time, nr_of_averages, save_period_seconds, save_loc, save_type, port_name, low_rate, ENBLR)
     differences = current_configuration_data.update_and_drop_diferances(
         new_configuration_data)
 
@@ -340,7 +342,6 @@ def get_vis_configuration_info(ui, current_configuration_data, count_data):
         save_data(count_data, old_configuration_data, silence=True)
         count_data.clear()
 
-    # current_configuration_data = new_configuration_data
 
 
 def get_SingleShot_configuration_info(ui):

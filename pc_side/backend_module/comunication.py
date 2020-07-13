@@ -15,7 +15,7 @@ from backend_module.configuration import WAIT_AFTER_OPENING_PORT
 from backend_module.configuration import READY_TO_READ
 from backend_module.configuration import HANSHAKE_CONFIRM_REQUEST_CODE
 from backend_module.configuration import HANSHAKE_CONFIRMATION_CODE
-from backend_module.configuration import AKW_TIME_MS_CODE
+from backend_module.configuration import AKW_TIME_MS_CODE, ENBLR_CODE, LOW_RATE_CODE
 from backend_module.configuration import CODE_STOPED_RESPONSE
 from backend_module.configuration import COMAND_ENDING_CONST
 from backend_module.configuration import SERIAL_BUFFER_SIZE
@@ -119,9 +119,8 @@ def try_port(Port_name, SerialObject):
     SerialObject.timeout = 5
     SerialObject.baudrate = SERIAL_SPEED
     SerialObject.xonxoff = True
-    SerialObject.rtscts =  True
-    SerialObject.dsrdtr =  True
-
+    SerialObject.rtscts = True
+    SerialObject.dsrdtr = True
 
     try:
         if not SerialObject.is_open:
@@ -133,32 +132,44 @@ def try_port(Port_name, SerialObject):
     except Exception as e:
         print(type(e))
         raise e
-        
+
+
 def start(serial_port, log):
     if not serial_port.is_open:
         serial_port.open()
-    
-    log.write(send_and_expect(serial_port,START_CODE, None))
 
-def stop(serial_port, log, no_expected = False):
+    log.write(send_and_expect(serial_port, START_CODE, None))
+
+
+def stop(serial_port, log, no_expected=False):
     if not serial_port.is_open:
         serial_port.open()
-    
-    log.write(send_and_expect(serial_port, STOP_CODE, CODE_STOPED_RESPONSE if not no_expected else None))
+
+    log.write(send_and_expect(serial_port, STOP_CODE,
+                              CODE_STOPED_RESPONSE if not no_expected else None))
+
 
 def configure_all(serial_port, configuration, log):
     if not serial_port.is_open:
         serial_port.open()
 
-    log.write(send_and_expect(serial_port, AKW_TIME_MS_CODE + '\n' + 
+    log.write(send_and_expect(serial_port, AKW_TIME_MS_CODE + '\n' +
                               str(configuration["akw_time"]), str(configuration["akw_time"])))
+
+    log.write(send_and_expect(serial_port, LOW_RATE_CODE + '\n' +
+                              str(configuration["low_rate"]), str(configuration["low_rate"])))
+
+    log.write(send_and_expect(serial_port, ENBLR_CODE + "\n" +
+                            str(configuration["ENBLR"]), str(configuration["ENBLR"])))
+
 
 def set_akw_time(serial_port, akw_time, log):
     if not serial_port.is_open:
         serial_port.open()
 
-    log.write(send_and_expect(serial_port, AKW_TIME_MS_CODE + '\n' + 
+    log.write(send_and_expect(serial_port, AKW_TIME_MS_CODE + '\n' +
                               str(akw_time), str(akw_time)))
+
 
 if __name__ == "__main__":
     pass

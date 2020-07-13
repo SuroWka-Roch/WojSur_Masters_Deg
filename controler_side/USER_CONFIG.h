@@ -14,6 +14,8 @@
 #define START_CODE "srt"
 #define STOP_CODE "stp"
 #define CODE_STOPED_RESPONSE "fin"
+#define LOW_RATE_CODE "lrt"
+#define ENBLR_CODE "enr"
 
 #define START_DATA "<~+~>"
 #define STOP_DATA "~<+>~"
@@ -40,6 +42,8 @@
 
 #else
 
+//All output is done on periferal PD
+
 #define CLC_PIN_NUM 0 //Arduino pin 25
 #define CLC_PIN_VAL 0x1<<CLC_PIN_NUM 
 
@@ -48,6 +52,14 @@
 
 #define CLEAR_PIN_NUM 1 //Arduino pin 26
 #define CLEAR_PIN_VAL 0x1<<CLEAR_PIN_NUM 
+
+// Low Rate arduino pin 28 d3
+#define LOW_RATE_PIN_NUM 3 
+#define LOW_RATE_PIN_VAL 0x1<<LOW_RATE_PIN_NUM
+
+//ENBLR arduino pin 30 D9
+#define ENBLR_PIN_NUM 9
+#define ENBLR_PIN_VAL 0x1<<ENBLR_PIN_NUM
 
 #endif
 

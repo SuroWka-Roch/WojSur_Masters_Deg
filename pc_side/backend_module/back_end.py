@@ -205,10 +205,10 @@ class ConfigurationData(object):
     """
     Holds configuration data
     keys in dictionary:
-    akw_time, nr_of_averages, save_period, save_location, save_type, port_name
+    akw_time, nr_of_averages, save_period, save_location, save_type, port_name, low_rate, ENBLR
     """
 
-    def __init__(self, akw_time, nr_of_averages, save_period, save_location, save_type, port_name):
+    def __init__(self, akw_time, nr_of_averages, save_period, save_location, save_type, port_name, low_rate, ENBLR):
         self.empty = False
         self.data = {}
         self.data["akw_time"] = akw_time
@@ -218,10 +218,12 @@ class ConfigurationData(object):
         self.data["save_type"] = save_type
         self.data["port_name"] = port_name
         self.data["vis_log_scale"] = False
+        self.data["low_rate"] = 0 if low_rate == "Low" else 1
+        self.data["ENBLR"] = 0 if ENBLR == "Low" else 1
 
     @staticmethod
     def create_empty():
-        temp_obj = ConfigurationData(0, 0, 0, 0, 0, 0)
+        temp_obj = ConfigurationData(0, 0, 0, 0, 0, 0, 0, 0)
         temp_obj.empty = True
         return temp_obj
 

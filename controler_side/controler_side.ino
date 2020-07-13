@@ -88,8 +88,8 @@ void aquisition(double time){
         
         REG_PIOD_SODR = CLC_PIN_VAL; //send signal to clc, change is triggered on rinsing edge but time is needed for hardwere to set it's state
         REG_PIOD_CODR = CLC_PIN_VAL; //turn of clc
-        
         val = (REG_PIOC_PDSR & pin_mask)>>1; //read value
+        
 
         /*
         *   Dealing with counters overflow:
@@ -211,13 +211,27 @@ void analyze_command(){
     SerialUSB.print(COMAND_ENDING_CONST);
     hibernation_flag = true;
   }else{
+  
+  if(!strcmp( received_buffer, LOW_RATE_CODE)){
+    int low_rate_val = read_number();
+    low_rate_val?REG_PIOD_SODR = LOW_RATE_PIN_VAL:REG_PIOD_CODR = LOW_RATE_PIN_VAL;
+    SerialUSB.print( (int) low_rate_val);
+    SerialUSB.print(COMAND_ENDING_CONST);
+  }else{
+
+  if(!strcmp( received_buffer, ENBLR_CODE)){
+    int ENBLR_val = read_number();
+    ENBLR_val?REG_PIOD_SODR = ENBLR_PIN_VAL:REG_PIOD_CODR = ENBLR_PIN_VAL;
+    SerialUSB.print( (int) ENBLR_val);
+    SerialUSB.print(COMAND_ENDING_CONST);
+  }else{
     
     //unknown command
     SerialUSB.println("Don't understend");
     SerialUSB.print("Received:");
     SerialUSB.println(received_buffer);
 
-  }}}} // :( 
+  }}}}}} // :( 
   command_in_buffer_flag = 0;
 }
 
