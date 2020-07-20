@@ -33,7 +33,7 @@ void setup() {
 
   REG_PIOC_ODR = pin_mask;//disable output of pins
   //REG_PIOC_OER = CLC_PIN_VAL | MULTIPLEXER_PIN_VAL | CLEAR_PIN_VAL; // enable output
-  REG_PIOD_OER = CLC_PIN_VAL | MULTIPLEXER_PIN_VAL | CLEAR_PIN_VAL;
+  REG_PIOD_OER = CLC_PIN_VAL | MULTIPLEXER_PIN_VAL | CLEAR_PIN_VAL | LOW_RATE_PIN_VAL | ENBLR_PIN_VAL;
   REG_PIOC_PUDR = (0B1<<CLC_PIN_NUM);// pull up disable 
   REG_PIOD_PUER = MULTIPLEXER_PIN_VAL | pin_mask | CLEAR_PIN_VAL;
   SYSCLC = 0B11<<13; //PMC Peripheral Clock Enable Register 0, turn on a periferal clock 
@@ -108,7 +108,7 @@ void aquisition(double time){
 
       }
 
-    
+      NOP;NOP; //fix last circle to short problem
       REG_PIOD_SODR = CLC_PIN_VAL; //reset clc empty shift register circle 
       REG_PIOD_CODR = CLC_PIN_VAL;
     
