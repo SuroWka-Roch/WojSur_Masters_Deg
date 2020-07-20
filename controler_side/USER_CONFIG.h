@@ -24,8 +24,8 @@
 #define STARTING_MULTIPLEXER_STATE 0
 
 // //(184162.062615/1000.0) 5.43us    old value = 4.618us per circle  (21656.0/100.0); new val = 5.25us
-#define CIRCLES_FOR_1MS  (190.475274535048) // po korekcie z krzywej  
-#define DEAD_TIME_CORRECTION (1.13397970176334) // last one 1/0.88185  ///(1.31106274746)    //1/0.76274
+#define CIRCLES_FOR_1MS  (100.1) // po korekcie z krzywej  
+#define DEAD_TIME_CORRECTION (1.1) // last one 1/0.88185  ///(1.31106274746)    //1/0.76274
 
 //pinout set up
 //All output is done on periferal PC 
