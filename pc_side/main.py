@@ -275,7 +275,7 @@ def save_data(count_data, current_configuration_data, silence=False):
         popup_window("Set configuration before saving")
         return
     now = datetime.now()
-    file_name = now.strftime("%H:%M ")
+    file_name = now.strftime("%H:%M:%S ")
 
     if silence and current_configuration_data.empty:
         directory = os.path.join(

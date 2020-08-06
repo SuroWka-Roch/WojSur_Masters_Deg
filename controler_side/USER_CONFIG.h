@@ -25,11 +25,9 @@
 
 // //(184162.062615/1000.0) 5.43us    old value = 4.618us per circle  (21656.0/100.0); new val = 5.25us
 #define CIRCLES_FOR_1MS  (221.238938053) // 4.52us
-#define DEAD_TIME_CORRECTION (1.13714542384) // last one 1/0.88185  ///(1.31106274746)    //1/0.76274
+#define DEAD_TIME_CORRECTION (1.1370658292319538) // last one 1/0.88185  ///(1.31106274746)    //1/0.76274
 
 //pinout set up
-//All output is done on periferal PC 
-
 #ifdef N_D_per
 #define CLC_PIN_NUM 19 //Arduino pin 44
 #define CLC_PIN_VAL 0x1<<CLC_PIN_NUM  //2^19
