@@ -196,7 +196,7 @@ Cele szczegółowe:
 
 \subsection{Wstęp teoretyczny}
 
-W celu stworzenia programu dla tego projektu konieczne jest zrozumienie niskopoziomowego i wysokopoziomowego działania programów. Część z zagadnień koniecznych do stworzenia prototypu opisana jest poniżej. 
+W celu stworzenia programu dla tego projektu konieczne jest zrozumienie niskopoziomowego i wysokopoziomowego działania programów oraz podstawy używanej elektroniki. Część z zagadnień koniecznych do stworzenia prototypu opisana jest poniżej. 
 
 \subsubsection{Proces kompilacji programu na przykładzie \textit{gcc}}
 
@@ -638,6 +638,20 @@ W ten sposób otrzymywany sygnał następnie jest negowany przez układ SN74LV54
 Tu zestaw wzmacniaczy operacyjnych sprawia ze tylko tylko licznik dla odpowiadającego sygnału ENP o niskim stanie ustala stan na zewnętrznych wyjściach. 
 
 \paragraph{Czas martwy i szybkość odczytu układu licznika}
+
+\begin{figure}
+        \includegraphics[width=\textwidth]{scope_1.png}
+        \includegraphics[width=\textwidth]{scope_2.png}
+        \caption{Rzuty ekranu z oscyloskopu podłączonego do płytki. 
+        Impulsy wejściowe (żółte) są wprowadzane na jeden z kanałów. 
+        Sygnał D0-3 pokazuje binarne zliczanie na danym kanale. 
+        Na górnym zrzucie widać że w przypadku nie zarejestrowania następnego sygnału wyjście dla kanału się powtarza. 
+        Na dolnym obrazku widoczny jest impuls trafiający na czas martwy będący chwilą odczytu wartości z kanału.
+        Następuje przeskok z wartości $1101_{2}$ ($13_{10}$) na $0001_{2}$ ($1_{10}$) mimo faktu że wystąpiło 5 impulsów.
+        }
+        \label{Oscyloskop}
+\end{figure}
+
 Podczas odczytu licznika informacja o zliczeniach zostaje tracona oznacza to że układ ten generuje czas martwy. 
 Procentowa długość tego czasu może być wyznaczona na podstawie wzoru:
 \begin{equation}
@@ -674,8 +688,10 @@ W celu utworzenia funkcjonującego układu akwizycji zliczeń konieczne jest po�
 Dodatkowo wymagane jest połączenie z płytką zewnętrzną. Konieczne połączenia to:
 \begin{itemize}
         \item Połączenia $DOC\_0-4\_ext$ w domyślnej konfiguracji powinny być połączone z wyjściami arduino o pinach 33-36 - są to wyjścia liczników.
-        \item $RC\_B\_ext$ - arduino pin 46 - wyjście sygnału resetu liczników 
-        \item $DIS\_S\_ext$ - arduino pin 46 - wyjście sygnału wyboru dyskryminatora
+        \item $ReadCLC$ - arduino pin 25 - wyjście sygnału zmiany licznika
+        \item $RC\_B\_ext$ - arduino pin 26 - wyjście sygnału resetu liczników 
+        \item $DIS\_S\_ext$ - arduino pin 27 - wyjście sygnału wyboru dyskryminatora
+        \item Dodatkowo koniecznie jest ustalenie wspólnego uziemienia w celu stabilizacji poziomów logicznych.
 \end{itemize}
 
 Są to wyjścia w domyślnej konfiguracji i można dokonać zmiany poprzez modyfikację pliku \textit{USER\_CONFIG.h}.
