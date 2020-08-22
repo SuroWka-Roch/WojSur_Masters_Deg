@@ -1,6 +1,6 @@
 \section{Projekt}
 
-Zgodnie z dokumentacją RXHDR\_V2 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8V o czasie trwania między 50ns a 200ns i częstotliwości osiągającej nawet do 2.5 MHz.
+Zgodnie z dokumentacją RXHDR\_V1 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8V o czasie trwania między 50ns a 200ns i częstotliwości osiągającej nawet do 2.5 MHz.
 Sygnał ten na potrzeby rozwiązań softwarowych jest modyfikowany przez translator poziomów do poziomów logicznych 0 - 3.6V i zostaje wybierana ósemka z szesnastu kanałów przez dyskryminator.   
 Tak wybrane ósemki mają nazwę 1A0-7 dla pierwszej oraz 2A0-7 dla drugiej części wyjść.   
 Otrzymane sygnały należy zliczyć na płytce Arduino Due w ściśle określonym czasie oraz przekazać dane do dalszej obróbki bądź wizualizacji na zewnętrznym komputerze.
@@ -78,7 +78,7 @@ Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu 
 \subsubsection{Układ liczników zewnętrznych}
 \label{section licziki}
 
-W celu rozwiązania problemu wysokiej częstotliwości zliczeń otrzymywanych z układu RXHDR\_V2 \cite{master} zastosowano zestaw ośmiu binarnych liczników 4-bitowych \cite{licznik doc}. 
+W celu rozwiązania problemu wysokiej częstotliwości zliczeń otrzymywanych z układu RXHDR\_V1 \cite{master} zastosowano zestaw ośmiu binarnych liczników 4-bitowych \cite{licznik doc}. 
 
 
 \begin{figure}[]
@@ -96,7 +96,7 @@ Na tym schemacie znajdują się sygnały kontrolujące pracę układu. Poniżej 
         \item DIS\_S - Sygnał wyboru dyskryminatora - Stan niski powoduje wybranie sygnałów 1A0-7 a wysoki 2A0-7
         \item ENP0-7 - Sygnał wyboru licznika - osiem osobnych linii których stan niski pozwala na wybór licznika do odczytu. Podczas odczytu tylko jeden z sygnałów powinien być w stanie niskim reszta powinna utrzymywać stan wysoki. 
 \end{itemize}
-Sygnał otrzymywany przez układ RXHDR\_V2 jest przepuszczany przez translator poziomów w celu zmiany logiki z 0-1.8$V$ do 0-3.6$V$. Następnie z 16 kanałów zostaje wybrane 8, tak opracowane sygnały trafiają na układ liczników.
+Sygnał otrzymywany przez układ RXHDR\_V1 jest przepuszczany przez translator poziomów w celu zmiany logiki z 0-1.8$V$ do 0-3.6$V$. Następnie z 16 kanałów zostaje wybrane 8, tak opracowane sygnały trafiają na układ liczników.
 
 \paragraph{Układ liczników \cite{licznik doc}\cite{slave}}
 
@@ -225,6 +225,8 @@ Dodatkowo wymagane jest połączenie z płytką zewnętrzną. Konieczne połącz
         \item $ReadCLC$ - arduino pin 25 - wyjście sygnału zmiany licznika
         \item $RC\_B\_ext$ - arduino pin 26 - wyjście sygnału resetu liczników 
         \item $DIS\_S\_ext$ - arduino pin 27 - wyjście sygnału wyboru dyskryminatora
+        \item $LOW\_RATE\_ext$ - arduino pin 28 - wyjście sygnału dla części analogowej układu wyboru LOW\_RATE
+        \item $ENBLR\_ext$ - arduino pin 30 - wyjście sygnału dla części analogowej układu wyboru ENBLR 
         \item Dodatkowo koniecznie jest ustalenie wspólnego uziemienia w celu stabilizacji poziomów logicznych.
 \end{itemize}
 
@@ -244,7 +246,7 @@ Czas pobierania danych jest regulowany przez ilość pętli Podczas których dok
 Przykład tej pętli znajduje się w fragmencie kodu \ref{code aqw}.
 
 \begin{kod}
-        \lstinputlisting[language=C++, firstline=76, lastline=103]{code_source/arduino/final.cpp}
+        \lstinputlisting[language=C++, firstline=85, lastline=115]{code_source/arduino/final.cpp}
         \caption{Fragment kodu odpowiedzialnego za akwizycję danych}
         \label{code aqw}
 \end{kod}
@@ -263,7 +265,7 @@ Fragment krytycznej części programu jest przedstawiony w wycinku kodu \ref{ase
 \end{kod}
 
 Po analizie kodu \ref{asembly} można stwierdzić że nie zdarza się sytuacja żeby w różnych iteracjach występowała różna ilość dostępów do pamięci.
-Jak jednak widać w fragmencie programu \ref{code aqw} w przypadku wystąpienia przepełnienia licznika konieczne jest dodanie wartości pełnego licznika do otrzymanej liczby. 
+Jak widać w fragmencie programu \ref{code aqw} w przypadku wystąpienia przepełnienia licznika konieczne jest dodanie wartości pełnego licznika do otrzymanej liczby. 
 Powoduje to że wymagana jest dodatkowa instrukcja add.
 
 Jednak proces warunkowego dodania jest realizowany przez specyficzną instrukcję it.
@@ -272,6 +274,10 @@ Zgodnie z dokumentacją\cite{cycles} cortex-M3 czas potrzebny na wykonanie tej i
 Tak się dzieje w przypadku spełnienia warunku gt (eng. greater then - większy niż) poprzedniej instrukcji cmp. Jednak jeżeli warunek ten nie zostaje spełniony to ewaluacja instrukcji it zwiększa się do jednego cyklu i przechodzi do warunku else (druga instrukcja w kolejności).
 Cały ten proces sprawia że tak samo w przypadku spełniania warunku gt jak i w przypadku niezgodności ten fragment kodu wymaga dwóch cykli procesora.
 $$it(1c) + rsb(1c) = it(0c) + add(1c) + rsb(1c)$$
+
+Dodatkowym wymogiem jest stały czas wykonywania pętli dla wszystkich kanałów. Gdyby któryś z kanałów różnił się czasem przebiegu również różniłby się czasem martwym dla konkretnego kanału. Powodowałoby to różna wydajność. 
+Analiza na oscyloskopie dowiodła że czas blokowania licznika dla ostatnich kanałów (8,16) jest krótszy niż czas dla pozostałych przypadków. Dlatego też w celu korekcji tej różnicy po zakończeniu pętli przed wkroczeniem do pustego cyklu umieszczone zostały puste instrukcje NOP które regulują długość czasu martwego dla tych kanałów. 
+
 
 \paragraph{Komunikacja z komputerem zewnętrznym}
 Ze względu na fakt że proces akwizycji danych jest tak wrażliwy na wszelkie zmiany ilości poleceń konieczne jest wyłączenie obsługi przerwań w trakcie wykonywania kluczowego fragment programu. 
@@ -297,11 +303,15 @@ Forma wszelkich stałych komunikacyjnych znajduje się w osobnym pliku \textit{U
 
                 42a\textbackslash n & 42b\textbackslash n& Krótka komenda, nie zmieniająca nic w pracy licznika. Pozwala na sprawdzenie komunikacji między licznikiem a komputerem zewnętrznym. \\ \hline
 
-                atm{TIME}\textbackslash n & TIME\textbackslash n& TIME to czas w milisekundach, jest on ustalany jako czas akwizycji licznika. Musi on być podany jako liczba całkowita.\\ \hline
+                atm\textbackslash TIME\textbackslash n & TIME\textbackslash n& TIME to czas w milisekundach, jest on ustalany jako czas akwizycji licznika. Musi on być podany jako liczba całkowita.\\ \hline
 
                 stp\textbackslash n& fin\textbackslash n& Wstrzymuje pracę licznika. \\ \hline
 
                 srt\textbackslash n& - & Rozpoczyna pracę licznika \\ \hline
+
+                ltr\textbackslash nVAL\textbackslash n& VAL\textbackslash n & Ustawienie poziomu logicznego odpowiadającego wartości VAL (1 - wysoki poziom, 0 - niski poziom) na wyjściu odpowiadającemu ustawieniu LOW\_RATE analogowej części licznika. \\ \hline
+                
+                enr\textbackslash nVAL\textbackslash n& VAL\textbackslash n & Ustawienie poziomu logicznego odpowiadającego wartości VAL (1 - wysoki poziom, 0 - niski poziom) na wyjściu odpowiadającemu ustawieniu ENBLR analogowej części licznika. \\ \hline
 
         \end{tabularx}
 \end{table}
@@ -322,7 +332,7 @@ Przykład komunikacji wygląda następująco:
 ~<+>~
 \end{lstlisting}
 
-Długi symbol początku i końca danych pozwala na łatwe odnalezienie fragmentu komunikacji które zawiera dane pomiarowe. 
+Długi symbol początku i końca danych pozwala na łatwe odnalezienie fragmentu komunikacji które zawiera dane pomiarowe. Dodatkowo długość symboli sprawia że wszelkie komplikacje w komunikacji będą wykrywanie co zmniejsza szansę na akwizycję błędnych danych. 
 
 \subsection{Program kontroli, wizualizacji oraz archiwizacji danych}
 

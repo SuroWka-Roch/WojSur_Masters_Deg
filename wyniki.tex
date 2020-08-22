@@ -3,7 +3,7 @@
 \subsection{Rozwiązanie softwarowe na platformie Arduino}
 
 Przeprowadzono testy polegające na bezpośrednim zliczaniu sygnałów generowanych przez generator zewnętrzy. 
-Napięciem, kształtem oraz długością odpowiadały tym produkowanym przez układ RXHDR\_V2.
+Napięciem, kształtem oraz długością odpowiadały tym produkowanym przez układ RXHDR\_V1.
 
 Przeprowadzono po pięć badań na każdą częstotliwość i wyliczono błąd względem spodziewanego wyniku. 
 Czas akwizycji ustalono na jedną sekundę sprawiając że liczba spodziewanych zliczeń jest równa częstotliwości generowanych sygnałów.
@@ -71,3 +71,104 @@ Mimo lepszych osiągów niż te szacowane wynik ten nadal odbiega od optymalnego
 
 Dodatkowe testy potwierdziły że wraz z zwiększeniem ilości badanych kanałów częstotliwość graniczna zmniejsza się jak $\frac{1}{n}$ gdy $n$ to ilość badanych kanałów. 
 
+\subsection{Rozwiązanie z układem zewnętrznych liczników buforujących}
+
+Dane do poniższych wyników zostały uzyskane przez analizę plików archiwalnych otrzymywanych przy działaniu programu do kontroli układu.
+Pliki te są przechowywane w formacie JSON.
+
+Analiza sygnałów na oscyloskopie została dokonana na oscyloskopie keysight 3024A. Generator sygnałów używany w układzie badawczym to generator tektonix AFG3102.
+
+Sygnał używany do symulowania impulsów układu RXHDR\_v1 miał wartości 1.8V pick to pick, kształt prostokątny impuls o szerokości 50 us .
+
+
+\subsubsection{Kalibracja układu}
+\label{section kaliblracja}
+
+Przed przystąpieniem do końcowych testów układu konieczne jest przeprowadzenie kalibracji ze względu na uzyskiwany czas martwy układu. 
+Oczekiwanym efektem jest regulacja czasu akwizycji w taki sposób że liczba zliczeń będzie odpowiadać ilości impulsów która powinna być uzyskana w czasie akwizycji przez układ bez czasu martwego. 
+
+Zbadano okres jednego cyklu pomiaru (8 kanałów) i uzyskano czas cyklu równy $4.52 \mu s$. Taki cykl jest widoczny na rysunku \ref{Oscyloskop}.
+Na podstawie czasu liczby można wyliczyć ilość cykli przypadających na pojedyńcza mikrosekundę.
+
+\begin{equation}
+        \label{per cykl}
+        CIRCLES\_FOR\_1MS = \frac{1*10^{-3}}{4.52 * 10^{-6}} = 221.238938053
+\end{equation}
+
+Korzystając z tej wartości i wartości współczynnika korekcji czasu martwego równego 1 przeprowadzono badania zależności częstotliwości podawanej z generatora do częstotliwości zliczeń dla różnych czasów akwizycji.  
+
+Układ badawczy składał się z komputera, Arduino due, badanego układu elektronicznego, taśmy transmisyjnej, oscyloskopu, generatora impulsów, zasilacza. 
+
+Przeprowadzono trzy badania dla 10 częstotliwości dla 2 czasów akwizycji. Na podstawie tych danych przeprowadzono fitowanie krzywej $f(x) = a*x$ wyniki fitowania umieszczone zostały w tabeli poniżej.
+
+\begin{table}
+        \caption{Wyniki fitowania konieczne dla ustalenia korekcji czasu martwego}
+        \label{dead time fit}
+        \centering
+        \begin{tabular}{|c|c|c|c|c|}
+                \hline
+                Nazwa kanału & czas akwizycji & $a$ & $\Delta a$ & konwersja na 1s \\ \hline
+                1A6 & 1000 ms & 0.879395 & $1.893 * 10^{-5}$ & 0.879395 \\ \hline
+                2A5 & 500 ms & 0.440366 & $8.156 * 10^{-6}$ & 0.880732 \\ \hline
+                2A7 & 500 ms & 0.440352 & $7.939 * 10^{-6}$ & 0.880704 \\ \hline
+        \end{tabular}
+\end{table}
+
+Na podstawie powyższych danych ustalono wartość współczynnika DEAD\_TIME\_CORECTION równe:
+\begin{equation}
+        \label{dead time eq}
+        DEAD\_TIME\_CORECTION = \frac{1}{\sum^n_i \frac{a_i}{n}} = 1.13636
+\end{equation} 
+
+\begin{figure}
+        \centering
+        \begin{multicols}{2}
+                \includegraphics[width=0.45\textwidth]{dead1A6.jpg} \par
+                \includegraphics[width=0.45\textwidth]{dead2A7.jpg} \par
+        \end{multicols}
+        \caption{Wybrane wykresy użyte w celu kalibracji układu}
+        \label{wykresy fit calib}
+\end{figure}
+
+\subsubsection{Błąd przybliżenia do liczby naturalniej}
+Jak widać w fragmencie kodu \ref{code aqw} liczba cykli przeprowadzonych w trakcie pojedyńczej akwizycji musi być liczbą całkowitą. Liczba cykli może być określona wzorem:
+\begin{equation}
+        N_c [-] = int(A_t*D_t*f_c)
+\end{equation}
+Gdzie:
+\begin{itemize}
+        \item $N_c$ - liczba cykli w procesie akwizycji,
+        \item $A_t$ - czas  akwizycji w ms
+        \item $D_t$ - współczynnik korekcji czasu martwego 
+        \item $f_c$ - ilość cykli w ms
+\end{itemize}
+
+Błąd wprowadzony w wyniku przybliżenia mieści się w przedziale wartości [0,1) pozwala to na wyliczenie maksymalnego względnego błędu uzyskiwanego w wyniku przybliżania:
+\begin{equation}
+        \Delta N_{c_{max}} [\%] = \frac{1}{A_t*D_t*f_c}  * 100\%
+\end{equation} 
+Gdzie:
+\begin{itemize}
+        \item $\Delta N_{c_{max}}$ - maksymalny względny błąd,
+        \item $A_t$ - czas  akwizycji w ms
+        \item $D_t$ - współczynnik korekcji czasu martwego 
+        \item $f_c$ - ilość cykli w ms
+\end{itemize}
+
+Podstawiając współczynniki uzyskane w dziale \ref{section kaliblracja} możemy uzyskać wartości maksymalnego błędu dla najczęściej używanych czasów akwizycji. Wartości te znajdują się w tabeli \ref{tab przyblizenie niep}. Na podstawie tych wartości można stwierdzić że błąd popełniony podczas przybliżania zmienia się w zależności od czasu akwizycji jest on jednak pomijalnie mały.
+
+\begin{table}
+        \centering
+        \caption{Wartości błędu wynikające z przybliżenia liczbą całkowitą}
+        \label{tab przyblizenie niep}
+        \begin{tabular}{|c|c||c|c|}
+                \hline
+                Czas akwizycji [ms] &   $\Delta N_{c_{max}} [\%]$&Czas akwizycji [ms] &   $\Delta N_{c_{max}} [\%]$ \\ \hline
+                50 & 0.007955 & 100 & 0.003977 \\ \hline
+                1000 & 0.0003977 & 5000 & 0.00007955 \\ \hline
+        \end{tabular}
+\end{table}
+
+\subsubsection{Testowanie układu liczników za pomocą generatora zewnętrzego.}
+
+Przy wykorzystaniu współczynników otrzymanych w dziale \ref{section kaliblracja} przeprowadzono test układu z wykorzystaniem dzielnika pozwalającego na dostarczenie sygnałów impulsów odpowiadającym tym generowanym przez układ RXHDR\_V1 do wszystkich kanałów jednocześnie. 

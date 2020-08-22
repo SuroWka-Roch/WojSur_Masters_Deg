@@ -1,7 +1,18 @@
-praca.pdf: praca.tex
+praca.pdf: praca.tex introduction.tex wyniki.tex projekt.tex beginning.tex ending.tex
 	pdflatex praca.tex
 	pdflatex praca.tex
-	mv praca.log ./trash
-	mv praca.out ./trash
-	mv praca.aux ./trash
-	mv praca.toc ./trash
+	mv praca.log praca.out praca.aux praca.toc ./trash
+	mv introduction.aux ./trash
+	mv ending.aux ./trash
+	mv projekt.aux ./trash
+	mv wyniki.aux ./trash
+	mv beginning.aux ./trash 
+
+ .PHONY: clean
+ clean:
+	mv praca.log praca.out praca.aux praca.toc ./trash
+	mv introduction.aux ./trash
+	mv ending.aux ./trash
+	mv projekt.aux ./trash
+	mv wyniki.aux ./trash
+	mv beginning.aux ./trash 

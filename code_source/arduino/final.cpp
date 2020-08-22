@@ -32,9 +32,11 @@ void setup() {
   
 
   REG_PIOC_ODR = pin_mask;//disable output of pins
-  REG_PIOC_OER = CLC_PIN_VAL | MULTIPLEXER_PIN_VAL | CLEAR_PIN_VAL; // enable output
-  REG_PIOC_PUDR = 0B1<<CLC_PIN_NUM | MULTIPLEXER_PIN_VAL | pin_mask | CLEAR_PIN_VAL;// pull up disable 
-  SYSCLC = 1<<13; //PMC Peripheral Clock Enable Register 0, turn on a periferal clock 
+  //REG_PIOC_OER = CLC_PIN_VAL | MULTIPLEXER_PIN_VAL | CLEAR_PIN_VAL; // enable output
+  REG_PIOD_OER = CLC_PIN_VAL | MULTIPLEXER_PIN_VAL | CLEAR_PIN_VAL | LOW_RATE_PIN_VAL | ENBLR_PIN_VAL;
+  REG_PIOC_PUDR = (0B1<<CLC_PIN_NUM);// pull up disable 
+  REG_PIOD_PUER = MULTIPLEXER_PIN_VAL | pin_mask | CLEAR_PIN_VAL;
+  SYSCLC = 0B11<<13; //PMC Peripheral Clock Enable Register 0, turn on a periferal clock 
 
   set_multiplexer(STARTING_MULTIPLEXER_STATE);
 }
@@ -69,20 +71,25 @@ void aquisition(double time){
     counts_pointer = &counts[8*j];
     clear_int_table(previousValue,8);
 
-    REG_PIOC_CODR = CLEAR_PIN_VAL;
-    REG_PIOC_SODR = CLEAR_PIN_VAL; //Reset value on counter
+    REG_PIOD_CODR = CLEAR_PIN_VAL;
+    REG_PIOD_SODR = CLEAR_PIN_VAL; //Reset value on counter 
     
+    /*
+      * Reset signal from CLEAR_PIN makes first loop unreliable due to discriminator uncertainty
+      * For optimization purposes first loop is done before the working loop in order to save 
+      * clock circles od working loop
+      */
+    first_loop(previousValue);
+
     //read value on bus
-    for(f=0;f< (int)(CIRCLES_FOR_1MS * DEAD_TIME_CORRECTION * time); f++){
+    for(f=0;f < (int)(CIRCLES_FOR_1MS * DEAD_TIME_CORRECTION * time); f++){
+      //working loop
       for(i=0;i<8;i++){
         
-        //send signal to clc, change is triggered on rinsing edge but time is needed for hardwere to set it's state
-        REG_PIOC_SODR = CLC_PIN_VAL; 
-        //turn of clc
-        REG_PIOC_CODR = CLC_PIN_VAL; 
+        REG_PIOD_SODR = CLC_PIN_VAL; //send signal to clc, change is triggered on rinsing edge but time is needed for hardwere to set it's state
+        REG_PIOD_CODR = CLC_PIN_VAL; //turn of clc
+        val = (REG_PIOC_PDSR & pin_mask)>>1; //read value
         
-        //read value  
-        val = (REG_PIOC_PDSR & pin_mask)>>1; 
 
         /*
         *   Dealing with counters overflow:
@@ -94,17 +101,16 @@ void aquisition(double time){
             counts_pointer[i] += val - previousValue[i];
         }
         else{
-            //15 is max for 4 bit counters but 16 gives value of 1 for 0 state  
-            counts_pointer[i] += val + 16 - previousValue[i]; 
+            counts_pointer[i] += val + 16 - previousValue[i]; //15 is max for 4 bit counters but 16 gives value of 1 for 0 state  
         }
 
         previousValue[i]= val; 
 
       }
 
-    
-      REG_PIOC_SODR = CLC_PIN_VAL; //reset clc empty shift register circle 
-      REG_PIOC_CODR = CLC_PIN_VAL;
+      NOP;NOP; //fix last circle to short problem
+      REG_PIOD_SODR = CLC_PIN_VAL; //reset clc empty shift register circle 
+      REG_PIOD_CODR = CLC_PIN_VAL;
     
     }
 
@@ -122,10 +128,10 @@ void write_output(){
   for(int i=0;i<16;i++){
     sprintf(printf_buffer, "%dA%d\t%d\0",
             MULTIPLEXER_NR(i), (i-((MULTIPLEXER_NR(i)-1)*8))+1,
-            counts[i]);
+            counts[15-i]);
     SerialUSB.println(printf_buffer);
     clear_char_table(printf_buffer,PRINTF_BUFFER_SIZE);
-    counts[i]=0;
+    counts[15-i]=0;
   }
   
   SerialUSB.println(STOP_DATA);
@@ -140,10 +146,12 @@ void set_multiplexer(int state_to_set){
   */
 
   if(state_to_set){
-    REG_PIOC_SODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for HIGH.
+    REG_PIOD_SODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for HIGH.
+    REG_PIOD_PUER = MULTIPLEXER_PIN_VAL; // set coresponding pull up for stability
   }
   else{
-    REG_PIOC_CODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for LOW.
+    REG_PIOD_CODR = MULTIPLEXER_PIN_VAL; // set begining multiplexer state for LOW.
+    REG_PIOD_PUDR = MULTIPLEXER_PIN_VAL; // set coresponding pull up for stability
   }
 
   multiplexer_state_flag = state_to_set;
@@ -203,18 +211,31 @@ void analyze_command(){
     SerialUSB.print(COMAND_ENDING_CONST);
     hibernation_flag = true;
   }else{
+  
+  if(!strcmp( received_buffer, LOW_RATE_CODE)){
+    int low_rate_val = read_number();
+    low_rate_val?REG_PIOD_SODR = LOW_RATE_PIN_VAL:REG_PIOD_CODR = LOW_RATE_PIN_VAL;
+    SerialUSB.print( (int) low_rate_val);
+    SerialUSB.print(COMAND_ENDING_CONST);
+  }else{
+
+  if(!strcmp( received_buffer, ENBLR_CODE)){
+    int ENBLR_val = read_number();
+    ENBLR_val?REG_PIOD_SODR = ENBLR_PIN_VAL:REG_PIOD_CODR = ENBLR_PIN_VAL;
+    SerialUSB.print( (int) ENBLR_val);
+    SerialUSB.print(COMAND_ENDING_CONST);
+  }else{
     
     //unknown command
     SerialUSB.println("Don't understend");
     SerialUSB.print("Received:");
     SerialUSB.println(received_buffer);
 
-  }}}} // :( 
+  }}}}}} // :( 
   command_in_buffer_flag = 0;
 }
 
 int read_number(){
-  //todo cut the ending
   char* command_pointer = received_buffer;
   while(!SerialUSB.available()); // wait for data
 
@@ -249,4 +270,21 @@ void clear_int_table(int* table, int len){
    *table = 0;
     table++; 
   }
+}
+
+void first_loop(int* previousValue){
+  int val;
+  int i;
+
+  for(i=0;i<8;i++){
+    REG_PIOD_SODR = CLC_PIN_VAL; //send signal to clc, change is triggered on rinsing edge but time is needed for hardwere to set it's state
+    REG_PIOD_CODR = CLC_PIN_VAL; //turn of clc
+      
+    val = (REG_PIOC_PDSR & pin_mask)>>1; //read value
+    
+    previousValue[i] = val;
+  }
+
+  REG_PIOD_SODR = CLC_PIN_VAL; //reset clc empty shift register circle 
+  REG_PIOD_CODR = CLC_PIN_VAL;  
 }
