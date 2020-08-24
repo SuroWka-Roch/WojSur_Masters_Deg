@@ -192,12 +192,12 @@ Procentowa długość tego czasu może być wyznaczona na podstawie wzoru:
         T_d = \frac{T_o/N_l}{T_o+T_e} * 100\%
 \end{equation}
 Gdzie:
-\begin{itemize}
+\begin{description}
         \item $T_d$ - procentowy czas martwy licznika.
         \item $T_o$ - czas odczytu.
         \item $N_l$ - liczba liczników w sekwencji odczytu. W używanej konfiguracji jest to osiem liczników. 
         \item $T_e$ - czas pustego cyklu.
-\end{itemize}
+\end{description}
 
 Oznacza to że przedłużając czas pustego cyklu zmniejszamy czas martwy układu, jednak ponieważ liczniki mogą jedynie 16 stanów to konieczne jest odczytanie ich przed zliczeniem 16 liczby. 
 Oznacza to że:
@@ -205,9 +205,9 @@ Oznacza to że:
         T_o+T_e * F \leqslant 15
 \end{equation}
         Gdzie:
-\begin{itemize}
+\begin{description}
         \item $F$ - spodziewana częstotliwość zliczeń
-\end{itemize}
+\end{description}
 
 Dla podanych wymagań: 2.5 miliona zliczeń na sekundę, można wyliczyć że suma czasu odczytu i pustych sekwencji powinna być mniejsza niż 6$\mu s$.
 Oznacza to że sekwencja odczytu powinna zmieścić się w 504 cyklach procesora. 
@@ -317,11 +317,11 @@ Forma wszelkich stałych komunikacyjnych znajduje się w osobnym pliku \textit{U
 \end{table}
 
 Po zakończonej akwizycji dane zostają wysłane w jednym kawałku na komputer zewnętrzny w postaci:
-\begin{itemize}
+\begin{description}
         \item \detokenize{<~+~>}'\textbackslash n'
         \item {Nazwa kanału}'\textbackslash t'{wynik}'\textbackslash n'
         \item \detokenize{~<+>~}'\textbackslash n'
-\end{itemize}
+\end{description}
 Przykład komunikacji wygląda następująco:
 \begin{lstlisting}
 <~+~>
