@@ -1,9 +1,11 @@
 \section{Wyniki badań}
 
+Poniżej umieszczone są wyniki badań z zastosowaniem użytych rozwiązań. 
+
 \subsection{Rozwiązanie softwarowe na platformie Arduino}
 
 Przeprowadzono testy polegające na bezpośrednim zliczaniu sygnałów generowanych przez generator zewnętrzy. 
-Napięciem, kształtem oraz długością odpowiadały tym produkowanym przez układ RXHDR\_V1.
+Napięciem, kształtem oraz długością odpowiadały tym produkowanym przez układ RXHDR\_V1 \cite{master}.
 
 Przeprowadzono po pięć badań na każdą częstotliwość i wyliczono błąd względem spodziewanego wyniku. 
 Czas akwizycji ustalono na jedną sekundę sprawiając że liczba spodziewanych zliczeń jest równa częstotliwości generowanych sygnałów.
@@ -76,19 +78,19 @@ Dodatkowe testy potwierdziły że wraz z zwiększeniem ilości badanych kanałó
 Dane do poniższych wyników zostały uzyskane przez analizę plików archiwalnych otrzymywanych przy działaniu programu do kontroli układu.
 Pliki te są przechowywane w formacie JSON.
 
-Analiza sygnałów na oscyloskopie została dokonana na oscyloskopie keysight 3024A. Generator sygnałów używany w układzie badawczym to generator tektonix AFG3102.
+Analiza sygnałów na została dokonana na oscyloskopie keysight 3024A. Generator sygnałów używany w układzie badawczym to generator tektonix AFG3102.
 
-Sygnał używany do symulowania impulsów układu RXHDR\_v1 miał wartości 1.8V pick to pick, kształt prostokątny impuls o szerokości 50 us .
+Sygnał używany do symulowania impulsów układu RXHDR\_v1 miał własności: 1.8V, kształt prostokątny, impuls o szerokości 50 us.
 
 
 \subsubsection{Kalibracja układu}
 \label{section kaliblracja}
 
-Przed przystąpieniem do końcowych testów układu konieczne jest przeprowadzenie kalibracji ze względu na uzyskiwany czas martwy układu. 
+Przed przystąpieniem do końcowych testów układu konieczne jest przeprowadzenie kalibracji ze względu na czas martwy układu. 
 Oczekiwanym efektem jest regulacja czasu akwizycji w taki sposób że liczba zliczeń będzie odpowiadać ilości impulsów która powinna być uzyskana w czasie akwizycji przez układ bez czasu martwego. 
 
 Zbadano okres jednego cyklu pomiaru (8 kanałów) i uzyskano czas cyklu równy $4.52 \mu s$. Taki cykl jest widoczny na rysunku \ref{Oscyloskop}.
-Na podstawie czasu liczby można wyliczyć ilość cykli przypadających na pojedyńcza mikrosekundę.
+Na podstawie czasu liczby można wyliczyć ilość cykli akwizycji przypadających na pojedyńcza mikrosekundę.
 
 \begin{equation}
         \label{per cykl}
@@ -126,12 +128,12 @@ Na podstawie powyższych danych ustalono wartość współczynnika DEAD\_TIME\_C
                 \includegraphics[width=0.5\textwidth]{dead1A6.jpg} \par
                 \includegraphics[width=0.5\textwidth]{dead2A7.jpg} \par
         \end{multicols}
-        \caption{Wybrane wykresy użyte w celu kalibracji układu}
+        \caption{Wybrane wykresy użyte w celu kalibracji układu. Czas akwizycji 1000 ms lewy wykres oraz 500 ms prawy wykres}
         \label{wykresy fit calib}
 \end{figure}
 
 \subsubsection{Błąd przybliżenia do liczby naturalniej}
-Jak widać w fragmencie kodu \ref{code aqw} liczba cykli przeprowadzonych w trakcie pojedyńczej akwizycji musi być liczbą całkowitą. Liczba cykli może być określona wzorem:
+Jak widać w fragmencie kodu \ref{code aqw} liczba cykli przeprowadzonych w trakcie pojedyńczej akwizycji musi być liczbą całkowitą. Liczba cykli jest określona wzorem:
 \begin{equation}
         N_c [-] = int(A_t*D_t*f_c)
 \end{equation}
@@ -252,7 +254,7 @@ Układ badawczy składał się z komputera, Arduino due, badanego układu elektr
 
 Układ RXHDR\_v1 połączony z zestawem liczników buforujących został zasilony napięciem 3.6V oraz 1.8V a detektor został spolaryzowany przez zasilacz wysokiego napięci napięciem 300V. Następnie zestaw ten został połączony z Arduino Due i komputerem kontrolującym. 
 
-Generator połączony z wejściem testowym układu RXHDR\_V1 generował sygnał prostokątny o napięciu ZNAJDŹiWYPEŁNIJ i częstotliwości 100KHz. 
+Generator połączony z wejściem testowym układu RXHDR\_V1 generował sygnał prostokątny o napięciu 0.3V i częstotliwości 100KHz. 
 
 Pomiar polegał na akwizycji danych (1000ms) dla różnych napięć dyskryminatora w celu utworzenia krzywej S. Wykresy tych pomiarów umieszczone zostały na wykresach \ref{s curve test}. Na podstawie tych wykresów przeprowadzono dopasowanie metodą najmniejszych kwadratów krzywej s.
 
@@ -307,14 +309,14 @@ Wartości tych współczynników znajdują się w tabeli \ref{tabela wsp test} a
 \end{figure}
 
 
-
 \begin{table}
-        \centering
         \caption{Tabela współczynników testu z użyciem sygnałów testowych, dopasowanych do krzywych s na rysunku \ref{s curve test}}
         \label{tabela wsp test}
+        \begin{adjustbox}{width=1.1\linewidth,center}
         \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
                 \hline
-                kanał & $f_g$&$\Delta f_g$&$\overline{x}$&$\Delta \overline{x}$&  $\sigma$&  $\Delta \sigma$& ENC & $\Delta$ ENC \\ \hline
+                kanał & $f_g [Hz]$&$\Delta f_g [Hz]$&$\overline{x} [mV]$&$\Delta \overline{x} [mV]$&  $\sigma$ [mV]&  $\Delta \sigma [mV]$ & ENC $[e^-_{rms}]$& $\Delta$ ENC $[e^-_{rms}]$\\ \hline
+
                         1A1&100058.81&8.80&320.73&0.06&9.88&0.05&83.84&0.45 \\ \hline 
                         1A2&100061.52&8.83&324.99&0.04&10.60&0.05&89.93&0.42 \\ \hline 
                         1A3&100066.02&7.97&322.72&0.04&10.19&0.05&86.48&0.41 \\ \hline 
@@ -332,10 +334,11 @@ Wartości tych współczynników znajdują się w tabeli \ref{tabela wsp test} a
                         2A7&100058.83&8.09&328.71&0.05&11.31&0.06&95.93&0.52 \\ \hline 
                         2A8&100041.80&7.66&325.00&0.04&10.99&0.05&93.25&0.44 \\ \hline                    
         \end{tabular}
+        \end{adjustbox} 
 \end{table}
 
 
-\subsubsection{Testowanie układu liczników przy układu RXHDR\_V1 oraz żródła promieniotwórczego}
+\subsubsection{Testowanie układu liczników przy użyciu układu RXHDR\_V1 oraz żródła promieniotwórczego}
 \label{section RXHDR fe}
 
 Przeprowadzono badanie analogicznie do tych w dziale \ref{section RXHDR test}, jednak zamiast impulsów wprowadzanych na wejście testowe układu RXHDR\_V1 sygnał generowany był przez źródło promieniotwórcze ${}^{55}fe$ ustawione bezpośrednio nad oknem detektora. 
@@ -391,27 +394,29 @@ Wartości otrzymanych współczynników wraz z niepewnościami umieszczone zosta
         \centering
         \caption{Tabela współczynników testu z użyciem źródła promieniotwórczego, dopasowanych do krzywych s na rysunku \ref{s curve fe}}
         \label{tabela wsp fe}
-        \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
-        \hline
-        kanał & $f_g$&$\Delta f_g$&$\overline{x}$&$\Delta \overline{x}$&  $\sigma$&  $\Delta \sigma$ &RCS&$\Delta$ RCS& ENC & $\Delta$ ENC \\ \hline
-        1A1&20173.65&52.14&185.81&0.17&15.14&0.14&0.44&0.01&132.10&1.27  \\ \hline 
-        1A2&20344.09&51.38&191.21&0.16&14.82&0.14&0.47&0.01&125.65&1.19  \\ \hline 
-        1A3&20403.52&45.63&188.55&0.15&15.27&0.13&0.45&0.01&131.27&1.11  \\ \hline 
-        1A4&20379.81&43.01&193.48&0.16&15.37&0.12&0.46&0.01&128.80&1.01  \\ \hline 
-        1A5&20315.39&46.61&188.60&0.19&15.61&0.14&0.47&0.01&134.15&1.19  \\ \hline 
-        1A6&20385.95&47.43&188.80&0.18&15.19&0.13&0.47&0.01&130.37&1.12  \\ \hline 
-        1A7&20458.17&44.85&195.31&0.17&15.34&0.14&0.49&0.01&127.34&1.17  \\ \hline 
-        1A8&20277.88&46.78&184.63&0.20&15.08&0.15&0.47&0.01&132.43&1.30  \\ \hline 
-        2A1&20336.26&45.10&195.12&0.17&15.26&0.14&0.50&0.01&126.75&1.17  \\ \hline 
-        2A2&20433.52&48.91&189.32&0.19&15.17&0.15&0.47&0.01&129.86&1.26  \\ \hline 
-        2A3&20285.03&44.09&190.34&0.19&16.07&0.15&0.48&0.01&136.87&1.26  \\ \hline 
-        2A4&20433.73&43.03&191.42&0.18&15.24&0.15&0.47&0.01&129.03&1.32  \\ \hline 
-        2A5&20607.82&42.85&190.80&0.17&14.96&0.15&0.48&0.01&127.09&1.25  \\ \hline 
-        2A6&20633.18&44.10&198.36&0.17&14.90&0.13&0.49&0.01&121.79&1.04  \\ \hline 
-        2A7&20470.14&43.72&193.59&0.16&15.80&0.09&0.46&0.01&132.32&0.77  \\ \hline 
-        2A8&20658.61&44.82&192.15&0.17&15.76&0.13&0.47&0.01&132.95&1.07  \\ \hline 
+        \begin{adjustbox}{width=1.1\linewidth,center}
+                \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+                \hline
+                kanał & $f_g [Hz]$&$\Delta f_g [Hz]$&$\overline{x} [mV]$&$\Delta \overline{x} [mV]$&  $\sigma$ [mV]&  $\Delta \sigma [mV]$ &RCS&$\Delta$ RCS& ENC $[e^-_{rms}]$& $\Delta$ ENC $[e^-_{rms}]$\\ \hline
+                1A1&20173.65&52.14&185.81&0.17&15.14&0.14&0.44&0.01&132.10&1.27  \\ \hline 
+                1A2&20344.09&51.38&191.21&0.16&14.82&0.14&0.47&0.01&125.65&1.19  \\ \hline 
+                1A3&20403.52&45.63&188.55&0.15&15.27&0.13&0.45&0.01&131.27&1.11  \\ \hline 
+                1A4&20379.81&43.01&193.48&0.16&15.37&0.12&0.46&0.01&128.80&1.01  \\ \hline 
+                1A5&20315.39&46.61&188.60&0.19&15.61&0.14&0.47&0.01&134.15&1.19  \\ \hline 
+                1A6&20385.95&47.43&188.80&0.18&15.19&0.13&0.47&0.01&130.37&1.12  \\ \hline 
+                1A7&20458.17&44.85&195.31&0.17&15.34&0.14&0.49&0.01&127.34&1.17  \\ \hline 
+                1A8&20277.88&46.78&184.63&0.20&15.08&0.15&0.47&0.01&132.43&1.30  \\ \hline 
+                2A1&20336.26&45.10&195.12&0.17&15.26&0.14&0.50&0.01&126.75&1.17  \\ \hline 
+                2A2&20433.52&48.91&189.32&0.19&15.17&0.15&0.47&0.01&129.86&1.26  \\ \hline 
+                2A3&20285.03&44.09&190.34&0.19&16.07&0.15&0.48&0.01&136.87&1.26  \\ \hline 
+                2A4&20433.73&43.03&191.42&0.18&15.24&0.15&0.47&0.01&129.03&1.32  \\ \hline 
+                2A5&20607.82&42.85&190.80&0.17&14.96&0.15&0.48&0.01&127.09&1.25  \\ \hline 
+                2A6&20633.18&44.10&198.36&0.17&14.90&0.13&0.49&0.01&121.79&1.04  \\ \hline 
+                2A7&20470.14&43.72&193.59&0.16&15.80&0.09&0.46&0.01&132.32&0.77  \\ \hline 
+                2A8&20658.61&44.82&192.15&0.17&15.76&0.13&0.47&0.01&132.95&1.07  \\ \hline 
+                \end{tabular}
+        \end{adjustbox}
 
-        \end{tabular}
 \end{table}
 
 \begin{figure}

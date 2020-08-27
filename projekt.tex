@@ -2,7 +2,7 @@
 
 Zgodnie z dokumentacją RXHDR\_V1 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8V o czasie trwania między 50ns a 200ns i częstotliwości osiągającej nawet do 2.5 MHz.
 Sygnał ten na potrzeby rozwiązań softwarowych jest modyfikowany przez translator poziomów do poziomów logicznych 0 - 3.6V i zostaje wybierana ósemka z szesnastu kanałów przez dyskryminator.   
-Tak wybrane ósemki mają nazwę 1A0-7 dla pierwszej oraz 2A0-7 dla drugiej części wyjść.   
+Tak wybrane ósemki mają nazwę 1A1-8 dla pierwszej oraz 2A2-8 dla drugiej części wyjść.   
 Otrzymane sygnały należy zliczyć na płytce Arduino Due w ściśle określonym czasie oraz przekazać dane do dalszej obróbki bądź wizualizacji na zewnętrznym komputerze.
 
 Cały proces kompilacji kodu C++ do kodu Asemblera został wykonany na kompilatorze ARM gcc 4.6.4 (linux). 
@@ -28,7 +28,7 @@ Używana płytka rozwojowa Arduino Due, używa mikrokontrolera AT91SAM3X8E w arc
 Pomimo krótkiej operacji wewnątrz IRS (eng. interupt service rutine) - \textit{add} (tabela \ref{decompile add}) proces wejścia do rutyny przerwania i wyjścia zabiera nieporównywalnie więcej cykli procesora, co powoduje że cały proces wywołania przerwania jest kosztowny w czasie. 
 Ilość cykli procesora koniecznych do wywołania funkcji przerwania używając nieoptymalizowanego kodu Arduino może wymagać nawet do 355 cykli procesora \cite{ard_opt_git}, dodatkowo powrót do głównego wątku programu może wymagać kolejnych 128 cykli \cite{ard_opt_git}.
 
-\begin{table}{h}
+\begin{table}{}
         \begin{center}
         \caption{Estymacja ilości cyklów procesora koniecznych do wykonania instrukcji umieszczonych w funkcji \textit{add} }
         \label{decompile add}
@@ -105,7 +105,7 @@ W tym układzie licznik znajduje się w następującej konfiguracji:
 \begin{itemize}
         \item $CLC$ - Tu podawany jest sygnał zliczeń i on jest zliczany aż do przepełnienia licznika.
         \item $\overline{CLR}$ - Połączone z linią RC\_B, stan niski powoduje wstrzymanie pracy i wyzerowanie wartości przechowywanych w liczniku. 
-        \item $ENT,ENP$ - w celu stabilizacji układu na czas odczytywania wartości chcemy wstrzymać zliczanie dlatego też ustalamy stan wysoki dla wejścia ENT i wejście ENP łączymy z kanałem ENP0-7 odpowiadającym odpowiedniemu licznikowi.
+        \item $ENT,ENP$ - w celu stabilizacji układu na czas odczytywania wartości chcemy wstrzymać zliczanie, dlatego też ustalamy stan wysoki dla wejścia ENT i wejście ENP łączymy z kanałem ENP0-7 odpowiadającym odpowiedniemu licznikowi.
         Sprawia to że wraz z wyborem licznika układ ustala swój stan i nie zmienia go aż do chwili wyboru następnego. 
         Jest to sposób na uniknięcie niepewności i błędów wynikających z odczytywania zmieniającej się wartości, jednak powoduje to powstanie czasu martwego w układzie podczas którego wartości nie będą zliczane na odczytywanym liczniku.
         \item $A,B,C,D$ - funkcja ładowania wartości nie jest używana wejścia te są uziemione
@@ -287,6 +287,8 @@ Oznacza to że wymagana jest bardzo dokładna obsługa komunikacji z zwróceniem
 W tabeli \ref{komunikacja} znajdują się komendy i odpowiedzi stosowane w komunikacji między urządzeniami. 
 Forma wszelkich stałych komunikacyjnych znajduje się w osobnym pliku \textit{USER\_CONFIG.h} pozwalającym na łatwą zmianę prezentowanych komend.
 
+W tabeli \ref{komunikacja} przedstawione są dodatkowe komendy pozwalające na kontrolę funkcjonalności i konfiguracji układu RXHDR\_V1. Są to sygnały LOW\_RATE oraz ENBLR funkcjonalnością tych sygnałów zawarta jest w dokumentacji RXHDR\_V1 \cite{master}.
+
 \begin{table}
         \centering
         \caption{Tabela komend stosowanych w celu komunikacji między komputerem zewnętrznym a mikrokontrolerem}
@@ -317,11 +319,11 @@ Forma wszelkich stałych komunikacyjnych znajduje się w osobnym pliku \textit{U
 \end{table}
 
 Po zakończonej akwizycji dane zostają wysłane w jednym kawałku na komputer zewnętrzny w postaci:
-\begin{description}
+\begin{itemize}
         \item \detokenize{<~+~>}'\textbackslash n'
         \item {Nazwa kanału}'\textbackslash t'{wynik}'\textbackslash n'
         \item \detokenize{~<+>~}'\textbackslash n'
-\end{description}
+\end{itemize}
 Przykład komunikacji wygląda następująco:
 \begin{lstlisting}
 <~+~>
@@ -381,7 +383,7 @@ Pomiar kończy się komendą wstrzymania pracy licznika pozwalając na zmianę k
 
 Dane pomiarowe są zapisywane w chwili gdy: Program zostanie zamknięty, wciśnięty zostanie guzik \textit{force save}, lub minie czas auto zapisu ustawiany w interfejsie użytkownika. 
 
-Przed zapisem tworzony zostaje folder z aktualną datą, w formacie DD-MM-YYYY, w wybranej przez użytkownika ścieżce. Nazwa pliku to godzina zapisu pliku w formacie HH:MM
+Przed zapisem tworzony zostaje folder z aktualną datą, w formacie DD-MM-YYYY, w wybranej przez użytkownika ścieżce. Nazwa pliku to godzina zapisu pliku w formacie HH:MM:SS
 Pliki są zapisywane w ustalonym formacie: JSON lub CSV.
 
 Archiwizacja danych z akwizycji \textit{Single Shoot} jest przeprowadzana zaraz po zakończeniu pomiaru w osobnym folderze zgodnie z wcześniej przedstawioną zasadą. 
@@ -392,7 +394,7 @@ Archiwizacja danych z akwizycji \textit{Single Shoot} jest przeprowadzana zaraz 
         
         \includegraphics[width=0.49\textwidth]{configuration.png}\par
         
-        
+        dodatkowych
         \includegraphics[width=0.49\textwidth]{digits.png}\par
         
         
@@ -422,4 +424,8 @@ Gotowy interfejs graficzny widoczny jest na rysunku \ref{Gui pic}. Jest on podzi
 Za interfejs użytkownika odpowiedzialny jest główny wątek programu, instancje klasy QTimer\cite{doc pyqt} generują one sygnały aktualizujące dane licznika oraz stgnały aktualizacji wykresu zliczeń. 
 Do generowania grafik zastosowana została biblioteka matplotlib\cite{doc matplotlib}. 
 
-Przy wykresach znajduje się pole które po odznaczeniu pozwala na wizualizację danych w logarytmicznej sali częstotliwości zliczeń.
+Przy wykresach znajduje się pole które po odznaczeniu pozwala na wizualizację danych w logarytmicznej sali częstotliwości zliczeń. Dodatkowo dodano funkcjonalność pozwalającą na odświeżenie wykresów i generację wizualizacji od nowa.
+
+\paragraph*{}
+
+Kod programu dostępny jest jako repozytorium GitHub pod adresem \url{https://github.com/SuroWka-Roch/WojSur_Masters_Deg}

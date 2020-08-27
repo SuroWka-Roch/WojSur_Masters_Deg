@@ -15,6 +15,12 @@ W celu stworzenia programu dla tego projektu konieczne jest zrozumienie niskopoz
 
 \subsubsection{Elektronika front-end na przykładzie RXHDR\_V1}
 
+\begin{itemize}
+        \item Opis RXHDR
+        \item Opis s-curve
+        \item opis ENC i RCS
+\end{itemize}
+
 \subsubsection{Proces kompilacji programu na przykładzie \textit{gcc}}
 
 Językiem rozumianym przez procesory jest kod maszynowy składający się jedynie z ciągu zer i jedynek.
@@ -41,10 +47,11 @@ Warto dodać że wszelka logika i czynności wykonane przez prepocesor nie będ�
 
 Podczas tego etapu wcześniej przygotowany program zostaje przetłumaczony na język asemblera. 
 
-Ten niskopoziomowy język jest już bardzo zależny od architektury procesora, każda z  instrukcji asemblera bardzo mocno odpowiada kodzie maszynowemu danego procesora. 
+Ten niskopoziomowy język jest już bardzo zależny od architektury procesora, każda z  instrukcji asemblera jest podobna do kodu maszynowemu danego procesora. 
 Dlatego też analiza programu po procesie kompilacji do kodu asemblera pozwala na dokładne przewidzenie działania programu, dodatkowo
 ze względu na bardzo dobrą kontrolę wykonywanych przez procesor czynności pisanie lub edytowanie kodu w asemblerze pozwala, przy odpowiednich umiejętnościach, na ostateczną optymalizację. 
-Każda z poleceń asemblera składa się z dwóch części, z mnemoniki najczęściej odpowiadający odpowiedniemu kodowi operacji procesora oraz dodatkowych danych takich jak używane rejestry lub elementy pamięci. 
+
+Każda z poleceń asemblera składa się z dwóch części, z mnemoniki najczęściej odpowiadającej odpowiedniemu kodowi operacji procesora oraz dodatkowych danych takich jak używane rejestry lub elementy pamięci. 
 
 \paragraph{Asemblacja}
 
@@ -176,7 +183,7 @@ Poniżej znajduje się ich krótki opis bez skupienia na specyfice którejkolwie
         Monitor zapewnia funkcjonalność mutex/lock dla dowolnego zasobu, jednak korzystanie z tej funkcjonalności sprawia trudności w tworzeniu fragmentów kodu który jest krytyczny gdyż w takim przypadku konieczne byłoby skorzystanie z monitora w celu zablokowania każdego z zasobów z osobna podczas gdy mutex/lock może być odpowiedzialny za wiele zasobów jednocześnie.   
 \end{itemize} 
 
-Korzystanie z funkcji synchronizujących jest konieczne w celu uniknięcia błędów występujących w wyniku korzystania z programowania wielowątkowego.
+Korzystanie z funkcji synchronizujących jest konieczne w celu uniknięcia błędów występujących w wyniku korzystania z programowania wielowątkowego. Poniżej wymienione są najpopularniejsze zagrożenia  wynikające z korzystania z metod obliczeń równoległych. 
 
 \paragraph{Race condition}
 
@@ -196,7 +203,7 @@ Prosty proces zmiany zmiennej składa się z trzech oddzielnych części, pobran
 Dla podanego przykładu w typowym przebiegu gdy obydwa wątki zwiększą wartość zmiennej o 1 spodziewany jest wynik $N = n+2$. Jednak rzadkim przypadku może zaistnieć sytuacja że drugi wątek pobierze wartość N do obliczeń przed zapisaniem wyniku z pierwszej operacji. Spowoduje to trudny do odnalezienia i odtworzenia błąd sprawiający że zignorowane zostają obliczenia wątku który pierwszy pobrał wartość, zatem końcowy wynik będzie równy $N = n+1$.
 Jest to jeden z powodów dlaczego zabezpiecza się zasoby za pomocą muteksów lub semaforów. 
 
-Mimo sposobów na unikanie takich sytuacji programowanie wielowątkowe wymaga dużej staranności a potencjalne błędy mogą pozostawać ukryte nawet latami. To też jest powód dla którego nie należy stosować takich rozwiązań jeżeli mogą zostać pominięte\cite{multi thread problem}.
+Mimo sposobów na unikanie takich sytuacji programowanie wielowątkowe wymaga dużej staranności a potencjalne błędy mogą pozostawać ukryte nawet latami. To też jest powód dla którego nie należy nadużywać takich rozwiązań jeżeli mogą zostać pominięte\cite{multi thread problem}.
 \paragraph{Zakleszczenie}
 
 Zakleszczenie (ang. deadlock) to sytuacja gdy dwie operacje czekają na siebie wzajemnie więc żadna z nich nie może się zakończyć. 
@@ -206,7 +213,7 @@ Prostym przykładem takiej sytuacji jest chwila gdy dwa procesy w celu przeprowa
  Kiedykolwiek występuje graf cykliczny zapotrzebowania zasobów deadlock może zaistnieć. 
  Powoduje to że jest to trudna sytuacja do przewidzenia w bardziej rozbudowanych programach.
 
-W celu uniknięcia takiej sytuacji można wprowadzić pewne środki zapobiegawcze\\cite{coffman}:
+W celu uniknięcia takiej sytuacji można wprowadzić pewne środki zapobiegawcze\cite{coffman}:
 \begin{itemize}
         \item Proces/wątek blokuje zasoby dopiero kiedy wszystkie są dostępne. Jest to mało optymalne rozwiązanie i może spowodować że operacja nigdy nie zostanie przeprowadzona
         \item Ustalenie mechanizmu wywłaszczania zasobów oraz hierarchii dostępu. 
@@ -215,7 +222,7 @@ W celu uniknięcia takiej sytuacji można wprowadzić pewne środki zapobiegawcz
         \item Projektowanie programu tak by proces/wątek wymagał jednocześnie dostępu jedynie do jednego zasobu na raz. 
 \end{itemize} 
 
-Jest to kolejny powód dla którego należy bardzo rozsądnie podchodzić do projektowania programu przy decyzji programowania wielowątkowego oraz nie nadużywać tego podejścia w sytuacjach gdy jest to niekonieczne. 
+Jest to kolejny powód dla którego należy bardzo rozsądnie podchodzić do projektowania programu przy decyzji programowania wielowątkowego oraz nie nadużywać tego podejścia w sytuacjach gdy jest to niekonieczne\cite{multi thread problem}. 
 
 \subsubsection{Otwarte formaty danych}
 
@@ -225,11 +232,10 @@ Oznacza to że nie tylko są to formaty które są często implementowane w wiel
 Poniżej znajdują się krótkie opisy najpopularniejszych formatów.
 
 \paragraph{CSV}
-CSV (eng. comma seperated values, wartości dzielone przecinkami) jest to prosty format plików w którym zgodnie z nazwą każda z wartości jest oddzielana przecinkiem od kolejnej. Wartości dzielą się na rekordy oddzielane znakami końca linii CRLF oraz wartości oddzielane przecinkami. Zamiast przecinków mogą być używane znaki specjalne jak średniki lub tabulatury chociaż jest to niezalecane. Jeżeli plik z danymi zawiera tablicę to ilość wartości powinna być jednakowa w każdym z rekordów. 
+(eng. comma seperated values, wartości dzielone przecinkami) jest to prosty format plików w którym zgodnie z nazwą każda z wartości jest oddzielana przecinkiem od kolejnej. Wartości dzielą się na rekordy oddzielane znakami końca linii CRLF oraz wartości oddzielane przecinkami. Zamiast przecinków mogą być używane znaki specjalne jak średniki lub tabulatury chociaż jest to niezalecane. Jeżeli plik z danymi zawiera tablicę to ilość wartości powinna być jednakowa w każdym z rekordów. 
 
 \paragraph{XML}
-
-XML (eng. Extensible Markup Language) jest to uniwersalny język znaków służący do przenoszenia danych. Jego skupieniem była łatwość w pisaniu programów interpretujących ten standard.
+(eng. Extensible Markup Language) jest to uniwersalny język znaków służący do przenoszenia danych. Jego skupieniem była łatwość w pisaniu programów interpretujących ten standard.
 Jest to język na podstawie którego stworzono wiele ważnych pochodnych formatów takich jak Microsoft Office XML formats, Trusted Data Format i HTML5.
 
 Poniżej znajduje się prosty przykład takiego dokumentu:
@@ -246,11 +252,9 @@ Wartości to tekst lub kolejne elementy znajdujące się między tagami.
 Pierwsza linia to opcjonalny prolog zawierający informację o wersji XML oraz typie kodowania.  
 Dokument XML musi zawierać element początkowy, w przykładowym kodzie \ref{XML code} jest to tag <root>.
 
-
-
-\paragraph{JSON -  Java script object notation}
-
-Mimo że nie jest standardem otwartych plików danych, lecz formą języka JavaScript to spełnia warunki czytelności przez człowieka jak i maszynę. 
+\paragraph{JSON }
+ 
+(eng Java script object notation) mimo że nie jest on standardem otwartych plików danych, lecz formą języka JavaScript to spełnia warunki czytelności przez człowieka jak i maszynę. 
 Forma obiektu w tym języku stała się w przeciągu lat popularnym sposobem na przekazywanie danych między aplikacjami. Stało się tak ze względu na prostotę semantyki oraz uniwersalność. 
 
 Każdy obiekt JSON zaczyna się symbolem \{ i kończy \} każda z wartości składa się z pary atrybut wartość przedzielona dwukropkiem, a każda z kolejnych par oddziela się przecinkiem. Typami wartości są:
@@ -269,7 +273,7 @@ Format ten wspierany jest przez wiele języków między innymi C, C++, C\#, Java
 Rejestr to taki układ elektroniczny którego celem jest przechowywanie oraz umożliwienie dostępu do danych. Funkcja ta jest podobna do funkcji pamięci jednak w przeciwieństwie do pamięci rejestry mogą mieć dodatkową funkcję sprzętową.
 Przykładowo rejestry mogą służyć w celu komunikacji między kodem a urządzeniami wejścia/wyjścia.
 
-Specjalnym przykładem rejestru jest rejestr przesuwający którego dane, przy sygnale z wspólnego sygnału, będą przekazywane do kolejnego miejsca przetrzymywania informacji. 
+Specjalnym przykładem rejestru jest rejestr przesuwający którego dane, przy sygnale z wspólnego sygnału, będą przekazywane do kolejnego miejsca przetrzymywania informacji w ściśle określonym kierunku.  
 Najczęściej rejestry przesuwne są skonstruowane jako kaskada przerzutników gdzie wejście danych jest połączone z wyjściem poprzedniego.
 
 Istnieją 4 typy rejestrów przesuwających różniących się ze względu na sposób wprowadzania i odbioru danych:
