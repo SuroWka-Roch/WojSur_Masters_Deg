@@ -16,11 +16,88 @@ W celu stworzenia programu dla tego projektu konieczne jest zrozumienie niskopoz
 
 \subsubsection{Elektronika front-end na przykładzie RXHDR\_V1}
 
+Układ elektroniki wraz z detektorem służący do recepcji sygnału promieniowania jonizującego nazywany jest elektroniką front-end. Przykładem konstrukcji tego typu jest projekt RXHDR\_V1. Jest to układ scalony dzielący się na 2 części: krzemowy detektor paskowy (detektor którego przestrzenią aktywną są podłużne spolaryzowane krzemowe diody p-n) \cite{master} \cite{front-end} oraz układ elektroniki kształtującej. Konstrukcja projektu pozwala na odczyt informacji deponowanej w detektorze w dwóch formach poprzez implementację podwójnego systemu kształtowania  impulsu:
 \begin{itemize}
-        \item Opis RXHDR
-        \item Opis s-curve
-        \item opis ENC i RCS
+        \item Analogowy system integracji który sumuję energię deponowaną w detektorze i przekazuje tą informację w postaci napięcia na wyjście układu.
+        \item System cyfrowy który po ukształtowaniu impulsu i dyskryminacji przekazuje informacji o wystąpieniu sygnału za pomocą impulsu prostokątnego.    
+\end{itemize} 
+
+Diagram blokowy układu kształtowania impulsu znajduje się na rysunku \ref{RXHDR schema}. Układ cyfrowy przed wytworzeniem impulsów o szerokości 20-200ms i wysokości 1.8 V przechodzi, przez następujące etapy kształtowania:
+\begin{itemize}
+        \item Przedwzmacniacz ładunkowy, pierwszy krok w procesie odbioru sygnału mający na celu wzmocnienie sygnału przed dalszym kształtowaniem,
+        \item Układ kompensacji PZC (ang. \textit{Pole-Zero-Cancellation}) układ mający na celu skrócenie szerokości impulsów w celu uniknięcia efektów spiętrzania.
+        \item Dwuczłonowy układ kształtowania typu T, etap kształtowania impulsu Gauso-podobnego oraz miejsce dodatkowego wzmocnienia. 
+        \item Dyskryminator progowy, w tym miejscu sygnał jest transformowany z analogowego napięcia na binarny impuls 0V, 1.8V. Szerokość impulsu mówi o energii impulsu.
 \end{itemize}
+
+Architektura odczytu binarnego jest tak skonstruowana że każdy z czterech etapów kształtowania sygnału wprowadza ujemne wzmocnienie wspólnie generując dodatnie napięcie na wejście dyskryminatora impulsów. 
+
+Każdy z 32 padów odczytowych, poza bezpośrednim połączeniem z paskiem detektora, jest podłączony do pojemności testowej pozwalającej na symulację zdarzeń deponowania fotonu za pomocą generowanego sygnału prostokątnego. Architektura poza dostarczeniem wymaganych prądów polaryzacyjnych pozwala na zewnętrzne ustalenie progu dyskryminacji.
+
+\begin{figure}
+        \includegraphics[width=\textwidth]{RXHDR_shaper.png}
+        \caption{Schemat blokowy układu kształtującego projektu RXHDR\_V1}
+        \label{RXHDR schema}
+\end{figure}
+
+\paragraph{Krzywa s}
+
+Poprzez zmianę napięcia dyskryminacji na torze binarnym w układach detekcji możliwe jest uzyskanie widma całkowego zwanego krzywą s. Przy założeniu mono-energetyczności sygnału równanie wyrażające zależność napięcia od liczby zliczeń przybiera następującą postać:
+
+\begin{equation}
+        \label{wste krzywa s}
+        S(x) = \frac{f_g}{2} * erf^{-1}(\frac{x-\overline{x}}{\sigma*\sqrt{2}})
+\end{equation}
+Gdzie:
+\begin{description}
+        \item $f_g$ - częstotliwość zdarzeń,
+        \item $erf^{-1}$ - odwrotna funkcja błędu gdzie: $erf^{-1}(x) = 1 - \frac{2}{\sqrt{\pi}} \int^x_0 exp(-t^2)dt $
+        \item $x$ - napięcie dyskryminatora,
+        \item $\overline{x}$ - poziom dyskryminacji odpowiadający średniej amplitudzie impulsów (peak position) wartość ta odpowiada energii sygnału, 
+        \item  $\sigma$ - wartość niepewności odpowiadająca wartości szumowej układu. 
+\end{description}
+
+Przykłady takich krzywych dla różnych wartości szumów są wizualizowane na rysunku \ref{wyk s curve wstep}. Dodatkowym elementem nieuwzględnionym w wzorze są tak zwane szumy Rice’a. Pojawiają się one dla wartości napięcia dyskryminacji niższego niż średnia amplituda szumów. Stan taki powoduje zliczanie szumów jako sygnałów detektora w takiej ilość że jedynym ograniczeniem jest wydajność elektroniki \cite{wiocek doctorat}.
+
+Dopasowanie krzywej s do zbadanej charakterystyki układu pozwala na wyciągniecie wniosków o funkcjonowaniu kanałów na podstawie współczynników tejże zależności.   
+
+\begin{figure}
+        \centering
+        \includegraphics[height=8cm]{s_curve.png}
+        \caption{Przykłady krzywych s dla różnych wartości szumowych. A - idealny przypadek, B,C - rzeczywiste przypadki ($\sigma_C=2\sigma_B$), D - szum bez sygnału. \cite{wiocek doctorat}} 
+        \label{wyk s curve wstep}
+\end{figure}
+
+\paragraph{RCS}
+(eng. \textit{relative charge sharing})
+Dodatkowym elementem nieuwzględnianym we wzorze \ref{wste krzywa s} jest efekt podziału ładunku. Występuje on w chili gdy foton jonizujący nie deponuje całej swojej energii w pojedyńczym obszarze detektora lecz jego energia jest dzielona między dwa lub więcej detektorów. Dla układu o dobrze dopasowanej wartości napięcia dyskryminacji taki przypadek zostałby pominięty.
+
+Podział ładunku nie zawsze dzieli się równo między detektorami dlatego też wraz z obniżaniem napięcia dyskryminacji liniowo będzie zwiększać się liczba zliczeń impulsów o niepełnej energii.~\cite{Monika mag}. 
+
+Po uwzględnienia tego efektu w wzorze \ref{wste krzywa s} otrzymujemy następującą równość:
+\begin{equation}
+        \label{wstep rcs}
+        S_{RCS}(x) = (1-RCS * \frac{x}{\overline{x} - 0.5}) * S(x)
+\end{equation}
+
+Gdzie RCS to współczynnik współdzielenia ładunku a $S_{RCS}(x)$ to krzywa s z uwzględnieniem współczynnika RCS.
+
+Efekt ten występuje tylko przy pracy z prawdziwym źródłem promieniowania i stopień wpływu tego zjawiska na wyniki wynika głównie z geometrii i umiejscowienia detektorów.
+
+\paragraph{ENC}
+ (eng. \textit{Equivalent Noise Charge}) ekwiwalenty ładunek szumowy jest to taki wartość ładunku która wprowadzona na wejście detektora dałaby sygnał równy wartości średniokwadratowej poziomu szumów elektroniki front-end. Na podstawie dopasowanych współczynników krzywej s można wyznaczyć ENC dla układu jako: 
+
+ \begin{equation}
+         ENC = \frac{\sigma}{K_{toru}}
+ \end{equation}
+ Gdzie:
+ \begin{description}
+        \item  $\sigma$ - wartość niepewności odpowiadająca wartości szumowej układu, 
+        \item $K_{toru}$ - wzmocnienie toru odczytu.
+ \end{description}
+
+ Wartość wzmocnienia toru odczytu można wyznaczyć poprzez określenie ilorazu peak position dla ściśle określonej energii wobec ilości ładunku wygenerowanego przez depozycję określonej energii w układzie detektora. 
+
 
 \subsubsection{Proces kompilacji programu na przykładzie \textit{gcc}}
 
