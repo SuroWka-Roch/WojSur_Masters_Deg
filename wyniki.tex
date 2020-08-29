@@ -132,7 +132,9 @@ Na podstawie powyższych danych ustalono wartość współczynnika DEAD\_TIME\_C
         \label{wykresy fit calib}
 \end{figure}
 
-\subsubsection{Błąd przybliżenia do liczby naturalniej}
+Zbadano dodatkowo maksymalny częstotliwość dla której następuje przepełnienie liczników i jest to wartość $3.72 [MHz]$. Po przekroczeniu tej wartości częstotliwości generatora wartość zliczeń drastycznie spada. 
+
+\paragraph{}{Błąd przybliżenia do liczby naturalniej}
 Jak widać w fragmencie kodu \ref{code aqw} liczba cykli przeprowadzonych w trakcie pojedyńczej akwizycji musi być liczbą całkowitą. Liczba cykli jest określona wzorem:
 \begin{equation}
         N_c [-] = int(A_t*D_t*f_c)
@@ -157,7 +159,7 @@ Gdzie:
         \item $f_c$ - ilość cykli w ms
 \end{description}
 
-Podstawiając współczynniki uzyskane w dziale \ref{section kaliblracja} możemy uzyskać wartości maksymalnego błędu dla najczęściej używanych czasów akwizycji. Wartości te znajdują się w tabeli \ref{tab przyblizenie niep}. Na podstawie tych wartości można stwierdzić że błąd popełniony podczas przybliżania zmienia się w zależności od czasu akwizycji jest on jednak pomijalnie mały.
+Podstawiając współczynniki uzyskane w dziale \ref{section kaliblracja} możemy uzyskać wartości maksymalnego błędu dla najczęściej używanych czasów akwizycji. Wartości te znajdują się w tabeli \ref{tab przyblizenie niep}. Na podstawie tych wartości można stwierdzić że błąd popełniony podczas przybliżania zmienia się w zależności od czasu akwizycji jest on jednak pomijalne mały.
 
 \begin{table}
         \centering
@@ -171,10 +173,27 @@ Podstawiając współczynniki uzyskane w dziale \ref{section kaliblracja} możem
         \end{tabular}
 \end{table}
 
+\paragraph{Ograniczenie w czasu akwizycji}
+
+Konieczne jest rozważenie problemu przetrzymywania danych zliczeń dla kanału w pojedyńczej zmiennej. Teoretyczny czas akwizycji jest nieskończony jednak w pewnej chwili wartość zmiennej przechowującej dane o zliczeniu zostanie przepełniona i wartość się zmniejszy.
+
+W celu przechowywania zmiennej zawierającej informacje o ilości zliczeń użyty została zmienna typu \textit{unsigned int} dla mikrokontrolera AT91SAM3X8E wartość ta mieści się w 32 bitach. Fakt że zmienna ta nie ma znaku sprawia że wartości graniczne tej liczby to [ 0, $2^{33}-1$ ] oznacza to że dla zbadanej maksymalnej częstotliwości granicznej układu 3.72 [MHz] możemy wyliczyć czas akwizycji dla której nastąpi przepełnienie dla maksymalnej częstotliwości zliczeń. 
+\begin{equation}
+        A_{t_{max}} = \frac{N_{max}}{f_{max}} = \frac{2^{33}-1}{3.72 * 10^{6}} = \frac{8589934591}{3.72 * 10^{6}} = 2309.12 [s] = ~6.5 [h]
+\end{equation}
+Gdzie:
+\begin{description}
+        \item $A_{t_{max}}$ - maksymalny czas akwizycji ze względu na efekt przepełnienia liczby 32 bitowej
+        \item $N_{max}$ - maksymalna wartość liczby 32 bitowej
+        \item $f_{max}$ - maksymalna częstotliwość układu liczników
+\end{description}
+
+Wartość ta jest absurdalnie duża i nieprzydatna ponieważ przez cały czas akwizycji mikorkontroler jest nieresponsywny dlatego też komputer kontrolujący już po 5 s od wysłania zapytania zakłada że na kontrolerze wystąpił błąd i rozpoczyna proces wysyłania zapytań w celu zbadania problemu. Sprawia to że ze względu tą decyzję maksymalna wartość czasu akwizycji równa się 10 s. Jeżeli konieczne jest zwiększenie tej liczby należy zwiększyć wartość zmiennej WAIT\_FOR. Problem ten nie dotyczy funkcjonalności \textit{Single Shoot}.   
+
 \subsubsection{Testowanie układu liczników za pomocą generatora zewnętrzego.}
 
 Przy użyciu współczynników otrzymanych w dziale \ref{section kaliblracja} oraz układu badawczego odpowiadającemu temu z działu \ref{section kaliblracja} przeprowadzono test układu z wykorzystaniem dzielnika pozwalającego na dostarczenie sygnałów impulsów, odpowiadającym tym generowanym przez układ RXHDR\_V1, do wszystkich kanałów jednocześnie.
-Badanie przeprowadzono dla 10 częstotliwości od 100Hz do 3.2Mhz. Czas akwizycji badania był równy 1s dzięki czemu liczba zliczeń odpowiada liczbie zliczeń. 
+Badanie przeprowadzono dla 10 częstotliwości od 100Hz do 3.2Mhz. Czas akwizycji badania był równy 1s dzięki czemu liczba zliczeń odpowiada liczbie zliczeń. Uśrednione wartości wyników dla wybranych kanałów znajdują się w tabeli \ref{tabela wyniki surowe}.
 
 \begin{figure}
         \begin{multicols}{2}
@@ -244,6 +263,71 @@ odchylenie standardowe wyników jest równe  $3.94 * 10^{-5}$.
                 1A8 &0.999949&2.747e-05&2A8&0.999957&4.373e-05 \\ \hline
         \end{tabular}
 \end{table}
+
+\begin{table}
+        \centering
+        \caption{Wyniki badania zależności częstotliwości od liczby zliczeń dla czasu akwizycji 1s dla wybranych kanałów}
+        \label{tabela wyniki surowe}
+        \begin{multicols}{3}
+                \begin{adjustbox}{width=1\linewidth,left}
+                \begin{tabular}{|c|c|c|}  
+                        \hline 
+                        1A1 & & \\ \hline
+                        f [Hz] & zliczenia & $\Delta$ zliczeń \\ \hline
+                       100 & 99.68 & 2.76\\ \hline 
+                       320 & 319.72 & 4.27\\ \hline 
+                       1000 & 1001.53 & 4.20\\ \hline 
+                       3200 & 3201.92 & 4.02\\ \hline 
+                       10000 & 10006.04 & 7.35\\ \hline 
+                       32000 & 32022.43 & 14.02\\ \hline 
+                       100000 & 100053.84 & 19.37\\ \hline 
+                       320000 & 320206.69 & 79.24\\ \hline 
+                       1000000 & 1000166.75 & 51.99\\ \hline 
+                       3200000 & 3200122.67 & 22.92\\ \hline
+               \end{tabular}
+               \end{adjustbox}
+               \begin{adjustbox}{width=1\linewidth,left}
+
+                \begin{tabular}{|c|c|c|} 
+                        \hline 
+                        1A3 & & \\ \hline
+                        f [Hz] & zliczenia & $\Delta$ zliczeń \\ \hline
+                       100 & 100.27 & 2.59\\ \hline 
+                       320 & 319.39 & 4.09\\ \hline 
+                       1000 & 999.75 & 0.98\\ \hline 
+                       3200 & 3203.41 & 6.79\\ \hline 
+                       10000 & 10005.45 & 7.13\\ \hline 
+                       32000 & 32019.90 & 17.58\\ \hline 
+                       100000 & 100050.45 & 18.87\\ \hline 
+                       320000 & 320202.57 & 79.36\\ \hline 
+                       1000000 & 1000187.97 & 56.24\\ \hline 
+                       3200000 & 3199920.11 & 38.53\\ \hline
+               \end{tabular}
+        \end{adjustbox}
+
+               \begin{adjustbox}{width=1\linewidth,left}
+
+               \begin{tabular}{|c|c|c|}  
+                \hline 
+                2A7 & & \\ \hline
+                f [Hz] & zliczenia & $\Delta$ zliczeń \\ \hline
+                100 & 100.43 & 2.46\\ \hline 
+                320 & 319.94 & 4.01\\ \hline 
+                1000 & 1000.56 & 4.56\\ \hline 
+                3200 & 3203.77 & 5.77\\ \hline 
+                10000 & 10004.45 & 6.20\\ \hline 
+                32000 & 32020.41 & 17.16\\ \hline 
+                100000 & 100045.22 & 20.15\\ \hline 
+                320000 & 320061.73 & 19.52\\ \hline 
+                1000000 & 1000083.13 & 25.85\\ \hline 
+                3200000 & 3199841.89 & 56.18\\ \hline
+        \end{tabular} \par
+\end{adjustbox}
+
+        \end{multicols}
+
+\end{table}
+
 
 
 
