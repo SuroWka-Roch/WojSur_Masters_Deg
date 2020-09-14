@@ -1,7 +1,18 @@
-Sygnał DIS_OUT z ASICa przechodzi przez translator poziomów (U14) a następnie osiem kanałów wybierane jest przez pierwszy stopień selekcji (U16 & U17). Sygnał sterujący wyborem: DIS_S.
-Z wybranej ósemki kanałów następnie klasyczny 8-kanałowy multiplekser (U6) wybiera jeden kanał i przekazuje go do wyjścia MUX_OUT (złącze: P_MUX_OUT). Sygnał binarny, dodatni o logice 0 - 3.3V i casie trwania między ~50ns - 200ns trzeba umieć zliczać zewnętrznym systemem akwizycji danych (np. DUE). Wybór odpowiedniego kanału w MUX (6) dokonywany jest przez trzy wejścia sterujące SEL[0..3].
-Pana zadanie:
-1. świadomie wystawić stany logiczne H/L na wyjściach DUE, które będą sterować wyborem kanału: 4 linie (DIS_S + SEL[0..3]).
-2. Po wybraniu kanału otworzyć akwizycję danych impulsów cyfrowych z P_MUX_OUT, czyli pomiar liczby zliczeń w ściśle określonym czasie akwizycji. Możliwy zakres czasów zbierania danych (akwizycji) od 0.1sek do ~10sek. Pomiar tego czasu bardzo dobrze zdefiniowany!!! Spodziewana max. częstość przychodzących impulsów z P_MUX_OUT jak Pan pamięta to ok. 2.5MHz, ale na początek wystarczy nawet ograniczyć się do akceptacji częstości <=500kHz.
-3. Po zakończonym czasie akwizycji danych z danego kanału, zapisanie liczby zliczeń do pamięci podręcznej i wybranie kolejnego kanału do kolejnego procesu akwizycji (czyli powrót do punktu 1).
-4. Po zmierzeniu wszystkich 16 kanałów odczyt danych do komputera sterującego (odczyt liczby zliczeń dla wszystkich kanałów ->wektor 1x16 odpowiedniego typu by pomieścić w pojedynczym elemencie nawet liczbę do 2milionów.)
+# Master Thesis WS
+
+Mój projekt magisterski, projekt to układ akwizycji i wizualizacji danych dla układu detektora promieniowania x.
+
+## Mikrokontroler
+
+Program znajduje się w folderze controler_side. Jest on pisany na arduino due z detykowaną płytką liczników.
+
+## Program
+
+Program znajduje się w folderze pc_side zawiera:
+
+* gui pyQT
+* wizualizacja na żywo matplotlib
+* akwizycję danych w wybranych formatach (CSV, JSON)
+* Framework komunikacyjny z programem na mikrokontrolerze. (PySerial)
+
+Program sam w sobie dzieli się na główny program *main.py* oraz 2 moduły *gui_module* oraz *backend_module*. 
