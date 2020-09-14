@@ -2,11 +2,11 @@
 \subsection{Cel pracy}
 \label{cel pracy}
 
-Celem pracy było zaprojektowanie i skonstruowanie układu wspierającego system detekcji promieniowania X: RXHDR\_V1 \cite{master}.\\
+Celem pracy było zaprojektowanie, skonstruowanie, wykonanie i przetestowanie  układu wspierającego system z wykorzystaniem wielokanałowego  specjalizowanego układu scalonego do odczytu detektorów promieniowania X o nazwie: RXHDR\_V1 \cite{master}.\\
 Cele szczegółowe:
 \begin{itemize}
-        \item Szesnasto-kanałowy odczyt i zliczenie impulsów o częstotliwości osiągającej do 2.5$\frac{MHz}{kanal}$ z wykorzystaniem mikrokontrolera \textit{Arduiono Due}.
-        \item Stworzenie oprogramowania pozwalającego na komunikację pomiędzy mikrokontrolerem a komputerem wspierającym. 
+        \item Szesnasto-kanałowy odczyt zliczający indywidualnie impulsy pochodzące z detektora o binarnej architekturze odczytu i średniej częstotliwości sygnałów dochodzącej do 2.5$\frac{MHz}{kanal}$ z wykorzystaniem układu \textit{Arduiono Due}.
+        \item Stworzenie oprogramowania pozwalającego na komunikację pomiędzy mikrokontrolerem odpowiedzialny za odczyt danych a komputerem wspierającym. 
         \item Wizualizacja i archiwizacja uzyskanych danych. 
 \end{itemize}
 
@@ -16,27 +16,37 @@ W celu stworzenia programu dla tego projektu konieczne jest zrozumienie niskopoz
 
 \subsubsection{Elektronika front-end na przykładzie RXHDR\_V1}
 
-Układ elektroniki wraz z detektorem służący do recepcji sygnału promieniowania jonizującego nazywany jest elektroniką front-end. Przykładem konstrukcji tego typu jest projekt RXHDR\_V1. Jest to układ scalony dzielący się na 2 części: krzemowy detektor paskowy (detektor którego przestrzenią aktywną są podłużne spolaryzowane krzemowe diody p-n) \cite{master} \cite{front-end} oraz układ elektroniki kształtującej. Konstrukcja projektu pozwala na odczyt informacji deponowanej w detektorze w dwóch formach poprzez implementację podwójnego systemu kształtowania  impulsu:
+System odczytu promieniowania X składa się z sensora promieniowania, którego zadaniem jest konwersja padających fotonów na impulsy elektryczne oraz układu elektroniki odczytu służącego do optymalnego uformowania  sygnału wyjściowego. Część kanału elektroniki odczytu występująca w bezpośrednim następstwie za sensorem promieniowania nazywana jest elektroniką front-end.
+Przykładem konstrukcji tego typu jest projekt bazujący na układzie RXHDR\_V1. Jest to układ elektroniczny dzielący się na 2 części: krzemowy detektor paskowy (detektor którego przestrzenią aktywną są podłużne spolaryzowane krzemowe diody p-n) \cite{master} \cite{front-end} oraz układ elektroniki kształtującej RXHDR\_V1. Konstrukcja kanału elektroniki front-end pozwala na odczyt informacji deponowanej w sensorze w dwóch formach poprzez implementację podwójnego systemu kształtowania impulsu:
 \begin{itemize}
-        \item Analogowy system integracji który sumuję energię deponowaną w detektorze i przekazuje tą informację w postaci napięcia na wyjście układu.
-        \item System cyfrowy który po ukształtowaniu impulsu i dyskryminacji przekazuje informacji o wystąpieniu sygnału za pomocą impulsu prostokątnego.    
+        \item Analogowy system integracji który gromadzi informację o energii deponowanej przy detekcji poszczególnych fotonów całkując (sumując) kolejne impulsy. Poziom napięcia po odpowiednio zdefiniowanym czasie akwizycji danych jest proporcjonalny do średniej liczby rejestrowanych przypadków detekcji o średniej amplitudzie. 
+        \item System cyfrowy nazywany odczytem binarnym, rejestruje tylko fakt wystąpienia pojedynczego aktu detekcji pod warunkiem, że poziom sygnału jest wystarczająco wysoki, tj. powyżej ustalonego progu dyskryminacji.
 \end{itemize} 
 
-Diagram blokowy układu kształtowania impulsu znajduje się na rysunku \ref{RXHDR schema}. Układ cyfrowy przed wytworzeniem impulsów o szerokości 20-200ms i wysokości 1.8 V przechodzi, przez następujące etapy kształtowania:
+Ta podwójna forma odczytu pozwala na dokładną analizę sygnału uzyskanego z sensora w dla różnych natężeń sygnału. Klasyczna architektura odczytu binarnego jest wykorzystywana do odczytu częstotliwości impulsów poniżej wartości 1$\frac{MHz}{kanal}$. W razie konieczności odczytu wyższej fluencji fotonów używana jest sekcja integracyjna. 
+
+Rozwiązanie to pozwala na uzyskanie szerokiego zakresu częstotliwości sygnałów dla którego układ RXHDR\_V1 może zostać wykorzystany, co jest ważne ze względu na wykorzystanie projektu. 
+RXHDR\_V1 zaprojektowany jest bowiem z myślą o użyciu w badaniach dyfraktometrycznych które wymagają odczytu dla dużej zmienności intensywności padających fotonów. 
+
+Schemat blokowy pojedynczego kanału elektroniki front-end układu RXHDR\_v1 znajduje się na rysunku \ref{RXHDR schema}, jest to schemat jednego z 32 torów odczytu znajdujących się w tym układzie scalonym.  Architektura odczytu binarnego składa się z następujących sekcji:
 \begin{itemize}
-        \item Przedwzmacniacz ładunkowy, pierwszy krok w procesie odbioru sygnału mający na celu wzmocnienie sygnału przed dalszym kształtowaniem,
+        \item Przedwzmacniacz ładunkowy, pierwszy krok w procesie formowania sygnału mający na celu konwersję krótkich impulsów prądowych z sensora promieniowania na sygnału napięciowe (tzw. transimpedancyjny charakter konwersji),
         \item Układ kompensacji PZC (ang. \textit{Pole-Zero-Cancellation}) układ mający na celu skrócenie szerokości impulsów w celu uniknięcia efektów spiętrzania.
-        \item Dwuczłonowy układ kształtowania typu T, etap kształtowania impulsu Gauso-podobnego oraz miejsce dodatkowego wzmocnienia. 
-        \item Dyskryminator progowy, w tym miejscu sygnał jest transformowany z analogowego napięcia na binarny impuls 0V, 1.8V. Szerokość impulsu mówi o energii impulsu.
+        \item Dwuczłonowy układ kształtowania typu T, etap kształtowania impulsu quasi-gaussowskiego oraz miejsce dodatkowego wzmocnienia. 
+        \item Dyskryminator progowy, w tym miejscu sygnał jest transformowany z analogowego napięcia na binarny impuls o poziomie 0V i +1.8V
 \end{itemize}
 
-Architektura odczytu binarnego jest tak skonstruowana że każdy z czterech etapów kształtowania sygnału wprowadza ujemne wzmocnienie wspólnie generując dodatnie napięcie na wejście dyskryminatora impulsów. 
+Architektura odczytu binarnego jest tak skonstruowana, że każdy z czterech etapów kształtowania sygnału wprowadza ujemne wzmocnienie wspólnie generując dodatnie napięcie na wejście dyskryminatora impulsów. 
 
-Każdy z 32 padów odczytowych, poza bezpośrednim połączeniem z paskiem detektora, jest podłączony do pojemności testowej pozwalającej na symulację zdarzeń deponowania fotonu za pomocą generowanego sygnału prostokątnego. Architektura poza dostarczeniem wymaganych prądów polaryzacyjnych pozwala na zewnętrzne ustalenie progu dyskryminacji.
+Każdy z 32 padów odczytowych (pady rozpoczynające tor odczytu),poza bezpośrednim połączeniem z paskiem detektora, jest podłączony do pojemności testowej pozwalającej na symulację zdarzeń deponowania fotonu za pomocą generowanego sygnału prostokątnego. Pozwala to na test układu scalonego bez potrzeby stosowania promieniowania jonizującego. 
+
+Przed rozpoczęciem pracy układu konieczne jest ustalenie prądów polaryzacyjnych $i_{CAS}$, $i_{SH}$, $i_{S2D}$, $i_{COMP}$, $i_{RES}$ dostarczanych przez zewnętrzny układ regulowanych źródeł prądowych\cite{master} oraz ustalenie progu dyskryminacji napięciem $VT = VT_1 - VT_2$. To właśnie napięcie VT określa energię sygnałów które powodują uzyskanie impulsów wyjściowych binarnego kanału elektroniki odczytu. 
+
+Na rzecz prototypu tego projektu skorzystano z 16 kanałów binarnego odczytu danych. 
 
 \begin{figure}
         \includegraphics[width=\textwidth]{RXHDR_shaper.png}
-        \caption{Schemat blokowy układu kształtującego projektu RXHDR\_V1}
+        \caption{Schemat blokowy pojedynczego kanału elektroniki front-end projektu RXHDR\_V1}
         \label{RXHDR schema}
 \end{figure}
 
