@@ -75,8 +75,8 @@ void aquisition(double time){
     REG_PIOD_SODR = CLEAR_PIN_VAL; //Reset value on counter 
     
     /*
-      * Reset signal from CLEAR_PIN makes first loop unreliable due to discriminator uncertanty
-      * For optimalization purpuses first loop is done before the working loop in order to save 
+      * Reset signal from CLEAR_PIN makes first loop unreliable due to discriminator uncertainty
+      * For optimization purposes first loop is done before the working loop in order to save 
       * clock circles od working loop
       */
     first_loop(previousValue);
@@ -108,7 +108,7 @@ void aquisition(double time){
 
       }
 
-      NOP;NOP; //fix last circle to short problem
+      NOP;NOP; //fix last circle too short problem
       REG_PIOD_SODR = CLC_PIN_VAL; //reset clc empty shift register circle 
       REG_PIOD_CODR = CLC_PIN_VAL;
     
