@@ -1,18 +1,28 @@
 \section{Projekt}
+Zgodnie z dokumentacją RXHDR\_V1 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o dodatniej logice cyfrowej z poziomem wysokim wynoszącym +1.8V o czasie trwania między 50ns a 200ns i częstotliwości osiągającej nawet do 2.5 MHz.
+Sygnał ten na potrzeby dalszej konwersji jest modyfikowany przez translator poziomów do poziomów logicznych 0 - 3.3V i zostaje wybierane osiem kanałów (umownie nazywane: ósemkami) z szesnastu kanałów przez ośmiokanałowy multiplekser.   
+Tak wybrane ósemki mają nazwę 1A1-8 dla pierwszej oraz 2A1-8 dla drugiej części wyjść.   
+Otrzymane sygnały należy zliczyć na płytce Arduino Due w ściśle określonym czasie oraz przekazać dane do dalszej obróbki bądź wizualizacji na zewnętrznym komputerze. 
+Schemat wizualizujący powyższy proces transmisji i transformacji sygnału znajduje się na schemacie \ref{projekt chart}.
 
-Zgodnie z dokumentacją RXHDR\_V1 \cite{master} na szesnastu wyjściach cyfrowych uzyskiwany jest sygnał o logice 0 do 1.8V o czasie trwania między 50ns a 200ns i częstotliwości osiągającej nawet do 2.5 MHz.
-Sygnał ten na potrzeby rozwiązań softwarowych jest modyfikowany przez translator poziomów do poziomów logicznych 0 - 3.6V i zostaje wybierana ósemka z szesnastu kanałów przez dyskryminator.   
-Tak wybrane ósemki mają nazwę 1A1-8 dla pierwszej oraz 2A2-8 dla drugiej części wyjść.   
-Otrzymane sygnały należy zliczyć na płytce Arduino Due w ściśle określonym czasie oraz przekazać dane do dalszej obróbki bądź wizualizacji na zewnętrznym komputerze.
+Proces multipleksowania sygnału z 16 do 8 kanałów wyjść cyfrowych jest konieczny ze względu na wymaganie jakim jest wysoka szybkość zliczania impulsów (2.5MHz/kanał). Wstępne szacowania pokazały że zmniejszenie ilości jednocześnie odczytywanych kanałów będzie konieczne w celu osiągnięcia wymaganej szybkości zliczania. Ten krok dodatkowo znacząco upraszcza projekt płytki dla rozwiązania z wykorzystaniem dodatkowego układu elektronicznego. 
+Jednak wersja testowa jaką jest projekt z wykorzystaniem 8 kanałów jest wystarczająca żeby wyznaczyć parametryzację systemu.    
 
 Cały proces kompilacji kodu C++ do kodu Asemblera został wykonany na kompilatorze ARM gcc 4.6.4 (linux). 
 
-W poniższych rozdziałach opisane są proponowane sposoby wykonania tego zadania. 
+W poniższych rozdziałach opisane są proponowane sposoby rozwiązania zadania binarnych zliczeń w szybkim wielokanałowym układzie. 
 
-\subsection{Rozwiązanie softwarowe na platformie Arduino}
+\begin{figure}[t]
+        \centering
+        \includegraphics[width=\textwidth]{overwiew_project.jpg}
+        \caption{Poglądowy schemat przepływu danych w projekcie licznika binarnego.}
+        \label{projekt chart}
+\end{figure}
+
+\subsection{Rozwiązanie programowe na platformie Arduino}
 \label{dzial arduino}
-Założeniem rozwiązania jest bezpośrednie zliczenie sygnałów z wykorzystaniem przerwań sprzętowych w frameworku Arduino. W tym celu stosowane są wyjścia cyfrowe płytki Arduino due oraz dyskriminatora sygnałów zmniejszającego liczbę wyjść płytki z 16 do 8.
-Zbocze każdego z tak dyskryminowanego sygnału  powoduje wywołanie krótkiej dedykowanej funkcji zwiększającej wartość licznika o jeden. 
+Założeniem rozwiązania jest bezpośrednie zliczenie sygnałów z wykorzystaniem przerwań sprzętowych w frameworku Arduino. W tym celu stosowane są wyjścia cyfrowe płytki Arduino Due oraz dyskriminatora sygnałów zmniejszającego liczbę wyjść płytki z 16 do 8.
+Narastające zbocze każdego z tak dyskryminowanego sygnału  powoduje wywołanie krótkiej dedykowanej funkcji zwiększającej wartość licznika o jeden. 
 
 Fragment kodu \ref{code_ard_IRS} jest częścią programu użytego do badań. Na potrzeby badania zostaje uwzględniony tylko pojedynczy kanał.
 
@@ -25,12 +35,12 @@ Fragment kodu \ref{code_ard_IRS} jest częścią programu użytego do badań. Na
 
 Używana płytka rozwojowa Arduino Due, używa mikrokontrolera AT91SAM3X8E w architekturze 32 bitowej o taktowaniu głównego procesora równemu 84 MHz.
 
-Pomimo krótkiej operacji wewnątrz IRS (eng. interupt service rutine) - \textit{add} (tabela \ref{decompile add}) proces wejścia do rutyny przerwania i wyjścia zabiera nieporównywalnie więcej cykli procesora, co powoduje że cały proces wywołania przerwania jest kosztowny w czasie. 
+Pomimo krótkiej operacji wewnątrz IRS (ang. interupt service rutine) - \textit{add} (tabela \ref{decompile add}) proces wejścia do rutyny przerwania i wyjścia zabiera nieporównywalnie więcej cykli procesora, co powoduje że cały proces wywołania przerwania jest kosztowny w czasie. 
 Ilość cykli procesora koniecznych do wywołania funkcji przerwania używając nieoptymalizowanego kodu Arduino może wymagać nawet do 355 cykli procesora \cite{ard_opt_git}, dodatkowo powrót do głównego wątku programu może wymagać kolejnych 128 cykli \cite{ard_opt_git}.
 
 \begin{table}{}
         \begin{center}
-        \caption{Estymacja ilości cyklów procesora koniecznych do wykonania instrukcji umieszczonych w funkcji \textit{add} }
+        \caption{Estymacja ilości cykli procesora koniecznych do wykonania instrukcji umieszczonych w funkcji \textit{add} }
         \label{decompile add}
         \begin{tabular}{c|c|c}
                 kod C++ & pseudo kod Asemblera & Ilość cykli procesora \cite{cycles} \\ \hline
@@ -53,10 +63,10 @@ Oznacza to że w przypadku generowania sygnałów o większej częstotliwości n
 Zgodnie z wymaganiami projektu uzyskiwane sygnały wymagające zliczenia mogą przychodzić z częstotliwością nawet do $2.5MHz$ co oznacza kolejny sygnał przychodzący co $0.4\mu s$.
 Takie wymagania oznaczają że już dla pojedynczego kanału takie rozwiązanie jest niewystarczające. 
 
-\subsection{Rozwiązanie softwarowe w standardzie CMSIS}
+\subsection{Rozwiązanie programowe w standardzie CMSIS}
 \label{dzial CMSIS}
 Główną filozofią platformy Arduiono jest możliwość przenoszenia kodu między różnymi urządzeniami należącymi do dużej rodziny Arduino oraz łatwość programowania.
-W celu osiągnięcia tych dwóch celów często poświęcana jest szybkość działania. 
+W celu osiągnięcia tych dwóch założeń często poświęcana jest szybkość działania. 
 
 Dodatkowo platforma Arduino implementuje funkcję których działanie może wpływać na pracę mikrokontrolera nawet bez ich wywoływania. 
 Przykładowo na potrzeby działania funkcji \textit{milis()} konieczna jest specyficzna konfiguracja głównego zegara i cykliczne wywoływanie przerwań w celu implementacji licznika. Powoduje to kolejne spowolnienia działania programów. 
@@ -72,9 +82,9 @@ Dodatkowo bez dostępu do debugera rozwiązywanie problemów pojawiających się
 
 Z tych dwóch powodów rozwiązanie to zostało porzucone i nie wykonano badań w takim układzie. 
 
-\subsection{Rozwiązanie z użyciem dodatkowego układu elektronicznego.}
+\subsection{Rozwiązanie z użyciem dodatkowego układu elektronicznego przy wykorzystaniu frameworku Arduino.}
 
-Wykorzystanie rozwiązania z dodatkowym układem elektroniki przy wykorzystaniu frameworku Arduino. Celem dodatkowego elementu elektronicznego jest ułatwienie odczytu zliczeń przez mikrokontroler oraz zmniejszenie wymaganej częstotliwości zliczeń. 
+W celu osiągnięcia wymaganych założeń projektu zastosowano dodatkowy element elektroniczny mający na celu ułatwienie odczytu zliczeń przez miktrokontroler oraz przeniesienie części z obliczeń na układ elektroniczny.  
 
 \subsubsection{Układ liczników zewnętrznych}
 \label{section licziki}
@@ -84,7 +94,7 @@ W celu rozwiązania problemu wysokiej częstotliwości zliczeń otrzymywanych z 
 
 \begin{figure}[]
         \centering
-        \includegraphics[width=\textwidth]{Elektronika_flow_chart.png}
+        \includegraphics[width=\textwidth]{Elektronika_flow_chart_new.png}
         \caption{Schemat działania układu liczników zewnętrznych i sygnałów kontrolujących}
         \label{licznik flowchart}
 \end{figure}
@@ -92,33 +102,44 @@ W celu rozwiązania problemu wysokiej częstotliwości zliczeń otrzymywanych z 
 Schemat ideowy układu znajduje się na obrazku \ref{licznik flowchart}.
 Na tym schemacie znajdują się sygnały kontrolujące pracę układu. Poniżej zdefiniowane jest nazewnictwo sygnałów na schematach elektronicznych i ich funkcja.  
 \begin{itemize}
-        \item ReadCLC - Sygnał zmiany licznika - pojedynczej przejście stanu z niskiego na wyskoki powoduje wybór kolejnego licznika do odczytu
+        \item ReadCLK - Sygnał zmiany licznika - pojedyncze przejście stanu z niskiego na wysoki powoduje wybór kolejnego licznika do odczytu
         \item RC\_B - Sygnał wyzerowania licznika - stan niski powoduje wyzerowanie liczników i ustawienie układów do stanu początkowego.
-        \item DIS\_S - Sygnał wyboru dyskryminatora - Stan niski powoduje wybranie sygnałów 1A0-7 a wysoki 2A0-7
+        \item DIS\_S - Sygnał wyboru multipleksera - Stan niski powoduje wybranie sygnałów 1A1-8 a wysoki 2A1-8
         \item ENP0-7 - Sygnał wyboru licznika - osiem osobnych linii których stan niski pozwala na wybór licznika do odczytu. Podczas odczytu tylko jeden z sygnałów powinien być w stanie niskim reszta powinna utrzymywać stan wysoki. 
+        \item DOC\_0-3 - Cztery linie (Czterobitowa liczba) łączące płytkę układu elektronicznego z mikrokontrolerem wyjściowym. Ich stan przekazuje w postaci liczby binarnej zawartość aktualnie wybranego licznika.  
 \end{itemize}
-Sygnał otrzymywany przez układ RXHDR\_V1 jest przepuszczany przez translator poziomów w celu zmiany logiki z 0-1.8$V$ do 0-3.6$V$. Następnie z 16 kanałów zostaje wybrane 8, tak opracowane sygnały trafiają na układ liczników.
+Sygnał otrzymywany przez układ RXHDR\_V1 jest przepuszczany przez translator poziomów w celu zmiany logiki z 0-1.8$V$ do 0-3.3$V$. Następnie z 16 kanałów zostaje wybrane 8, tak opracowane sygnały trafiają na układ liczników.
 
 \paragraph{Układ liczników \cite{licznik doc}\cite{slave}}
+
+\begin{figure}[]
+        \centering
+        \includegraphics[width=0.8\textwidth]{licznik_tabela_prawdy.png}
+        \caption{Tabela funkcji licznika binarnego SN74LV161A \cite{licznik doc}}
+        \label{licznik tabela funkcji}
+\end{figure}
 
 4-bitowy binarny licznik SN74LV161A ma 9 wejść logicznych. 
 W tym układzie licznik znajduje się w następującej konfiguracji:
 \begin{itemize}
-        \item $CLC$ - Tu podawany jest sygnał zliczeń i on jest zliczany aż do przepełnienia licznika.
+        \item $CLK$ - Wejście zliczające przychodzące impulsy. Każde narastające zbocze impulsu powoduje zwiększenie wartości przechowywanej w liczniku aż do momentu przepełnienia licznika kiedy to następuje przepełnienie i przechowywana wartość jest zerowana.  
         \item $\overline{CLR}$ - Połączone z linią RC\_B, stan niski powoduje wstrzymanie pracy i wyzerowanie wartości przechowywanych w liczniku. 
         \item $ENT,ENP$ - w celu stabilizacji układu na czas odczytywania wartości chcemy wstrzymać zliczanie, dlatego też ustalamy stan wysoki dla wejścia ENT i wejście ENP łączymy z kanałem ENP0-7 odpowiadającym odpowiedniemu licznikowi.
+        
+        Podczas wyboru licznika (czyli w chwili odczytu wartości przechowywanych w liczniku) ustalana jest wartość niska na odpowiadającym kanale ENP uzyskując stan zablokowania licznika. 
         Sprawia to że wraz z wyborem licznika układ ustala swój stan i nie zmienia go aż do chwili wyboru następnego. 
-        Jest to sposób na uniknięcie niepewności i błędów wynikających z odczytywania zmieniającej się wartości, jednak powoduje to powstanie czasu martwego w układzie podczas którego wartości nie będą zliczane na odczytywanym liczniku.
-        \item $A,B,C,D$ - funkcja ładowania wartości nie jest używana wejścia te są uziemione
-        \item $\overline{LOAD}$ - funkcja ładowania wartości nie jest używana wejście to jest uziemione
+        W ten sposób unikane są niepewności i błędy wynikających z odczytywania zmieniającej się wartości. Niestety skutkiem ubocznym takiego podejścia jest powstanie czasu martwego w układzie podczas którego wartości nie będą zliczane na odczytywanym liczniku.
+        \item $A,B,C,D$ - Wejścia pozwalające ustawić dowolną wartość startową licznika. W przypadku tej pracy wartość wszystkich czterech bitów jest ustawiona na niski stan logiczny.
+        \item $\overline{LOAD}$ - funkcja ładowania wartości, nie jest (używana wejście to jest uziemione).
 \end{itemize} 
+Tabela funkcji dla powyższych wejść 4-bitowego binarnego licznika SN74LV161A znajduje sie na rysunku \ref{licznik tabela funkcji}
 
-Na wyjściu wykorzystane są jedynie linie Q0-3 to one podają binarnie przechowywaną wartość. 
-Tak skonfigurowane liczniki będą zliczać wartości otrzymywane przez wejście $CLC$ aż do osiągnięcia wartości 16 kiedy to licznik zostaje przepełniony i podawana przez niego wartość wraca do 0. 
+W ustalonej konfiguracji wykorzystane są jedynie linie Q0-3 to one podają binarnie przechowywaną wartość. 
+Tak skonfigurowane liczniki będą zliczać wartości otrzymywane przez wejście $CLK$ aż do otrzymania 16-tego impulsu kiedy to licznik zostaje przepełniony i podawana przez niego wartość wraca do 0. 
 
 \paragraph{Układ wyboru sygnału}
 
-Celem tego układu jest zmiana sygnału zmiany licznika na sygnał wyboru licznika. W tym celu wykorzystany jest rejestr przesuwany. 
+Celem tego układu jest przełożenie rosnącego zbocza na lini ReadCLC (sygnał zmiany licznika) na konfigurację zestawu liczników (sygnał wyboru licznika) pozwalającą na odczyt wartości w kolejnym liczniku. W tym celu wykorzystany jest rejestr przesuwany. 
 Wybrany układ służący temu zadaniu to SN74LV164A\cite{shift doc}, jest on szeregowo-równoległym rejestrem co oznacza ze dane wejściowe są dostarczane szeregowo a otrzymywana jest informacja równoległa która jest przesuwana wraz z kolejnymi sygnałami zegara. Dokumentacja rejestru SN74LV164A mówi o dwóch wejściach jednak są one bezpośrednio wyprowadzane na bramkę logiczną AND co sprawia że układ ten spełnia warunek pojedynczego wejścia rejestru szeregowo-równoległego. W konfiguracji tego układu gdzie oba wejścia są ze sobą zwarte, bramka logiczna AND jest ignorowana.
 Schemat układu wyboru licznika znajduje się rysunku \ref{wybor schema}. 
 
@@ -137,10 +158,10 @@ Schemat układu wyboru licznika znajduje się rysunku \ref{wybor schema}.
         \end{multicols} 
 \end{figure}
 
-W celu osiągnięcia efektu pojedynczej wartości logicznej która przesuwa się z każdym rosnącym zboczem sygnału na wejściu rejestru musimy dostarczyć pojedynczy niski, stan podczas pierwszego cyklu pracy, a następnie trzymać stan wysoki aż do chwili potrzeby powtórzenia cyklu. 
-Za pomocą bramek NOR układu SN74LV02A oraz bramek AND układu SN74LV21A osiągamy równanie logiczne:
+W celu osiągnięcia efektu pojedynczej wartości logicznej która przesuwa się z każdym rosnącym zboczem sygnału na wejściu rejestru musimy dostarczyć pojedynczy wysoki stan podczas pierwszego cyklu pracy, a następnie trzymać stan niski aż do chwili potrzeby powtórzenia cyklu. 
+Za pomocą bramek NOR układu SN74LV02A oraz bramek AND układu SN74LV21A ustalonych zgodnie ze schematem na rysunku \ref{wybor schema} osiągamy równanie logiczne:
 \begin{equation}
-        NOROUT = \overline{(QR1*QR2)} + \overline{(QR3*QR4)} + \overline{(QR5*QR6)} + \overline{(QR7*QR8)}
+        NOROUT = \overline{(QR1+QR2)} * \overline{(QR3+QR4)} * \overline{(QR5+QR6)} + \overline{(QR7+QR8)}
 \end{equation}
 Gdzie:
 \begin{itemize}
@@ -154,38 +175,29 @@ Gdzie:
         \label{shift sygnal}
         \begin{tabular}{lccccccccc}
                 Czas &$QR1$&$QR2$&$QR3$&$QR4$&$QR5$&$QR6$&$QR7$&$QR8$  &NOROUT\\ \hline     
-                T1&H&H&H&H&H&H&H&H &L\\
-                T2&L&H&H&H&H&H&H&H &H\\
-                T3&H&L&H&H&H&H&H&H &H\\
-                T4&H&H&L&H&H&H&H&H &H\\
-                T5&H&H&H&L&H&H&H&H &H\\
-                T6&H&H&H&H&L&H&H&H &H\\
-                T7&H&H&H&H&H&L&H&H &H\\
-                T8&H&H&H&H&H&H&L&H &H\\
-                T9&H&H&H&H&H&H&H&L &H\\
-                T10&H&H&H&H&H&H&H&H &L\\
+                T1&L&L&L&L&L&L&L&L &H\\
+                T2&H&L&L&L&L&L&L&L &L\\
+                T3&L&H&L&L&L&L&L&L &L\\
+                T4&L&L&H&L&L&L&L&L &L\\
+                T5&L&L&L&H&L&L&L&L &L\\
+                T6&L&L&L&L&H&L&L&L &L\\
+                T7&L&L&L&L&L&H&L&L &L\\
+                T8&L&L&L&L&L&L&H&L &L\\
+                T9&L&L&L&L&L&L&L&H &L\\
+                T10&L&L&L&L&L&L&L&L &H\\
         \end{tabular}
 \end{table}
 
-Sekwencja sygnału pokazana jest w tabeli \ref{shift sygnal}. Na tej wizualizacji widać że gdyby w konfiguracji zastąpić linię $QR8$ połączeniem do zasilania możliwe byłoby ograniczenie liczby sekwencji w cyklu do 8. Jednak dzięki tej pojedynczej sekwencji gdy żaden z liczników nie jest odczytywany otrzymujemy cykl podczas którego żaden z liczników nie jest zablokowany i wszystkie kontynuują liczenie. 
+Sekwencja sygnału pokazana jest w tabeli \ref{shift sygnal}. Na tej wizualizacji widać że gdyby w konfiguracji zastąpić linię $QR8$ połączeniem do stanu logicznego niskiego (uziemienia) możliwe byłoby ograniczenie liczby sekwencji w cyklu do 8. Jednak dzięki tej pojedynczej sekwencji gdy żaden z liczników nie jest odczytywany otrzymujemy cykl podczas którego żaden z liczników nie jest zablokowany i wszystkie kontynuują liczenie. 
 
 W ten sposób otrzymywany sygnał następnie jest negowany przez układ SN74LV540 i dostarczany do multipleksera pokazanego na rysunku \ref{licznik}.
-Tu zestaw wzmacniaczy operacyjnych sprawia ze tylko tylko licznik dla odpowiadającego sygnału ENP o niskim stanie ustala stan na zewnętrznych wyjściach. 
+
+Zgodnie z tabelą funkcji \ref{licznik tabela funkcji} oraz schematem na rysunku \ref{licznik} można stwierdzić że stan niski ENP0-7 powoduje konfigurację licznika powodująca wstrzymanie zliczania oraz wyprowadzenie wyjścia tego licznika na linie odczytu mikrokontrolera. Przeciwny stan (wysoki) lini ENP0-7 powoduje przywrócenie funkcji zmiany wartości przechowywanej w liczniku i oddziela stan licznika od lini wyjściowych. 
+
+Funkcję odcięcia stanu licznika od lini DOC\_0-3 uzyskiwany jest poprzez użycie cyfrowych bramek buforujących umieszczonych w układzie  SN74LV125APWR \cite{buffer}.
+ 
 
 \paragraph{Czas martwy i szybkość odczytu układu licznika}
-
-\begin{figure}
-        \includegraphics[width=\textwidth]{scope_1.png}
-        \includegraphics[width=\textwidth]{scope_2.png}
-        \caption{Rzuty ekranu z oscyloskopu podłączonego do płytki. 
-        Impulsy wejściowe (żółte) są wprowadzane na jeden z kanałów. 
-        Sygnał D0-3 pokazuje binarne zliczanie na danym kanale. 
-        Na górnym zrzucie widać że w przypadku nie zarejestrowania następnego sygnału wyjście dla kanału się powtarza. 
-        Na dolnym obrazku widoczny jest impuls trafiający na czas martwy będący chwilą odczytu wartości z kanału.
-        Następuje przeskok z wartości $1101_{2}$ ($13_{10}$) na $0001_{2}$ ($1_{10}$) mimo faktu że wystąpiło 5 impulsów.
-        }
-        \label{Oscyloskop}
-\end{figure}
 
 Podczas odczytu licznika informacja o zliczeniach zostaje tracona oznacza to że układ ten generuje czas martwy. 
 Procentowa długość tego czasu może być wyznaczona na podstawie wzoru:
@@ -214,6 +226,7 @@ Dla podanych wymagań: 2.5 miliona zliczeń na sekundę, można wyliczyć że su
 Oznacza to że sekwencja odczytu powinna zmieścić się w 504 cyklach procesora. 
 
 \subsubsection{Oprogramowanie mikrokontrolera}
+\label{oprogramowanie mikrokontrolera}
 
 Zadaniem mikrokontrolera jest odebranie danych z układu wspomagającego w czasie uniemożliwiającym przepełnienie liczników i wysłanie sformatowanych danych na komputer zewnętrzy. 
 
@@ -222,10 +235,10 @@ W celu utworzenia funkcjonującego układu akwizycji zliczeń konieczne jest po�
 
 Dodatkowo wymagane jest połączenie z płytką zewnętrzną. Konieczne połączenia to:
 \begin{itemize}
-        \item Połączenia $DOC\_0-4\_ext$ w domyślnej konfiguracji powinny być połączone z wyjściami arduino o pinach 33-36 - są to wyjścia liczników.
+        \item Połączenia $DOC\_0-3\_ext$ w domyślnej konfiguracji powinny być połączone z wyjściami arduino o pinach 33-36 - są to wyjścia liczników.
         \item $ReadCLC$ - arduino pin 25 - wyjście sygnału zmiany licznika
         \item $RC\_B\_ext$ - arduino pin 26 - wyjście sygnału resetu liczników 
-        \item $DIS\_S\_ext$ - arduino pin 27 - wyjście sygnału wyboru dyskryminatora
+        \item $DIS\_S\_ext$ - arduino pin 27 - wyjście sygnału wyboru multipleksera
         \item $LOW\_RATE\_ext$ - arduino pin 28 - wyjście sygnału dla części analogowej układu wyboru LOW\_RATE
         \item $ENBLR\_ext$ - arduino pin 30 - wyjście sygnału dla części analogowej układu wyboru ENBLR 
         \item Dodatkowo koniecznie jest ustalenie wspólnego uziemienia w celu stabilizacji poziomów logicznych.
@@ -240,10 +253,10 @@ Dane otrzymywane z zewnętrznego układu elektronicznego (dział \ref{section li
 Dzięki tej formie prezentacji danych po odczytaniu stanów logicznych na urządzeniu peryferyjnym i odpowiednim przesunięciu logicznym w prosty sposób otrzymujemy wartość na liczniku. 
 Podejście to jednak wymaga specyficznego połączenia oraz uwzględnienia potencjalnego przepełnienia licznika. 
 
-W jednym cyklu akwizycji zostaje wybierany pierwsze osiem liczników 1A0-7 następnie przez czas akwizycji, korygowanej o czas martwy, zbierane są dane z liczników i dodawane do miejsca w tablicy odpowiadającemu odpowiedniemu licznikowi, następnie zmieniana jest ósemka badanych liczników i proces ponownie jest powtarzany. 
+W jednym cyklu akwizycji zostaje wybierany pierwsze osiem liczników 1A1-8 następnie przez czas akwizycji, korygowanej o czas martwy, zbierane są dane z liczników i dodawane do miejsca w tablicy odpowiadającemu odpowiedniemu licznikowi, następnie zmieniana jest ósemka badanych liczników i proces ponownie jest powtarzany. 
 
 Proces akwizycji danych musi być bardzo dokładnie kontrolowany pod względem czasu wykonania.
-Czas pobierania danych jest regulowany przez ilość pętli Podczas których dokonywana jest akwizycja danych. 
+Czas pobierania danych jest regulowany przez ilość pętli podczas których dokonywana jest akwizycja danych. 
 Przykład tej pętli znajduje się w fragmencie kodu \ref{code aqw}.
 
 \begin{kod}
@@ -252,12 +265,12 @@ Przykład tej pętli znajduje się w fragmencie kodu \ref{code aqw}.
         \label{code aqw}
 \end{kod}
 
-Jak widać ilość iteracji jest ustalana przez wymagany czas w milisekundach po korekcjach o czas martwy licznika oraz z uwzględnieniem ilości czasu przypadającego na pojedynczą pętlę. 
+Jak widać ilość iteracji jest ustalana przez wymagany czas w milisekundach po korekcjach o czas martwy licznika oraz z uwzględnieniem ilości czasu przypadającego na pojedynczą pętlę (kod \ref{code aqw} linia 1). 
 Warunkiem koniecznym takiego podejścia jest stały czas wykonywania iteracji pętli. 
 Różnice w czasie mogą być powodowane przez operacje dostępu do pamięci kiedy to w różnych iteracjach stosujemy dostęp do pamięci a w innych wykorzystujemy wcześniej przygotowane rejestry.
 Drugim powodem mogą być rozwidlenia pracy programu, sytuacje kiedy przebieg programu jest uwarunkowany wynikiem jakiegoś warunku i dwie drogi potrzebują różną ilość cykli procesora na wykonanie. 
 W celu analizy takich sytuacji przydatna jest analiza skompilowanego kodu c do kodu asemblera.
-Fragment krytycznej części programu jest przedstawiony w wycinku kodu \ref{asembly}.
+Fragment krytycznej części programu (kod \ref{code aqw} linie 3-25) jest przedstawiony w wycinku kodu \ref{asembly}.
 
 \begin{kod}
         \lstinputlisting[language={[Motorola68k]Assembler},firstline=30, lastline=48]{code_source/asembler/loop_final.S}
@@ -266,18 +279,18 @@ Fragment krytycznej części programu jest przedstawiony w wycinku kodu \ref{ase
 \end{kod}
 
 Po analizie kodu \ref{asembly} można stwierdzić że nie zdarza się sytuacja żeby w różnych iteracjach występowała różna ilość dostępów do pamięci.
-Jak widać w fragmencie programu \ref{code aqw} w przypadku wystąpienia przepełnienia licznika konieczne jest dodanie wartości pełnego licznika do otrzymanej liczby. 
+Jak widać w fragmencie programu \ref{code aqw} linie 16-21 w przypadku wystąpienia przepełnienia licznika konieczne jest dodanie wartości pełnego licznika do otrzymanej liczby. 
 Powoduje to że wymagana jest dodatkowa instrukcja add.
 
-Jednak proces warunkowego dodania jest realizowany przez specyficzną instrukcję it.
+Jednak proces warunkowego dodania jest realizowany przez specyficzną instrukcję it (kod \ref{asembly} linie 10-14).
 Należy ona do zestawu instrukcji Thumb®-2 i pozwala na uniknięcie problemów wynikających z warunkowej zmiany biegu programu dla krótkich instrukcji. 
 Zgodnie z dokumentacją\cite{cycles} cortex-M3 czas potrzebny na wykonanie tej instrukcji to jeden cykl procesora, jednak jest sprecyzowane że instrukcja może być dołączona do następnej instrukcji pozwalając na wykonanie w tym samym czasie co następna komenda.
-Tak się dzieje w przypadku spełnienia warunku gt (eng. greater then - większy niż) poprzedniej instrukcji cmp. Jednak jeżeli warunek ten nie zostaje spełniony to ewaluacja instrukcji it zwiększa się do jednego cyklu i przechodzi do warunku else (druga instrukcja w kolejności).
+Tak się dzieje w przypadku spełnienia warunku gt (ang. greater then - większy niż) poprzedniej instrukcji cmp (linie 9-10). Jednak jeżeli warunek ten nie zostaje spełniony to ewaluacja instrukcji it zwiększa się do jednego cyklu i przechodzi do warunku else (druga instrukcja w kolejności).
 Cały ten proces sprawia że tak samo w przypadku spełniania warunku gt jak i w przypadku niezgodności ten fragment kodu wymaga dwóch cykli procesora.
 $$it(1c) + rsb(1c) = it(0c) + add(1c) + rsb(1c)$$
 
 Dodatkowym wymogiem jest stały czas wykonywania pętli dla wszystkich kanałów. Gdyby któryś z kanałów różnił się czasem przebiegu również różniłby się czasem martwym dla konkretnego kanału. Powodowałoby to różna wydajność. 
-Analiza na oscyloskopie dowiodła że czas blokowania licznika dla ostatnich kanałów (8,16) jest krótszy niż czas dla pozostałych przypadków. Dlatego też w celu korekcji tej różnicy po zakończeniu pętli przed wkroczeniem do pustego cyklu umieszczone zostały puste instrukcje NOP które regulują długość czasu martwego dla tych kanałów. 
+Analiza na oscyloskopie dowiodła że czas blokowania licznika dla ostatnich kanałów (8,16) jest krótszy niż czas dla pozostałych przypadków. Dlatego też w celu korekcji tej różnicy po zakończeniu pętli (kod \ref{code aqw} linia 27) przed wkroczeniem do pustego cyklu umieszczone zostały puste instrukcje NOP które regulują długość czasu martwego dla tych kanałów. 
 
 
 \paragraph{Komunikacja z komputerem zewnętrznym}
@@ -354,7 +367,7 @@ Szczegółowe zadania programu to:
         \item Archiwizacja danych pomiarowych w wybranym formacie danych.
 \end{itemize}
 
-Program podzielony jest na dwie zależne od siebie części. Fasadę (eng. front-end) zawierającą graficzny interfejs użytkownika (eng. GUI) oraz wnętrze (eng. back-end).
+Program podzielony jest na dwie zależne od siebie części. Fasadę (ang. front-end) zawierającą graficzny interfejs użytkownika (ang. GUI) oraz wnętrze (ang. back-end).
 
 \paragraph{Wnętrze}
 
@@ -362,17 +375,8 @@ Głównym celem tej części programu jest komunikacja z mikrokontrolerem.
 W tym celu wykorzystywana jest biblioteka PySerial\cite{pyserial} pozwalająca na łatwą obsługę portu szeregowego USB. 
 
 By umożliwić jednoczesną wizualizację danych wraz z odbieraniem informacji z mikrokontrolera konieczna była implementacja wątku zajmującego się ciągłym odbiorem danych. 
-Dlatego też jedyny cel funkcji \textit{back\_end\_deamon} jest nasłuchiwanie w ciągłej pętli oraz zapisywanie danych w logu komunikacyjnym. 
-Na podstawie klasy tego logu wątek główny programy okresowo aktualizuje klasę \textit{CountRateData} która jest wykorzystywana przez fasadę w celu wizualizacji. 
-
-Schemat elementów programu wraz z mutexami które chronią przed błędami jednoczesnego dostępu zwizualizowane są na rysunku \ref{program zapotrzebowanie}.
-
-\begin{figure}
-        \centering
-        \includegraphics[width=0.65\textwidth]{Schemat_zapotrzebowania.png}
-        \caption{Schemat zapotrzebowania na zasoby przez elementy programu}
-        \label{program zapotrzebowanie}
-\end{figure}
+Dlatego też jedyny cel funkcji \textit{back\_end\_deamon} jest nasłuchiwanie w ciągłej pętli oraz zapisywanie danych w logu komunikacyjnym (\textit{RawLogClass}). 
+Na podstawie klasy tego logu wątek główny programu okresowo aktualizuje klasę \textit{CountRateData} która jest wykorzystywana przez fasadę (\textit{gui\_module}) w celu wizualizacji. 
 
 Klasa \textit{CountRateData} oprócz przetrzymywania danych o zliczeniach dla każdego kanału również zawiera informacje o czasie akwizycji, dzięki temu możliwe jest przekazywanie informacji do wizualizacji już jako częstotliwości zliczeń. 
 
@@ -380,7 +384,16 @@ Dodatkową funkcjonalnością programu jest możliwość przeprowadzenia pojedyn
 Funkcja ta pozwala na wizualizację w postaci wykresu słupkowego pojedynczego badania w przeciwieństwie do domyślnego układu wizualizacji który jest stale aktualizowany. 
 W celu przeprowadzenia takiego pomiaru wątek \textit{get\_ss\_mesurements} zamyka mutexy odpowiedzialne za port seryjny oraz Klasę logu. 
 Tym sposobem wstrzymywane są inne funkcje programu aż do zakończenia pomiaru \textit{Single Shoot}.
-Pomiar kończy się komendą wstrzymania pracy licznika pozwalając na zmianę konfiguracji przed kolejnymi pomiarami.  
+Pomiar kończy się komendą wstrzymania pracy licznika pozwalając na zmianę konfiguracji przed kolejnymi pomiarami. Informacje konfiguracyjne znajdują się w instancji klasy \textit{ConfigurationData}. Zadaniem fasady jest zmiana wartości pól tej klasy w chwili gdy użytkownik wprowadzi nowe parametry pomiarów. 
+
+Schemat elementów programu wraz z mutexami które chronią przed błędami jednoczesnego dostępu zwizualizowane są na rysunku \ref{program zapotrzebowanie}.
+\begin{figure}
+        \centering
+        \includegraphics[width=0.65\textwidth]{Schemat_zapotrzebowania.png}
+        \caption{Schemat zapotrzebowania na zasoby przez elementy programu}
+        \label{program zapotrzebowanie}
+\end{figure}
+
 
 Dane pomiarowe są zapisywane w chwili gdy: Program zostanie zamknięty, wciśnięty zostanie guzik \textit{force save}, lub minie czas auto zapisu ustawiany w interfejsie użytkownika. 
 
@@ -422,7 +435,23 @@ Gotowy interfejs graficzny widoczny jest na rysunku \ref{Gui pic}. Jest on podzi
         \item Single Shot - Zakładka odpowiedzialna za przeprowadzenie pojedynczego badania.
 \end{itemize}
 
-Za interfejs użytkownika odpowiedzialny jest główny wątek programu, instancje klasy QTimer\cite{doc pyqt} generują one sygnały aktualizujące dane licznika oraz stgnały aktualizacji wykresu zliczeń. 
+Za interfejs użytkownika odpowiedzialny jest główny wątek programu, instancje klasy QTimer\cite{doc pyqt} generują one sygnały aktualizujące dane licznika oraz sygnały aktualizacji wykresu zliczeń. 
+
+Główny moduł zwany \textit{gui\_module} zapisuje informacje konfiguracyjne w instancji klasy \textit{ConfigurationData} która następnie jest wykorzystywana w komunikacji z mikrokontrolerem. Następujące parametry badania mogą być zmieniane:
+\begin{itemize}
+        \item Acquisision time (czas akwizycji) - przeliczany na ilość iteracji pętli czas akwizycji zliczeń. Czas ten podawany jest w milisekundach.
+        \item Nr of averages (ilość uśrednień) - Jedną z funkcjonalności programu jest uśrednienie danych przed ich wizualizacją. Wartość tej liczby mówi jak dużo danych akwizycji zostanie użytych przed uśrednieniem wartości i wizualizacją. Liczba ta nie wpływa na dane zapisywane w plikach danych pomiarowych.
+        \item Auto save period [mm:ss] (częstotliwość automatycznego zapisu) - czas w podany w formacie [minuty:sekundy] po którym nastąpi automatyczne zapisanie danych. 
+        \item Data location (ścieżka danych) - ścieżka pod którą będzie umieszczony folder z danymi. 
+        \item Data save type (typ zapisu) - wybór zapisu danych w formacie JSON lub CSV.
+        \item Arduino port (nazwa portu) - lista pozwalająca wybrać port szeregowy USB do którego podłączony został mikrokontroler. 
+        \item Kontrola integratora 
+        \begin{itemize}
+                \item LOW Rate - ustalenie logicznej wartości lini LOW\_RATE układu RXHDR
+                \item ENBLR - ustalenie logicznej wartości lini ENBLR układu RXHDR
+        \end{itemize} 
+\end{itemize}
+
 Do generowania grafik zastosowana została biblioteka matplotlib\cite{doc matplotlib}. 
 
 Przy wykresach znajduje się pole które po odznaczeniu pozwala na wizualizację danych w logarytmicznej sali częstotliwości zliczeń. Dodatkowo dodano funkcjonalność pozwalającą na odświeżenie wykresów i generację wizualizacji od nowa.

@@ -2,10 +2,10 @@
 
 Poniżej umieszczone są wyniki badań z zastosowaniem użytych rozwiązań. 
 
-\subsection{Rozwiązanie softwarowe na platformie Arduino}
+\subsection{Rozwiązanie programowe na platformie Arduino}
 
 Przeprowadzono testy polegające na bezpośrednim zliczaniu sygnałów generowanych przez generator zewnętrzy. 
-Napięciem, kształtem oraz długością odpowiadały tym produkowanym przez układ RXHDR\_V1 \cite{master}.
+Impulsy napięciowe z generatora kształtem oraz długością odpowiadały tym produkowanym przez układ RXHDR\_V1 \cite{master}.
 
 Przeprowadzono po pięć badań na każdą częstotliwość i wyliczono błąd względem spodziewanego wyniku. 
 Czas akwizycji ustalono na jedną sekundę sprawiając że liczba spodziewanych zliczeń jest równa częstotliwości generowanych sygnałów.
@@ -78,10 +78,45 @@ Dodatkowe testy potwierdziły że wraz z zwiększeniem ilości badanych kanałó
 Dane do poniższych wyników zostały uzyskane przez analizę plików archiwalnych otrzymywanych przy działaniu programu do kontroli układu.
 Pliki te są przechowywane w formacie JSON.
 
-Analiza sygnałów na została dokonana na oscyloskopie keysight 3024A. Generator sygnałów używany w układzie badawczym to generator tektonix AFG3102.
+Analiza sygnałów na została dokonana na oscyloskopie Keysight 3024A. Generator sygnałów używany w układzie badawczym to generator Tektonix AFG3102.
 
-Sygnał używany do symulowania impulsów układu RXHDR\_v1 miał własności: 1.8V, kształt prostokątny, impuls o szerokości 50 us.
+Sygnał używany do symulowania impulsów układu RXHDR\_v1 miał własności: 1.8V, kształt prostokątny, impuls o szerokości 50 ns.
 
+
+\subsubsection{Test układu liczników przy użyciu oscyloskopu}
+
+\begin{figure}
+        \includegraphics[width=\textwidth]{scope_1.png}
+        \includegraphics[width=\textwidth]{scope_2.png}
+        \caption{Rzuty ekranu z oscyloskopu podłączonego do płytki. 
+        Impulsy wejściowe (żółte) są wprowadzane na jeden z kanałów. 
+        Sygnał D0-3 pokazuje binarne zliczanie na danym kanale. 
+        Na górnym zrzucie widać że w przypadku nie zarejestrowania następnego sygnału wyjście dla kanału się powtarza. 
+        Na dolnym obrazku widoczny jest impuls trafiający na czas martwy będący chwilą odczytu wartości z kanału.
+        Następuje przeskok z wartości $1101_{2}$ ($13_{10}$) na $0001_{2}$ ($1_{10}$) mimo faktu że wystąpiło 5 impulsów.
+        }
+        \label{Oscyloskop}
+\end{figure}
+
+Przed przystąpieniem do badania pełnego układu (RXHDR, układ liczników, mikrokontroler, komputer kontrolujący) przeprowadzono test elektroniki z minimalnym wpływem kodu na wynik. 
+
+Układ badawczy składał się z układu liczników  otrzymującego sygnały z generatora charakterystyką odpowiadającym tym z układu RXHDR, oscyloskop oraz Arduino Duo nadający sygnały zmiany licznika (\textit{read\_CLK}) oraz wyboru multiplexera. Generowany sygnał był dostarczany na pojedyńczy kanał układu liczników. 
+Oscyloskop analizował wyjście z generatora oraz sygnał zmiany licznika, dodatkowo za pomocą cyfrowego analizatora poziomów wizualizował wyjścia DOC\_0-3 (Stan wybranego licznika).
+
+Powyższy układ badawczy pozwalał na potwierdzenie funkcjonalności układu elektronicznego oraz:
+\begin{itemize}
+        \item Wyznaczyć czas odczytu licznika równy $\sim 0.3$us.
+        \item Potwierdzić istnienie zjawiska:
+        \begin{itemize}
+                \item breaku zliczenia impulsu podczas odczytu licznika,
+                \item przepełnienia licznika,
+                \item synchronizacji płytki z mikrokontrolerem (powtórzenie stanu licznika co 9 cykli), 
+                \item utrzymania wartości licznika między odczytami dla sytuacji gdy sygnał z generatora nie wystąpił między wyborem licznika.
+        \end{itemize}  
+        \item Stwierdzić różnicę w czasie blokowania licznika dla kanałów 8 i 16. W ten sposób dopasowano ilość pustych funkcji koniecznych do wyrównania czasu martwego dla każdego z kanałów (dział \ref{oprogramowanie mikrokontrolera}).
+\end{itemize} 
+
+Przykładowe rzuty z tego testu znajdują się na rysunku \ref{Oscyloskop}. Na tych rzutach wartości D0-3 odpowiadają kolejno wartościom kanałów DOC\_0-3. Oznacza to że wartości logiczne dla tych kanałów prezentują liczbę binarną będącą wartością na liczniku. Sygnał koloru zielonego jest sygnałem zmiany licznika (\textit{readCLC}), rosnące zbocze tego impulsu powoduje przełączenie na odczyt kolejnego licznika. Ponieważ tylko jeden z liczników otrzymuje sygnał tylko co 9 impuls (8 liczników i jeden cykl pusty) powoduje sygnał na liniach DOC\_0-3.
 
 \subsubsection{Kalibracja układu}
 \label{section kaliblracja}
@@ -90,16 +125,16 @@ Przed przystąpieniem do końcowych testów układu konieczne jest przeprowadzen
 Oczekiwanym efektem jest regulacja czasu akwizycji w taki sposób że liczba zliczeń będzie odpowiadać ilości impulsów która powinna być uzyskana w czasie akwizycji przez układ bez czasu martwego. 
 
 Zbadano okres jednego cyklu pomiaru (8 kanałów) i uzyskano czas cyklu równy $4.52 \mu s$. Taki cykl jest widoczny na rysunku \ref{Oscyloskop}.
-Na podstawie czasu liczby można wyliczyć ilość cykli akwizycji przypadających na pojedyńcza mikrosekundę.
+Na podstawie czasu liczby można wyliczyć ilość cykli akwizycji przypadających na pojedyńcza mikrosekundę. Obliczenie ilości cykli przypadających na 1ms konieczne do ustalenia wartości zmiennej\textit{CIRCLES\_FOR\_1MS} umieszczone jest poniżej:
 
 \begin{equation}
         \label{per cykl}
         CIRCLES\_FOR\_1MS = \frac{1*10^{-3}}{4.52 * 10^{-6}} = 221.238938053
 \end{equation}
 
-Korzystając z tej wartości i wartości współczynnika korekcji czasu martwego równego 1 przeprowadzono badania zależności częstotliwości podawanej z generatora do częstotliwości zliczeń dla różnych czasów akwizycji.  
+Korzystając z tej wartości i wartości współczynnika korekcji czasu martwego równego 1.0 przeprowadzono badania zależności częstotliwości podawanej z generatora do częstotliwości zliczeń dla różnych czasów akwizycji.  
 
-Układ badawczy składał się z komputera, Arduino due, badanego układu elektronicznego, taśmy transmisyjnej, oscyloskopu, generatora impulsów, zasilacza. 
+Układ badawczy składał się z komputera, Arduino Due, badanego układu elektronicznego, taśmy transmisyjnej, oscyloskopu, generatora impulsów, zasilacza. 
 
 Przeprowadzono trzy badania dla 10 częstotliwości dla 2 czasów akwizycji. Na podstawie tych danych przeprowadzono fitowanie krzywej $f(x) = a*x$ wyniki fitowania umieszczone zostały w tabeli poniżej.
 
@@ -116,7 +151,7 @@ Przeprowadzono trzy badania dla 10 częstotliwości dla 2 czasów akwizycji. Na 
         \end{tabular}
 \end{table}
 
-Na podstawie powyższych danych ustalono wartość współczynnika DEAD\_TIME\_CORECTION równe:
+Na podstawie powyższych danych ustalono wartość stałej DEAD\_TIME\_CORECTION równe:
 \begin{equation}
         \label{dead time eq}
         DEAD\_TIME\_CORECTION = \frac{1}{\sum^n_i \frac{a_i}{n}} = 1.13636
@@ -185,7 +220,7 @@ Gdzie:
 \begin{description}
         \item $A_{t_{max}}$ - maksymalny czas akwizycji ze względu na efekt przepełnienia liczby 32 bitowej
         \item $N_{max}$ - maksymalna wartość liczby 32 bitowej
-        \item $f_{max}$ - maksymalna częstotliwość układu liczników
+        \item $f_{max}$ - maksymalna częstotliwość impulsów detekcyjnych przypadająca na pojedynczy kanał
 \end{description}
 
 Wartość ta jest absurdalnie duża i nieprzydatna ponieważ przez cały czas akwizycji mikorkontroler jest nieresponsywny dlatego też komputer kontrolujący już po 5 s od wysłania zapytania zakłada że na kontrolerze wystąpił błąd i rozpoczyna proces wysyłania zapytań w celu zbadania problemu. Sprawia to że ze względu tą decyzję maksymalna wartość czasu akwizycji równa się 10 s. Jeżeli konieczne jest zwiększenie tej liczby należy zwiększyć wartość zmiennej WAIT\_FOR. Problem ten nie dotyczy funkcjonalności \textit{Single Shoot}.   
@@ -193,16 +228,16 @@ Wartość ta jest absurdalnie duża i nieprzydatna ponieważ przez cały czas ak
 \subsubsection{Testowanie układu liczników za pomocą generatora zewnętrzego.}
 
 Przy użyciu współczynników otrzymanych w dziale \ref{section kaliblracja} oraz układu badawczego odpowiadającemu temu z działu \ref{section kaliblracja} przeprowadzono test układu z wykorzystaniem dzielnika pozwalającego na dostarczenie sygnałów impulsów, odpowiadającym tym generowanym przez układ RXHDR\_V1, do wszystkich kanałów jednocześnie.
-Badanie przeprowadzono dla 10 częstotliwości od 100Hz do 3.2Mhz. Czas akwizycji badania był równy 1s dzięki czemu liczba zliczeń odpowiada liczbie zliczeń. Uśrednione wartości wyników dla wybranych kanałów znajdują się w tabeli \ref{tabela wyniki surowe}.
+Badanie przeprowadzono dla 10 częstotliwości od 100Hz do 3.2MHz. Czas akwizycji badania był równy 1s dzięki czemu liczba zliczeń odpowiada częstotliwości sygnału z generatora. Uśrednione wartości wyników dla wybranych kanałów znajdują się w tabeli \ref{tabela wyniki surowe}.
 
 \begin{figure}
         \begin{multicols}{2}
-            \includegraphics[width=0.5\textwidth]{HM1KHz.jpg} \par    
-            \includegraphics[width=0.5\textwidth]{HM1MHz.jpg} \par    
+            \includegraphics[width=0.5\textwidth]{hist/hist1.jpg} \par    
+            \includegraphics[width=0.5\textwidth]{hist/hist2.jpg} \par    
         \end{multicols} \hfill
         \begin{multicols}{2}
-            \includegraphics[width=0.5\textwidth]{H1A532KHz.jpg} \par
-            \includegraphics[width=0.5\textwidth]{H1A81KHz.jpg} \par    
+            \includegraphics[width=0.5\textwidth]{hist/hist3.jpg} \par
+            \includegraphics[width=0.5\textwidth]{hist/hist4.jpg} \par    
         \end{multicols}
         \caption{Histogramy rozrzutu zliczeń dla wybranych kanałów i częstotliwości}
         \label{hist licz}
@@ -336,11 +371,11 @@ odchylenie standardowe wyników jest równe  $3.94 * 10^{-5}$.
 
 Układ badawczy składał się z komputera, Arduino due, badanego układu elektronicznego, taśmy transmisyjnej, oscyloskopu, generatora impulsów, zasilacza, układu RXHDR\_V1, zasilacza wysokiego napięcia. 
 
-Układ RXHDR\_v1 połączony z zestawem liczników buforujących został zasilony napięciem 3.6V oraz 1.8V a detektor został spolaryzowany przez zasilacz wysokiego napięci napięciem 300V. Następnie zestaw ten został połączony z Arduino Due i komputerem kontrolującym. 
+Układ RXHDR\_v1 połączony z zestawem liczników buforujących został zasilony napięciem 3.3V oraz 1.8V a detektor został spolaryzowany poprzez zasilacz wysokiego napięcia wartością 300V. Następnie zestaw ten został połączony z Arduino Due i komputerem kontrolującym. 
 
-Generator połączony z wejściem testowym układu RXHDR\_V1 generował sygnał prostokątny o napięciu 0.3V i częstotliwości 100KHz. 
+Generator połączony z wejściem testowym układu RXHDR\_V1 generował sygnał prostokątny o napięciu 0.3V i częstotliwości 100kHz. 
 
-Pomiar polegał na akwizycji danych (1000ms) dla różnych napięć dyskryminatora w celu utworzenia krzywej S. Wykresy tych pomiarów umieszczone zostały na wykresach \ref{s curve test}. Na podstawie tych wykresów przeprowadzono dopasowanie metodą najmniejszych kwadratów krzywej s.
+Pomiar polegał na akwizycji danych (1000ms) dla różnych napięć dyskryminatora w celu utworzenia krzywej S. Krzywe tych pomiarów umieszczone zostały na wykresach \ref{s curve test}. Na podstawie tych wykresów przeprowadzono dopasowanie metodą najmniejszych kwadratów krzywej s.
 
 \begin{figure}
         \centering
@@ -372,7 +407,7 @@ Dopasowywane współczynniki to $f_g$, $\overline{x}$ oraz $\sigma$. Na podstawi
 Gdzie:
 \begin{description}
         \item $ENC$  - równoważny ładunek szumowy,
-        \item $E_{(-,+)}$ - energia wymagana na wytworzenie pary dziura/elektron w krzemie,
+        \item $E_{(-,+)}$ - energia potrzebna na wytworzenie pary dziura/elektron w krzemie (3.6eV),
         \item $\overline{x}$ - poziom dyskryminacji odpowiadający średniej amplitudzie impulsów (peak position) dla źródła ${}^{55}Fe$ (dział \ref{section RXHDR fe})
         \item $E_{fe}$ -  energia deponowana w krzemie przez źródło ${}^{55}Fe$
 \end{description}
@@ -425,7 +460,7 @@ Wartości tych współczynników znajdują się w tabeli \ref{tabela wsp test} a
 \subsubsection{Testowanie układu liczników przy użyciu układu RXHDR\_V1 oraz żródła promieniotwórczego}
 \label{section RXHDR fe}
 
-Przeprowadzono badanie analogicznie do tych w dziale \ref{section RXHDR test}, jednak zamiast impulsów wprowadzanych na wejście testowe układu RXHDR\_V1 sygnał generowany był przez źródło promieniotwórcze ${}^{55}fe$ ustawione bezpośrednio nad oknem detektora. 
+Przeprowadzono badanie analogicznie do tych w dziale \ref{section RXHDR test}, jednak zamiast impulsów wprowadzanych na wejście testowe układu RXHDR\_V1 sygnał generowany był przez źródło promieniotwórcze ${}^{55}Fe$ ustawione bezpośrednio nad oknem detektora. 
 
 Wykresy zależności napięcia dyskryminatora względem liczby zliczeń umieszczone zostały na wykresie \ref{s curve fe}. 
 

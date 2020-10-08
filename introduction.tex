@@ -56,14 +56,14 @@ Poprzez zmianę napięcia dyskryminacji w dyskryminatorze i jednoczesnym  pomiar
 
 \begin{equation}
         \label{wste krzywa s}
-        S(x) = \frac{f_g}{2} * erf^{-1}(\frac{U_{th}-\overline{x}}{\sigma*\sqrt{2}})
+        S(U_{th}) = \frac{f_g}{2} * erf^{-1}(\frac{U_{th}-\overline{U_{th}}}{\sigma*\sqrt{2}})
 \end{equation}
 Gdzie:
 \begin{description}
         \item $f_g$ - częstotliwość zdarzeń,
         \item $erf^{-1}$ - odwrotna funkcja błędu gdzie: $erf^{-1}(x) = 1 - \frac{2}{\sqrt{\pi}} \int^x_0 exp(-t^2)dt $
         \item $U_{th}$ - napięcie dyskryminatora,
-        \item $\overline{x}$ - poziom dyskryminacji odpowiadający średniej amplitudzie impulsów (peak position) wartość ta odpowiada energii sygnału, 
+        \item $\overline{U_{th}}$ - poziom dyskryminacji odpowiadający średniej amplitudzie impulsów (peak position) wartość ta odpowiada energii sygnału, 
         \item  $\sigma$ - wartość niepewności odpowiadająca wartości szumowej układu. 
 \end{description}
 
@@ -80,8 +80,8 @@ Dopasowanie krzywej s do zbadanej charakterystyki układu pozwala na wyciągniec
 
 \paragraph{RCS}
 (ang. \textit{relative charge sharing})
-Dodatkowym elementem nieuwzględnianym we wzorze \ref{wste krzywa s} jest efekt podziału ładunku dla detektorów pozycjoczułych. Występuje on w chwili gdy miejscem oddziaływania fotonu jest obszar między sąsiednimi segmentami detektora pozycjoczułego. Sygnał rejestrowany przez sąsiednie kanały odczytu ma poziom niższy niż ten jaki uzyskiwany jest tylko na jednym elemencie detekcyjnym bez podziału ładunku.
-Podział ładunku powoduje powstanie dwóch osobnych sygnałów o zmniejszonej energi. Powoduje to że przy napięciu dyskryminacji dopasowanej do energii fotonu przypadek podziału ładunku dla tego fotonu nie wygeneruje binarnego sygnału zliczenia. 
+Dodatkowym elementem nieuwzględnianym we wzorze \ref{wste krzywa s} jest efekt podziału ładunku dla detektorów pozycjoczułych. Występuje on w chwili gdy miejscem oddziaływania fotonu jest obszar między sąsiednimi segmentami detektora pozycjoczułego. Sygnał rejestrowany przez sąsiednie kanały odczytu ma poziom niższy niż ten który uzyskiwany jest tylko na jednym elemencie detekcyjnym bez podziału ładunku.
+Podział ładunku powoduje powstanie dwóch osobnych sygnałów o zmniejszonej energi. Sprawia to że przy napięciu dyskryminacji dopasowanej do energii fotonu przypadek podziału ładunku dla tego fotonu nie wygeneruje binarnego sygnału zliczenia. 
 %  Dla układu o dobrze dopasowanej wartości napięcia dyskryminacji taki przypadek zostałby pominięty.
 
 Podział ładunku nie zawsze dzieli się równo między segmentami detekcji pozycjoczułej dlatego też wraz z obniżaniem napięcia dyskryminacji liniowo będzie zwiększać się liczba zliczeń impulsów o rejestrowanej niepełnej energii.~\cite{Monika mag}. 
@@ -89,7 +89,7 @@ Podział ładunku nie zawsze dzieli się równo między segmentami detekcji pozy
 Po uwzględnieniu tego efektu w wzorze \ref{wste krzywa s} otrzymujemy następującą równość:
 \begin{equation}
         \label{wstep rcs}
-        S_{RCS}(x) = (1-RCS * \frac{x}{\overline{U_{th}} - 0.5}) * S(x)
+        S_{RCS}(U_{th}) = (1-RCS * \frac{U_{th}}{\overline{U_{th}} - 0.5}) * S(x)
 \end{equation}
 
 Gdzie RCS to współczynnik współdzielenia ładunku a $S_{RCS}(x)$ to krzywa s z uwzględnieniem współczynnika RCS.
@@ -97,7 +97,7 @@ Gdzie RCS to współczynnik współdzielenia ładunku a $S_{RCS}(x)$ to krzywa s
 Efekt ten występuje tylko przy pracy z prawdziwym źródłem promieniowania i stopień wpływu tego zjawiska na rezultaty wynika głównie z geometrii i umiejscowienia elementów segmentacyjnych detektora pozycjoczułego.
 
 \paragraph{ENC}
- (ang. \textit{Equivalent Noise Charge}) ekwiwalenty ładunek szumowy jest to taka wartość ładunku przy impulsie prądowym delty Dirack'a która wprowadzona na wejście przedwzmacniacza dałaby sygnał równy wartości średniokwadratowej poziomu szumów elektroniki front-end. Na podstawie dopasowanych współczynników krzywej s można wyznaczyć ENC dla układu jako: 
+ (ang. \textit{Equivalent Noise Charge}) ekwiwalenty ładunek szumowy jest to taka wartość ładunku, przy impulsie prądowym delty Dirack'a, która wprowadzona na wejście przedwzmacniacza dałaby sygnał równy wartości średniokwadratowej poziomu szumów elektroniki front-end. Na podstawie dopasowanych współczynników krzywej s można wyznaczyć ENC dla układu jako: 
  \begin{equation}
         \label{enc}
          ENC = \frac{\sigma}{K_{toru}}
@@ -283,7 +283,7 @@ Poniżej znajduje się ich krótki opis bez skupienia na specyfice którejkolwie
         Daje to możliwość wykorzystania tej struktury w celu ochrony zasobu. Przed rozpoczęciem zadania który wymaga wyłączności blokujemy mutex dając sygnał korzystania z zasobu do którego ten lock należy. 
         Po zakończeniu obliczeń zwalniamy/otwieramy mutex pozwalając pracować innym wątkom. Obiekt ten może być jedynie zwolniony przez wątek który go zablokował. 
         W ten właśnie sposób unika się równoczesnego korzystania z zasobów. 
-        \item semafor (end. semaphore) - zasada działania jest podobna do mutexu jednak w przeciwieństwie do wcześniej wymienionej struktury semafor może być odblokowywany przez inne wątki niż te które zablokowały obiekt. Dodatkowo w częstej implementacji semafor może mieć więcej niż jeden stopień blokady. 
+        \item semafor (ang. semaphore) - zasada działania jest podobna do mutexu jednak w przeciwieństwie do wcześniej wymienionej struktury semafor może być odblokowywany przez inne wątki niż te które zablokowały obiekt. Dodatkowo w częstej implementacji semafor może mieć więcej niż jeden stopień blokady. 
         Jest on przydatny w przypadku potrzeby synchronizacji obliczeń. Jeden z wątków może zablokować semafor oznajmiając że skończył swoje obliczenia i oczekuje na wynik z równoległych obliczeń, a inny wątek po zakończeniu swojej części może odblokować semafor. 
         \item monitor - obiekt ten ma zapisaną listę aktualnie używanych zasobów i jeżeli wątek próbuje (korzystając z funkcji monitora) skorzystać z zasobu spowoduje to przejście w stan wstrzymania wątku aż do zwolnienia zasobu. 
         Monitor zapewnia funkcjonalność mutex/lock dla dowolnego zasobu, jednak korzystanie z tej funkcjonalności sprawia trudności w tworzeniu fragmentów kodu który jest krytyczny gdyż w takim przypadku konieczne byłoby skorzystanie z monitora w celu zablokowania każdego z zasobów z osobna podczas gdy mutex/lock może być odpowiedzialny za wiele zasobów jednocześnie.   
@@ -296,7 +296,7 @@ Korzystanie z funkcji synchronizujących jest konieczne w celu uniknięcia błę
 \begin{figure}[t]
         \centering
         \includegraphics[width = \textwidth]{race_condition.png}
-        \caption{Schematy układów w których występuje hazard (ang.\textit{race condition}). Po lewej \textit{(a)} przykład układu elektronicznego a po prawej \textit{{b}} schemat działania programu wielowątkowego. }
+        \caption{Schematy układów w których występuje hazard (ang. \textit{race condition}). Po lewej \textit{(a)} przykład układu elektronicznego a po prawej \textit{{b}} schemat działania programu wielowątkowego. }
         \label{race condition}
 \end{figure}
 
