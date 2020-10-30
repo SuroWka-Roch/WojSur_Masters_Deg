@@ -5,7 +5,7 @@
 Celem pracy było zaprojektowanie, skonstruowanie, wykonanie i przetestowanie  układu wspierającego system z wykorzystaniem wielokanałowego  specjalizowanego układu scalonego do odczytu detektorów promieniowania X o nazwie: RXHDR\_V1 \cite{master}.\\
 Cele szczegółowe:
 \begin{itemize}
-        \item Szesnasto-kanałowy odczyt zliczający indywidualnie impulsy pochodzące z detektora o binarnej architekturze odczytu i średniej częstotliwości sygnałów dochodzącej do 2.5$\frac{MHz}{kanal}$ z wykorzystaniem układu \textit{Arduiono Due}.
+        \item Szesnasto-kanałowy odczyt zliczający indywidualnie impulsy pochodzące z detektora o binarnej architekturze odczytu i średniej częstotliwości sygnałów dochodzącej do 2.5$\frac{MHz}{kanal}$ z wykorzystaniem układu \textit{Arduino Due}.
         \item Stworzenie oprogramowania pozwalającego na komunikację pomiędzy mikrokontrolerem odpowiedzialny za odczyt danych a komputerem wspierającym. 
         \item Wizualizacja i archiwizacja uzyskanych danych. 
 \end{itemize}
@@ -23,26 +23,26 @@ Przykładem konstrukcji tego typu jest projekt bazujący na wielokanałowym spec
         \item System cyfrowy nazywany odczytem binarnym, rejestruje tylko fakt wystąpienia pojedynczego aktu detekcji pod warunkiem, że poziom sygnału jest wystarczająco wysoki, tj. powyżej ustalonego progu dyskryminacji.
 \end{itemize} 
 
-Ta podwójna forma odczytu pozwala na dokładną analizę sygnału uzyskanego z sensora w dla różnych natężeń sygnału. Klasyczna architektura odczytu binarnego jest wykorzystywana do odczytu częstotliwości impulsów poniżej wartości 1$\frac{MHz}{kanal}$. W razie konieczności odczytu wyższej fluencji fotonów używana jest sekcja integracyjna. 
+Ta podwójna forma odczytu pozwala na dokładną analizę sygnału uzyskanego z sensora dla różnych natężeń sygnału. Klasyczna architektura odczytu binarnego jest wykorzystywana do odczytu częstotliwości impulsów poniżej wartości 1$\frac{MHz}{kanal}$. W razie konieczności odczytu wyższej fluencji fotonów używana jest sekcja integracyjna. 
 
-Rozwiązanie to pozwala na uzyskanie szerokiego zakresu częstotliwości sygnałów dla którego układ RXHDR\_V1 może zostać wykorzystany, co jest ważne ze względu na wykorzystanie projektu. 
-RXHDR\_V1 zaprojektowany jest bowiem z myślą o użyciu w badaniach dyfraktometrycznych, które wymagają odczytu dla dużej zmienności intensywności padających fotonów. 
+Rozwiązanie to pozwala na uzyskanie szerokiego zakresu częstotliwości sygnałów dla którego układ RXHDR\_V1 może być wykorzystany.
+Układ ten zaprojektowany jest bowiem z myślą o użyciu w badaniach dyfraktometrycznych, które wymagają odczytu dla dużej zmienności intensywności padających fotonów. 
 
-Schemat blokowy pojedynczego kanału elektroniki front-end układu RXHDR\_v1 znajduje się na rysunku \ref{RXHDR schema}, jest to schemat jednego z 32 torów odczytu znajdujących się w tym układzie scalonym.  Architektura odczytu binarnego składa się z następujących sekcji:
+Schemat blokowy pojedynczego kanału elektroniki front-end układu RXHDR\_v1 znajduje się na rysunku \ref{RXHDR schema}, jest to schemat jednego z 32 torów odczytu znajdujących się w układzie scalonym.  Architektura odczytu binarnego składa się z następujących sekcji:
 \begin{itemize}
-        \item Przedwzmacniacz ładunkowy, pierwszy człon w procesie formowania sygnału mający na celu konwersję krótkich impulsów prądowych z sensora promieniowania na sygnału napięciowe (tzw. transimpedancyjny charakter konwersji),
-        \item Układ kompensacji PZC (ang. \textit{Pole-Zero-Cancellation}) układ mający na celu skrócenie szerokości impulsów w celu uniknięcia efektów spiętrzania.
+        \item Przedwzmacniacz ładunkowy, pierwszy człon w procesie formowania sygnału mający na celu konwersję krótkich impulsów prądowych z sensora promieniowania na sygnały napięciowe (tzw. transimpedancyjny charakter konwersji),
+        \item Układ kompensacji biegunów PZC (ang. \textit{Pole-Zero-Cancellation}) - układ mający na celu skrócenie szerokości impulsów w celu uniknięcia efektów spiętrzania.
         \item Dwuczłonowy układ kształtowania typu T, etap kształtowania impulsu quasi-gaussowskiego oraz miejsce dodatkowego wzmocnienia. 
         \item Dyskryminator progowy, w tym miejscu sygnał jest transformowany z analogowego napięcia na binarny impuls o poziomie 0V i +1.8V
 \end{itemize}
 
 Architektura odczytu binarnego jest tak skonstruowana, że każdy z czterech etapów kształtowania sygnału wprowadza ujemne wzmocnienie wspólnie generując dodatnie napięcie na wejście dyskryminatora impulsów. 
 
-Każdy z 32 padów odczytowych (pady rozpoczynające tor odczytu),poza bezpośrednim połączeniem z paskiem detektora, jest podłączony do pojemności testowej pozwalającej na symulację zdarzeń deponowania fotonu za pomocą generowanego sygnału prostokątnego. Pozwala to na test układu scalonego bez potrzeby stosowania promieniowania jonizującego. 
+Każdy z 32 padów odczytowych (pady to pola kontaktowe struktury scalonej które rozpoczynają tor odczytu) poza bezpośrednim połączeniem z paskiem detektora, jest podłączony do pojemności testowej pozwalającej na symulowanie zdarzeń deponowania fotonu energii za pomocą generowanego sygnału prostokątnego. Pozwala to na test układu scalonego bez potrzeby stosowania promieniowania jonizującego. 
 
 Przed rozpoczęciem pracy układu konieczne jest ustalenie prądów polaryzacyjnych $i_{CAS}$, $i_{SH}$, $i_{S2D}$, $i_{COMP}$, $i_{RES}$ dostarczanych przez zewnętrzny układ regulowanych źródeł prądowych\cite{master} oraz ustalenie progu dyskryminacji napięciem $VT = VT_1 - VT_2$. To właśnie poziom napięcia VT określa minimalną energię promieniowania która powoduje uzyskanie impulsów wyjściowych binarnego kanału elektroniki odczytu. 
 
-Na rzecz prototypu tego projektu skorzystano z 16 kanałów binarnego odczytu danych.
+Na rzecz prototypu tego projektu skorzystano z 16 kanałów binarnego odczytu danych.  Pozostałe 16-cie kanałów odczytowych układu scalonego wykorzystywane były w innym projekcie odczytu analogowego, który nie był podstawą tej pracy. 
 
 \begin{figure}
         \includegraphics[width=\textwidth]{RXHDR_shaper_pl.png}
@@ -50,9 +50,11 @@ Na rzecz prototypu tego projektu skorzystano z 16 kanałów binarnego odczytu da
         \label{RXHDR schema}
 \end{figure}
 
-\paragraph{Krzywa s}
+Poniżej prezentowane są podstawowe parametry opisujące funkcjonalnie układy binarnej architektury odczytu.
 
-Poprzez zmianę napięcia dyskryminacji w dyskryminatorze i jednoczesnym  pomiarze kolejnych impulsów detekcji możliwe jest uzyskanie widma całkowego zwanego krzywą s. Przy założeniu mono-energetyczności sygnału równanie wyrażające zależność napięcia od liczby zliczeń przybiera następującą postać:
+\paragraph{Krzywa-S}
+
+Poprzez zmianę napięcia dyskryminacji w dyskryminatorze i jednoczesnym  pomiarze kolejnych impulsów detekcji możliwe jest uzyskanie widma całkowego zwanego krzywą-S. Przy założeniu mono-energetyczności sygnału równanie wyrażające zależność napięcia dyskryminacji od liczby zliczeń przybiera następującą postać:
 
 \begin{equation}
         \label{wste krzywa s}
@@ -63,41 +65,41 @@ Gdzie:
         \item $f_g$ - częstotliwość zdarzeń,
         \item $erf^{-1}$ - odwrotna funkcja błędu gdzie: $erf^{-1}(x) = 1 - \frac{2}{\sqrt{\pi}} \int^x_0 exp(-t^2)dt $
         \item $U_{th}$ - napięcie dyskryminatora,
-        \item $\overline{U_{th}}$ - poziom dyskryminacji odpowiadający średniej amplitudzie impulsów (peak position) wartość ta odpowiada energii sygnału, 
+        \item $\overline{U_{th}}$ - poziom dyskryminacji odpowiadający średniej amplitudzie impulsów (peak position) wartość ta pośrednio odpowiada energii sygnału, 
         \item  $\sigma$ - wartość niepewności odpowiadająca wartości szumowej układu. 
 \end{description}
 
 Przykłady takich krzywych dla różnych wartości szumów są wizualizowane na rysunku \ref{wyk s curve wstep}. Dodatkowym elementem nieuwzględnionym w wzorze są tak zwane szumy Rice’a. Pojawiają się one dla wartości napięcia dyskryminacji niższego niż średnia amplituda szumów. Stan taki powoduje zliczanie szumów jako sygnałów detektora w takiej ilość że jedynym ograniczeniem jest wydajność elektroniki \cite{wiocek doctorat}.
 
-Dopasowanie krzywej s do zbadanej charakterystyki układu pozwala na wyciągniecie wniosków o funkcjonowaniu kanałów na podstawie współczynników tejże zależności.   
+Dopasowanie krzywej-S do zbadanej charakterystyki układu pozwala na wyciągniecie wniosków o funkcjonowaniu kanałów na podstawie współczynników tejże zależności.   
 
 \begin{figure}
         \centering
         \includegraphics[height=8cm]{s_curve.png}
-        \caption{Przykłady krzywych s dla różnych wartości szumowych. A - idealny przypadek bez udziału szumów, B,C - rzeczywiste przypadki z uwzględnieniem przyczynku szumowego ($\sigma_C=2\sigma_B$), D - szum bez sygnału. \cite{wiocek doctorat}} 
+        \caption{Przykłady krzywych-S dla różnych wartości szumowych. A - idealny przypadek bez udziału szumów, B,C - rzeczywiste przypadki z uwzględnieniem przyczynku szumowego ($\sigma_C=2\sigma_B$), D - szum bez sygnału. \cite{wiocek doctorat}} 
         \label{wyk s curve wstep}
 \end{figure}
 
 \paragraph{RCS}
 (ang. \textit{relative charge sharing})
-Dodatkowym elementem nieuwzględnianym we wzorze \ref{wste krzywa s} jest efekt podziału ładunku dla detektorów pozycjoczułych. Występuje on w chwili gdy miejscem oddziaływania fotonu jest obszar między sąsiednimi segmentami detektora pozycjoczułego. Sygnał rejestrowany przez sąsiednie kanały odczytu ma poziom niższy niż ten który uzyskiwany jest tylko na jednym elemencie detekcyjnym bez podziału ładunku.
+Dodatkowym elementem nieuwzględnianym we wzorze \ref{wste krzywa-S} jest efekt podziału ładunku dla detektorów pozycjoczułych. Występuje on w chwili gdy miejscem oddziaływania fotonu jest obszar między sąsiednimi segmentami detektora pozycjoczułego. Sygnał rejestrowany przez sąsiednie kanały odczytu ma poziom niższy niż ten który uzyskiwany jest tylko na jednym elemencie detekcyjnym bez podziału ładunku.
 Podział ładunku powoduje powstanie dwóch osobnych sygnałów o zmniejszonej energi. Sprawia to że przy napięciu dyskryminacji dopasowanej do energii fotonu przypadek podziału ładunku dla tego fotonu nie wygeneruje binarnego sygnału zliczenia. 
 %  Dla układu o dobrze dopasowanej wartości napięcia dyskryminacji taki przypadek zostałby pominięty.
 
 Podział ładunku nie zawsze dzieli się równo między segmentami detekcji pozycjoczułej dlatego też wraz z obniżaniem napięcia dyskryminacji liniowo będzie zwiększać się liczba zliczeń impulsów o rejestrowanej niepełnej energii.~\cite{Monika mag}. 
 
-Po uwzględnieniu tego efektu w wzorze \ref{wste krzywa s} otrzymujemy następującą równość:
+Po uwzględnieniu tego efektu w wzorze \ref{wste krzywa-S} otrzymujemy następującą równość:
 \begin{equation}
         \label{wstep rcs}
         S_{RCS}(U_{th}) = (1-RCS * \frac{U_{th}}{\overline{U_{th}} - 0.5}) * S(x)
 \end{equation}
 
-Gdzie RCS to współczynnik współdzielenia ładunku a $S_{RCS}(x)$ to krzywa s z uwzględnieniem współczynnika RCS.
+Gdzie RCS to współczynnik współdzielenia ładunku a $S_{RCS}(x)$ to krzywa-S z uwzględnieniem współczynnika RCS.
 
-Efekt ten występuje tylko przy pracy z prawdziwym źródłem promieniowania i stopień wpływu tego zjawiska na rezultaty wynika głównie z geometrii i umiejscowienia elementów segmentacyjnych detektora pozycjoczułego.
+Efekt ten występuje tylko przy pracy z źródłem promieniowania i stopień wpływu tego zjawiska na rezultaty wynika głównie z geometrii i umiejscowienia elementów segmentacyjnych detektora pozycjoczułego.
 
 \paragraph{ENC}
- (ang. \textit{Equivalent Noise Charge}) ekwiwalenty ładunek szumowy jest to taka wartość ładunku, przy impulsie prądowym delty Dirack'a, która wprowadzona na wejście przedwzmacniacza dałaby sygnał równy wartości średniokwadratowej poziomu szumów elektroniki front-end. Na podstawie dopasowanych współczynników krzywej s można wyznaczyć ENC dla układu jako: 
+ (ang. \textit{Equivalent Noise Charge}) ekwiwalenty ładunek szumowy jest to taka wartość ładunku, przy impulsie prądowym o kształcie delty Dirack'a, która wprowadzona na wejście przedwzmacniacza dałaby sygnał równy wartości średniokwadratowej poziomu szumów elektroniki front-end. Na podstawie dopasowanych współczynników krzywej-S można wyznaczyć ENC dla układu jako: 
  \begin{equation}
         \label{enc}
          ENC = \frac{\sigma}{K_{toru}}
@@ -116,15 +118,16 @@ Wartość wzmocnienia toru odczytu można określić jako:
 \end{equation}
 Gdzie:
 \begin{description}
-        \item  $p_{p_E}$ - (ang. peak position) wartość energii dla piku dla energii $E$
+        \item  $p_{p_E}$ - (ang. peak position) próg dyskryminacji odpowiadający położeniu połówkowej wartości krzywej-S piku dla energii $E$
         \item  $C_E$ - ładunek wygenerowany poprzez depozycję energii E w układzie detektora.
 \end{description}
+
+Prezentowany powyżej wzór wzmocnienia zakłada liniowy charakter dla funkcji przenoszenia toru odczytowego i zerowy poziom napięcia niezrównoważenia dyskryminatora. W przypadku ogólnym wzmocnienie jest wartością współczynnika nachylenia stycznej do funkcji przenoszenia.
 
 Po połączeniu wzorów \ref{enc} oraz \ref{k_toru} otrzymujemy końcowy wzór na wartość ekwiwalentnego ładunku szumowego:
 \begin{equation}
         ENC = \frac{\sigma}{p_{p_E}/C_E}
 \end{equation}
-% Wartość wzmocnienia toru odczytu można wyznaczyć poprzez określenie ilorazu peak position dla ściśle określonej energii wobec ilości ładunku wygenerowanego przez depozycję określonej energii w układzie detektora. 
 
 
 \subsubsection{Proces kompilacji programu na przykładzie \textit{gcc}}
@@ -169,7 +172,7 @@ Te binarne pliki już zawierają instrukcje kodu maszynowego, ale nie tworzą sp
 Konsolidator (ang. linker) program łączący wszystkie pliki obiektowe w jeden wykonywalny program. To właśnie na tym etapie dodaje się statyczne biblioteki oraz sprawdza obecność wcześniej zadeklarowanych zmiennych oraz upewnia się że nie pojawia się konflikt oznaczeń. Po zakończeniu tego procesu otrzymujemy gotowy program. 
 
 
-\subsubsection{Czas egzekucji programu}
+\subsubsection{Czas wykonalności programu}
 
 By wyznaczyć czas konieczny na wykonanie programu lub fragmentu programu można użyć prawa wydajności procesora\cite{arch}:
 
@@ -192,7 +195,7 @@ W celu obliczenia czasu wykonania pojedyńczego cyklu ($\frac{Czas}{Cykl}$), dla
         t_c [s]= \frac{1}{T [Hz]}
 \end{equation} 
 Gdzie:\\
-\indent $t_c$ - czas pojedyńczego cyklu \\
+\indent $t_c$ - czas pojedynczego cyklu \\
 \indent $T$ - taktowanie procesora w Hz
 
 \subsubsection{Potokowość}
@@ -211,7 +214,7 @@ Przykładowy podział instrukcji może wyglądać następująco:
 
 Dzięki takiemu rozbiciu w idealnym przypadku możemy osiągnąć architekturę pozwalającą wykonywać każdą instrukcję w jednym cyklu procesora. 
 
-\begin{table}{h}
+\begin{table}{}
         \centering
         \caption{Przykład pracy procesora z wykorzystaniem potokowości w idealnym przypadku.}
         \label{pipelining}
@@ -256,13 +259,13 @@ Z tego też powodu w tym celu stosuje się metody statystyczne oraz testowanie w
 
 \subsubsection{Programowanie wielowątkowe}
 
-Wątek (ang. thread) jest to część programu która może być oddzielnie zarządzana przez dyspozytor (ang. scheduler). 
-Pozwala to na egzekucje wielu wątków równocześnie w przypadku procesorów wielowątkowych lub częste zmiany uwagi między zadaniami w procesorach jednowątkowych.
+Wątek (ang. \textit{thread}) jest to część programu która może być oddzielnie zarządzana przez dyspozytor (ang. \textit{scheduler}). 
+Pozwala to na wykonywanie wielu wątków równocześnie w przypadku procesorów wielowątkowych lub częste zmiany uwagi między zadaniami w procesorach jednowątkowych.
 W przeciwieństwie do osobnych procesów wątki dzielą wspólną przestrzeń adresową (korzystają z tych samych danych) oraz współdzielą zasoby systemowe.
 
 Użycie metod programowania wielowątkowego niesie ze sobą wiele zalet:
 \begin{itemize}
-        \item Oprogramowanie korzystające z interfejsu użytkownika (GUI - grafic user interface) może pozostać gotowe na nowe informacje nawet podczas wykonywania trudnych obliczeń jeżeli zadanie odpowiedzialne za UI (ang. User interface - interfejs użytkownika) będzie osobnym wątkiem niż ten wykonujący obliczenia.
+        \item Oprogramowanie korzystające z interfejsu użytkownika (GUI - \textit{grafic user interface}) może pozostać gotowe na nowe informacje nawet podczas wykonywania trudnych obliczeń jeżeli zadanie odpowiedzialne za UI (ang. User interface - interfejs użytkownika) będzie osobnym wątkiem niż ten wykonujący obliczenia.
         \item Ponieważ zasoby są współdzielone między wątkami podejście wielowątkowe może być bardziej oszczędne w zasoby w porównaniu z użyciem osobnych procesów, które wymagałoby przekopiowania danych.
         \item Program może działać szybciej i z mniejszym opóźnieniem, dzięki programowaniu z użyciem większej ilości wątków, ponieważ pozwala to na lepsze wykorzystanie popularnej architektury wielordzeniowej procesorów komercyjnych. 
         \item Każda część programu którego obliczenia mogą zostać wykonane równolegle może zyskać na szybkości przy użyciu wielowątkowego podejścia zgodnie z prawem Amdahala \cite{arch}. 
@@ -271,10 +274,10 @@ Użycie metod programowania wielowątkowego niesie ze sobą wiele zalet:
 Jak widać użycie programowania wielowątkowego niesie ze sobą wiele korzyści,
 jednak wraz z zaletami tego rozwiązania spotykamy się z pewnymi zagrożeniami i wymaganiami.
 
-\paragraph{Synchronizacja i współdzielenie zasobów}
+\paragraph{Synchronizacja i współdzielenie zasobów.}
 
 Tak jak było to wcześniej opisane w przeciwieństwie do rozpoczęcia nowego procesu na nowe obliczenia, programowanie wielowątkowe pozwala na kontynuowanie obliczeń bez kopiowania zasobów. 
-Powoduje to jednak że wymagane są sposoby sygnalizacji między wątkami oraz sposoby ochrony zasobów przed równoczesnym dostępem przez więcej niż jedno zadanie. 
+Powoduje to jednak, że wymagane są sposoby sygnalizacji między wątkami oraz sposoby ochrony zasobów przed równoczesnym dostępem przez więcej niż jedno zadanie. 
 Ta potrzeba spowodowała tworzenie powtarzalnych struktur które są implementowane w najpopularniejszych językach programowania. 
 Poniżej znajduje się ich krótki opis bez skupienia na specyfice którejkolwiek z implementacji. 
 \begin{itemize}
@@ -283,7 +286,7 @@ Poniżej znajduje się ich krótki opis bez skupienia na specyfice którejkolwie
         Daje to możliwość wykorzystania tej struktury w celu ochrony zasobu. Przed rozpoczęciem zadania który wymaga wyłączności blokujemy mutex dając sygnał korzystania z zasobu do którego ten lock należy. 
         Po zakończeniu obliczeń zwalniamy/otwieramy mutex pozwalając pracować innym wątkom. Obiekt ten może być jedynie zwolniony przez wątek który go zablokował. 
         W ten właśnie sposób unika się równoczesnego korzystania z zasobów. 
-        \item semafor (ang. semaphore) - zasada działania jest podobna do mutexu jednak w przeciwieństwie do wcześniej wymienionej struktury semafor może być odblokowywany przez inne wątki niż te które zablokowały obiekt. Dodatkowo w częstej implementacji semafor może mieć więcej niż jeden stopień blokady. 
+        \item semafor (ang. \textit{semaphore}) - zasada działania jest podobna do mutexu jednak w przeciwieństwie do wcześniej wymienionej struktury semafor może być odblokowywany przez inne wątki niż te które zablokowały obiekt. Dodatkowo w częstej implementacji semafor może mieć więcej niż jeden stopień blokady. 
         Jest on przydatny w przypadku potrzeby synchronizacji obliczeń. Jeden z wątków może zablokować semafor oznajmiając że skończył swoje obliczenia i oczekuje na wynik z równoległych obliczeń, a inny wątek po zakończeniu swojej części może odblokować semafor. 
         \item monitor - obiekt ten ma zapisaną listę aktualnie używanych zasobów i jeżeli wątek próbuje (korzystając z funkcji monitora) skorzystać z zasobu spowoduje to przejście w stan wstrzymania wątku aż do zwolnienia zasobu. 
         Monitor zapewnia funkcjonalność mutex/lock dla dowolnego zasobu, jednak korzystanie z tej funkcjonalności sprawia trudności w tworzeniu fragmentów kodu który jest krytyczny gdyż w takim przypadku konieczne byłoby skorzystanie z monitora w celu zablokowania każdego z zasobów z osobna podczas gdy mutex/lock może być odpowiedzialny za wiele zasobów jednocześnie.   
@@ -291,7 +294,7 @@ Poniżej znajduje się ich krótki opis bez skupienia na specyfice którejkolwie
 
 Korzystanie z funkcji synchronizujących jest konieczne w celu uniknięcia błędów występujących w wyniku korzystania z programowania wielowątkowego. Poniżej wymienione są najpopularniejsze zagrożenia  wynikające z korzystania z metod obliczeń równoległych. 
 
-\paragraph{Sytuacja wyścigu (ang. race condition)}
+\paragraph{Sytuacja wyścigu (ang. \textit{race condition})}
 
 \begin{figure}[t]
         \centering
@@ -300,8 +303,8 @@ Korzystanie z funkcji synchronizujących jest konieczne w celu uniknięcia błę
         \label{race condition}
 \end{figure}
 
-W elektronice Sytuacja wyścigu (ang. race condition) to hazard spowodowany przez czas propagacji elementów układu powodujący niezamierzane efekty. Przykład układu elektronicznego w którym występuje takowy hazard jest wizualizowany na rysunku \ref{race condition}(a). 
-sytuacje wyścigu dzielą się na statyczne i dynamiczne. Statyczne to takie w których obserwujemy zmianę na wyjściu w chwili gdy dla układów o zerowej propagacji elementów spodziewalibyśmy się niezmienionego stanu.
+W elektronice sytuacja wyścigu to hazard spowodowany przez czas propagacji elementów układu powodujący niezamierzane efekty. Przykład układu elektronicznego w którym występuje takowy hazard jest wizualizowany na rysunku \ref{race condition}(a). 
+Sytuacje wyścigu dzielą się na statyczne i dynamiczne. Statyczne to takie w których obserwujemy zmianę na wyjściu w chwili gdy dla układów o zerowej propagacji elementów spodziewalibyśmy się niezmienionego stanu.
 W hazardzie dynamicznym spotykamy się z odwrotną sytuacją. 
 
 W przypadku programowania wielowątkowego tego typu hazard nie jest powodowany przez czas propagacji elementów lecz przez nieznany czas i kolejność wykonywania operacji przez równolegle pracujące wątki. Przykład schematu programu dla takiego przypadku znajduje się na rysunku \ref{race condition}(b). Schemat przedstawia prostą bazę danych i dwa wątki mające za zadanie podniesienie wartości zmiennej \textit{N} o jeden.
@@ -310,9 +313,9 @@ Dla podanego przykładu w typowym przebiegu gdy obydwa wątki zwiększą wartoś
 Jest to jeden z powodów dlaczego zabezpiecza się zasoby za pomocą muteksów lub semaforów. 
 
 Mimo sposobów na unikanie takich sytuacji programowanie wielowątkowe wymaga dużej staranności a potencjalne błędy mogą pozostawać ukryte nawet latami. To też jest powód dla którego nie należy nadużywać takich rozwiązań jeżeli mogą zostać pominięte\cite{multi thread problem}.
-\paragraph{Zakleszczenie}
+\paragraph{Zakleszczenie.}
 
-Zakleszczenie (ang. deadlock) to sytuacja gdy dwie operacje czekają na siebie wzajemnie więc żadna z nich nie może się zakończyć. 
+Zakleszczenie (ang. \textit{deadlock}) to sytuacja gdy dwie operacje czekają na siebie wzajemnie więc żadna z nich nie może się zakończyć. 
 Zakleszczenie może występować w procesach, wątkach jak i również w świecie fizycznym przykładowo w ruchu drogowym podczas blokady ronda w korku drogowym.  
 Prostym przykładem takiej sytuacji jest chwila gdy dwa procesy w celu przeprowadzenia obliczeń potrzebują dwóch muteksów i w chwili gdy każdy z nich zablokuje jeden z nich przechodzą w stan wstrzymania oczekując na zwolnienie tego trzymanego przez konkurujący proces. 
 
@@ -338,10 +341,10 @@ Oznacza to że nie tylko są to formaty które są często implementowane w wiel
 Poniżej znajdują się krótkie opisy najpopularniejszych formatów.
 
 \paragraph{CSV}
-(ang. comma seperated values, wartości dzielone przecinkami) jest to prosty format plików w którym zgodnie z nazwą każda z wartości jest oddzielana przecinkiem od kolejnej. Wartości dzielą się na rekordy oddzielane znakami końca linii CRLF oraz wartości oddzielane przecinkami. Zamiast przecinków mogą być używane znaki specjalne jak średniki lub tabulatury chociaż jest to niezalecane. Jeżeli plik z danymi zawiera tablicę to ilość wartości powinna być jednakowa w każdym z rekordów. 
+(ang. \textit{Comma Seperated Values}, wartości dzielone przecinkami) jest to prosty format plików w którym zgodnie z nazwą każda z wartości jest oddzielana przecinkiem od kolejnej. Wartości dzielą się na rekordy oddzielane znakami końca linii CRLF oraz wartości oddzielane przecinkami. Zamiast przecinków mogą być używane znaki specjalne jak średniki lub tabulatury chociaż jest to niezalecane. Jeżeli plik z danymi zawiera tablicę to ilość wartości powinna być jednakowa w każdym z rekordów. 
 
 \paragraph{XML}
-(ang. Extensible Markup Language) jest to uniwersalny język znaków służący do przenoszenia danych. Jego skupieniem była łatwość w pisaniu programów interpretujących ten standard.
+(ang. \textit{Extensible Markup Language}) jest to uniwersalny język znaków służący do przenoszenia danych. Jego skupieniem była łatwość w pisaniu programów interpretujących ten standard.
 Jest to język na podstawie którego stworzono wiele ważnych pochodnych formatów takich jak Microsoft Office XML formats, Trusted Data Format i HTML5.
 
 Poniżej znajduje się prosty przykład takiego dokumentu:
@@ -359,8 +362,7 @@ Pierwsza linia to opcjonalny prolog zawierający informację o wersji XML oraz t
 Dokument XML musi zawierać element początkowy, w przykładowym kodzie \ref{XML code} jest to tag <root>.
 
 \paragraph{JSON }
- 
-(eng Java script object notation) mimo że nie jest on standardem otwartych plików danych, lecz formą języka JavaScript to spełnia warunki czytelności przez człowieka jak i maszynę. 
+(ang. \textit{JavaScript Object Notation}) mimo że nie jest on standardem otwartych plików danych, lecz formą języka JavaScript to spełnia warunki czytelności przez człowieka jak i maszynę. 
 Forma obiektu w tym języku stała się w przeciągu lat popularnym sposobem na przekazywanie danych między aplikacjami. Stało się tak ze względu na prostotę semantyki oraz uniwersalność. 
 
 Każdy obiekt JSON zaczyna się symbolem \{ i kończy \} każda z wartości składa się z pary atrybut wartość przedzielona dwukropkiem, a każda z kolejnych par oddziela się przecinkiem. Typami wartości są:
@@ -379,13 +381,13 @@ Format ten wspierany jest przez wiele języków między innymi C, C++, C\#, Java
 Rejestr to taki układ elektroniczny którego celem jest przechowywanie oraz umożliwienie dostępu do danych. Funkcja ta jest podobna do funkcji pamięci jednak w przeciwieństwie do pamięci rejestry mogą mieć dodatkową funkcję sprzętową.
 Przykładowo rejestry mogą służyć w celu komunikacji między kodem a urządzeniami wejścia/wyjścia.
 
-Specjalnym przykładem rejestru jest rejestr przesuwający którego dane, przy sygnale z wspólnego sygnału, będą przekazywane do kolejnego miejsca przetrzymywania informacji w ściśle określonym kierunku.  
-Najczęściej rejestry przesuwne są skonstruowane jako kaskada przerzutników gdzie wejście danych jest połączone z wyjściem poprzedniego.
+Specjalnym przykładem rejestru jest rejestr przesuwny którego dane, przy sygnale z zegara, będą przekazywane do kolejnego miejsca przetrzymywania informacji w ściśle określonym kierunku.  
+Najczęściej rejestry przesuwne są skonstruowane jako kaskada przerzutników gdzie wejście danych kolejnego przerzutnika jest połączone z wyjściem poprzedniego.
 
-Istnieją 4 typy rejestrów przesuwających różniących się ze względu na sposób wprowadzania i odbioru danych:
+Istnieją 4 typy rejestrów przesuwnych różniących się ze względu na sposób wprowadzania i odbioru danych:
 \begin{itemize}
         \item szeregowo-szeregowy,
         \item równolegle-szeregowy,
         \item szeregowo-równoległy,
-        \item równolegle-równoległy zwany rejestrem buforowym  
+        \item równolegle-równoległy zwany rejestrem buforowym.
 \end{itemize} 
