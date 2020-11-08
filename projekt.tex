@@ -368,9 +368,9 @@ Szczegółowe zadania programu to:
 \begin{itemize}
         \item Komunikacja z mikrokontrolerem w celu:
         \begin{itemize}
-                \item Upewnienia się o sprawnym działaniu programu na płytce arduino.
-                \item Ustawienia czasu akwizycji.
-                \item Odebraniu danych o zliczeniach. 
+                \item upewnienia się o sprawnym działaniu programu na płytce arduino,
+                \item ustawienia czasu akwizycji,
+                \item odebraniu danych o zliczeniach. 
         \end{itemize}
         \item Umożliwienie wyboru konfiguracji pracy programów przez interfejs użytkownika.
         \item Analiza otrzymanych danych pomiarowych.
@@ -393,7 +393,7 @@ Klasa \textit{CountRateData} oprócz przetrzymywania danych o zliczeniach dla ka
 
 Dodatkową funkcjonalnością programu jest możliwość przeprowadzenia pojedynczego badania nazywanego \textit{Single Shoot} lub skrótowo \textit{ss}.
 Funkcja ta pozwala na wizualizację w postaci wykresu słupkowego pojedynczego badania w przeciwieństwie do domyślnego układu wizualizacji który jest stale aktualizowany. 
-W celu przeprowadzenia takiego pomiaru wątek \textit{get\_ss\_mesurements} zamyka mutexy odpowiedzialne za port seryjny oraz Klasę logu. 
+W celu przeprowadzenia takiego pomiaru wątek \textit{get\_ss\_mesurements} zamyka mutexy odpowiedzialne zasoby sprzętowe jakim jest za port seryjny oraz zasób danych znajdujący się w zmiennych klasy logu. 
 Tym sposobem wstrzymywane są inne funkcje programu aż do zakończenia pomiaru \textit{Single Shoot}.
 Pomiar kończy się komendą wstrzymania pracy licznika pozwalając na zmianę konfiguracji przed kolejnymi pomiarami. Informacje konfiguracyjne znajdują się w instancji klasy \textit{ConfigurationData}. Zadaniem fasady jest zmiana wartości pól tej klasy w chwili gdy użytkownik wprowadzi nowe parametry pomiarów. 
 
@@ -440,10 +440,10 @@ Archiwizacja danych z akwizycji \textit{Single Shoot} jest przeprowadzana zaraz 
 
 Gotowy interfejs graficzny widoczny jest na rysunku \ref{Gui pic}. Jest on podzielony na cztery zakładki:
 \begin{itemize}
-        \item Configuration - miejsce pozwalające na rozpoczęcie pracy licznika, zatrzymanie i wszelką konfigurację dotyczącą pracy programu. 
-        \item Data - prezentacja danych w postaci liczbowej 
-        \item Visualization - prezentacja danych w relatywnej dziedzinie czasu. 
-        \item Single Shot - Zakładka odpowiedzialna za przeprowadzenie pojedynczego badania.
+        \item Configuration - miejsce pozwalające na rozpoczęcie pracy licznika, zatrzymanie i wszelką konfigurację dotyczącą pracy programu, 
+        \item Data - prezentacja danych bieżących w postaci liczbowej, 
+        \item Visualization - prezentacja danych w relatywnej dziedzinie czasu,
+        \item Single Shot - zakładka odpowiedzialna za przeprowadzenie pojedynczego badania.
 \end{itemize}
 
 Za interfejs użytkownika odpowiedzialny jest główny wątek programu, instancje klasy QTimer\cite{doc pyqt} generują one sygnały aktualizujące dane licznika oraz sygnały aktualizacji wykresu zliczeń. 
@@ -452,7 +452,7 @@ Główny moduł zwany \textit{gui\_module} zapisuje informacje konfiguracyjne w 
 \begin{itemize}
         \item Acquisision time (czas akwizycji) - przeliczany na ilość iteracji pętli czas akwizycji zliczeń. Czas ten podawany jest w milisekundach.
         \item Nr of averages (ilość uśrednień) - Jedną z funkcjonalności programu jest uśrednienie danych przed ich wizualizacją. Wartość tej liczby mówi jak dużo danych akwizycji zostanie użytych przed uśrednieniem wartości i wizualizacją. Liczba ta nie wpływa na dane zapisywane w plikach danych pomiarowych.
-        \item Auto save period [mm:ss] (częstotliwość automatycznego zapisu) - czas w podany w formacie [minuty:sekundy] po którym nastąpi automatyczne zapisanie danych. 
+        \item Auto save period [mm:ss] (częstotliwość automatycznego zapisu) - czas podany w formacie [minuty:sekundy] po którym nastąpi automatyczne zapisanie danych. 
         \item Data location (ścieżka danych) - ścieżka pod którą będzie umieszczony folder z danymi. 
         \item Data save type (typ zapisu) - wybór zapisu danych w formacie JSON lub CSV.
         \item Arduino port (nazwa portu) - lista pozwalająca wybrać port szeregowy USB do którego podłączony został mikrokontroler. 
