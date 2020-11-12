@@ -10,48 +10,9 @@ Impulsy napięciowe z generatora kształtem oraz długością odpowiadały tym p
 Przeprowadzono po pięć badań na każdą częstotliwość i wyliczono błąd względem spodziewanego wyniku. 
 Czas akwizycji ustalono na jedną sekundę sprawiając że liczba spodziewanych zliczeń jest równa częstotliwości generowanych sygnałów.
 
-Wyniki znajdujące się w tabeli \ref{rts table} zwizualizowane są na wykresie \ref{rts wyniki}.
+Wyniki znajdujące się w tabeli \ref{rts table} (Aneks) zwizualizowane są na wykresie \ref{rts wyniki}.
 
 
-\begin{figure}[b]
-        \centering
-        \includegraphics[width=\textwidth]{rts.jpg}
-        \caption{Wyniki testów z wykorzystaniem przerwań systemowych}
-        \label{rts wyniki}
-\end{figure}
-
-\begin{table}
-        \centering
-        \caption{Wyniki testu liniowości zliczeń impulsów  z zastosowaniem przerwań systemowych}
-        \label{rts table}
-        \begin{tabular}{|c|c|c|c|c|}  
-                \hline 
-                Częstotliwość [kHz] & Estymowana ilość   & Otrzymana ilość & Różnica& Błąd \\ 
-                &  zliczeń [1/s] &  zliczeń  [1/s]& w zliczeniach [1/s] & względny [\%]\\ \hline
-                1 & 1000 & 1001 & 1 & 0.1000\\ \hline 
-                1.414 & 1414 & 1415 & 1 & 0.0707\\ \hline 
-                2 & 2000 & 2001 & 1 & 0.0500\\ \hline 
-                2.82 & 2820 & 2820 & 0 & 0.0000\\ \hline 
-                4 & 4000 & 3999 & 1 & 0.0250\\ \hline 
-                5.65 & 5650 & 5650 & 0 & 0.0000\\ \hline 
-                8 & 8000 & 7996 & 4 & 0.0500\\ \hline 
-                11.3 & 11300 & 11298 & 2 & 0.0177\\ \hline 
-                16 & 16000 & 15989 & 11 & 0.0688\\ \hline 
-                22.62 & 22620 & 22605 & 15 & 0.0663\\ \hline 
-                32 & 32000 & 31986 & 14 & 0.0438\\ \hline 
-                45.25 & 45250 & 45230 & 20 & 0.0442\\ \hline 
-                64 & 64000 & 63948 & 52 & 0.0813\\ \hline 
-                90.5 & 90500 & 90499 & 1 & 0.0011\\ \hline 
-                128 & 128000 & 127943 & 57 & 0.0445\\ \hline 
-                181 & 181000 & 180874 & 126 & 0.0696\\ \hline 
-                256 & 256000 & 255758 & 242 & 0.0945\\ \hline 
-                362 & 362000 & 361962 & 38 & 0.0105\\ \hline 
-                512 & 512000 & 511920 & 80 & 0.0156\\ \hline 
-                700 & 700000 & 699937 & 63 & 0.0090\\ \hline 
-                710 & 710000 & 709686 & 314 & 0.0442\\ \hline 
-                715 & 715000 & 714941 & 59 & 0.0083\\ \hline
-        \end{tabular}
-\end{table}
 
 Wyniki pokazują dokładność mieszczącą się w  1\textperthousand, 
 jednak błąd w otrzymanym wyniku zależy od częstotliwości generowanych zliczeń.
@@ -73,6 +34,13 @@ Mimo lepszych wyników doświadczalnych niż te szacowane teoretycznie otrzymane
 
 Dodatkowe testy potwierdziły że wraz ze zwiększeniem ilości badanych kanałów częstotliwość graniczna zmniejsza się jak $\frac{1}{n}$, gdy $n$ to ilość badanych jednocześnie kanałów. 
 
+\begin{figure}[h]
+        \centering
+        \includegraphics[width=\textwidth]{rts.jpg}
+        \caption{Wyniki testów z wykorzystaniem przerwań systemowych}
+        \label{rts wyniki}
+\end{figure}
+
 \subsection{Rozwiązanie z układem zewnętrznych liczników buforujących}
 
 Dane do poniższej interpretacji i wizualizacji zostały uzyskane przez analizę plików archiwalnych otrzymywanych przy działaniu programu do kontroli układu.
@@ -83,6 +51,26 @@ Obserwacja sygnałów na została dokonana na oscyloskopie Keysight 3024A. Gener
 Sygnał impulsów odpowiadających tym pochodzącym z układu RXHDR\_v1 wytwarzanych przez generator miał następujące parametry: poziom napięcia 1.8V, kształt prostokątny, impuls o szerokości 50 ns.
 
 \subsubsection{Test układu liczników przy użyciu oscyloskopu}
+
+Przed przystąpieniem do badania pełnego układu (RXHDR, układ liczników, mikrokontroler, komputer kontrolujący) przeprowadzono test elektroniki z minimalnym wpływem realizowanego kodu programu na wynik. 
+
+Układ badawczy składał się z układu liczników  otrzymującego sygnały z generatora, charakterystyką odpowiadającym tym z układu RXHDR, oscyloskopu oraz Arduino Duo nadający sygnały zmiany licznika (\textit{read\_CLK}) oraz wyboru multiplexera (rysunek \ref{wybor schema} i \ref{licznik}). Generowany sygnał był dostarczany na pojedyńczy kanał układu liczników. 
+Oscyloskop analizował wyjście z generatora oraz sygnał zmiany licznika, dodatkowo za pomocą cyfrowego analizatora poziomów wizualizował wyjścia DOC\_0-3 (Stan wybranego licznika).
+
+Powyższy układ badawczy pozwalał na potwierdzenie funkcjonalności układu elektronicznego oraz:
+\begin{itemize}
+        \item Wyznaczyć czas cyklu blokowania pojedyńczego licznika równy $\sim 0.3\mu s$.
+        \item Potwierdzić istnienie zjawiska:
+        \begin{itemize}
+                \item braku zliczenia impulsu podczas odczytu licznika,
+                \item przepełnienia licznika,
+                \item synchronizacji płytki z mikrokontrolerem (powtórzenie stanu licznika co 9 cykli), 
+                \item utrzymania wartości licznika między odczytami dla sytuacji gdy sygnał z generatora nie wystąpił między wyborem licznika.
+        \end{itemize}  
+        \item Porównać czas blokowania licznika dla różnych kanałów. Krok ten pozwolił na odkrycie różnicy w czasie blokowania licznika dla kanałów 8 i 16. W ten sposób dopasowano ilość pustych funkcji koniecznych do wyrównania czasu martwego dla każdego z kanałów (dział~\ref{oprogramowanie mikrokontrolera}).
+\end{itemize} 
+
+Przykładowe rzuty ekranu oscyloskopu z tego testu znajdują się na rysunku \ref{Oscyloskop}. Na tych wizualizacjach wartości D0-3 odpowiadają kolejno wartościom linii magistrali danych DOC\_0-3. Oznacza to że wartości logiczne dla tych magistrali prezentują liczbę binarną będącą wartością na liczniku. Sygnał koloru zielonego jest sygnałem zmiany licznika (\textit{readCLC}), rosnące zbocze tego impulsu powoduje przełączenie na odczyt kolejnego licznika. Ponieważ tylko jeden z liczników otrzymuje sygnał tylko co 9 impuls (8 liczników i jeden cykl pusty) powoduje sygnał na liniach DOC\_0-3.
 
 \begin{figure}
         \includegraphics[width=\textwidth]{scope_1.png}
@@ -97,34 +85,14 @@ Sygnał impulsów odpowiadających tym pochodzącym z układu RXHDR\_v1 wytwarza
         \label{Oscyloskop}
 \end{figure}
 
-Przed przystąpieniem do badania pełnego układu (RXHDR, układ liczników, mikrokontroler, komputer kontrolujący) przeprowadzono test elektroniki z minimalnym wpływem realizowanego kodu programu na wynik. 
-
-Układ badawczy składał się z układu liczników  otrzymującego sygnały z generatora, charakterystyką odpowiadającym tym z układu RXHDR, oscyloskopu oraz Arduino Duo nadający sygnały zmiany licznika (\textit{read\_CLK}) oraz wyboru multiplexera (rysunek \ref{wybor schema} i \ref{licznik}). Generowany sygnał był dostarczany na pojedyńczy kanał układu liczników. 
-Oscyloskop analizował wyjście z generatora oraz sygnał zmiany licznika, dodatkowo za pomocą cyfrowego analizatora poziomów wizualizował wyjścia DOC\_0-3 (Stan wybranego licznika).
-
-Powyższy układ badawczy pozwalał na potwierdzenie funkcjonalności układu elektronicznego oraz:
-\begin{itemize}
-        \item Wyznaczyć czas cyklu blokowania licznika równy $\sim 0.3\mu s$.
-        \item Potwierdzić istnienie zjawiska:
-        \begin{itemize}
-                \item braku zliczenia impulsu podczas odczytu licznika,
-                \item przepełnienia licznika,
-                \item synchronizacji płytki z mikrokontrolerem (powtórzenie stanu licznika co 9 cykli), 
-                \item utrzymania wartości licznika między odczytami dla sytuacji gdy sygnał z generatora nie wystąpił między wyborem licznika.
-        \end{itemize}  
-        \item Porównać czas blokowania licznika dla różnych kanałów. Krok ten pozwolił na odkrycie różnicy w czasie blokowania licznika dla kanałów 8 i 16. W ten sposób dopasowano ilość pustych funkcji koniecznych do wyrównania czasu martwego dla każdego z kanałów (dział \ref{oprogramowanie mikrokontrolera}).
-\end{itemize} 
-
-Przykładowe rzuty ekranu oscyloskopu z tego testu znajdują się na rysunku \ref{Oscyloskop}. Na tych wizualizacjach wartości D0-3 odpowiadają kolejno wartościom linii magistrali danych DOC\_0-3. Oznacza to że wartości logiczne dla tych magistrali prezentują liczbę binarną będącą wartością na liczniku. Sygnał koloru zielonego jest sygnałem zmiany licznika (\textit{readCLC}), rosnące zbocze tego impulsu powoduje przełączenie na odczyt kolejnego licznika. Ponieważ tylko jeden z liczników otrzymuje sygnał tylko co 9 impuls (8 liczników i jeden cykl pusty) powoduje sygnał na liniach DOC\_0-3.
-
 \subsubsection{Kalibracja układu}
 \label{section kaliblracja}
 
 Przed przystąpieniem do końcowych testów układu konieczne jest przeprowadzenie kalibracji ze względu na czas martwy układu. 
 Oczekiwanym efektem jest regulacja czasu akwizycji w taki sposób że liczba zliczeń będzie odpowiadać ilości impulsów która powinna być uzyskana w czasie akwizycji przez układ bez czasu martwego. 
 
-Zbadano okres jednego cyklu pomiaru (8 kanałów) i uzyskano czas cyklu równy $4.52 \mu s$. Taki cykl jest widoczny na rysunku \ref{Oscyloskop} (dolna wizualizacja).
-Na podstawie tej wartości można wyliczyć ilość cykli akwizycji przypadających na pojedyńcza milisekundę. Obliczenie ilości cykli przypadających na 1ms konieczne jest do ustalenia wartości zmiennej\textit{CIRCLES\_FOR\_1MS} (kod \ref{code aqw} linia 1) która służy do regulowania ilości przebiegów pętli w określonym czasie akwizycji. Obliczenie tej zmiennej  umieszczone jest poniżej:
+Zbadano okres jednego cyklu pomiaru (8 kanałów + cykl pusty) i uzyskano czas cyklu równy $4.52 \mu s$. Taki cykl jest widoczny na rysunku \ref{Oscyloskop} (dolna wizualizacja).
+Na podstawie tej wartości można wyliczyć ilość cykli akwizycji przypadających na pojedyńcza milisekundę. Obliczenie ilości cykli przypadających na 1ms konieczne jest do ustalenia wartości zmiennej\textit{CIRCLES\_FOR\_1MS} (kod \ref{code aqw} linia 1) która służy do regulowania ilości przebiegów pętli w określonym czasie akwizycji. Obliczenia konieczne do wyznaczenia tej zmiennej umieszczone sa poniżej:
 
 \begin{equation}
         \label{per cykl}
@@ -133,13 +101,32 @@ Na podstawie tej wartości można wyliczyć ilość cykli akwizycji przypadając
 
 %Korzystając z tej wartości i wartości współczynnika korekcji czasu martwego równego 1.0 przeprowadzono badania zależności częstotliwości podawanej z generatora do częstotliwości zliczeń dla różnych czasów akwizycji.  
 
-Wartość ta została uzyskana na podstawie wizualizacji procesu akwizycji danych na oscyloskopie. Dodatkową zmienną wpływającą ilość pętli występujących w czasie akwizycji jest współczynnik korelacji czasu martwego. Nazwą tej zmiennej w kodzie programu (\ref{code aqw}) to \textit{DEAD\_TIME\_CORECTION}. Ustalenie wartości tej zmiennej dokonano poprzez analizę zależności częstotliwości podawanej z generatora do częstotliwości zliczeń dla różnych czasów akwizycji. 
+Wartość ta została uzyskana na podstawie wizualizacji procesu akwizycji danych na oscyloskopie. Dodatkową zmienną wpływającą ilość pętli występujących w czasie akwizycji jest współczynnik korelacji czasu martwego. Nazwą tej zmiennej w kodzie programu (\ref{code aqw}) to \textit{DEAD\_TIME\_CORECTION}. Ustalenie wartości tej zmiennej dokonano poprzez analizę zależności częstotliwości podawanej z generatora do częstotliwości zliczeń dla różnych czasów akwizycji. A opis tego procesu jest umieszczony poniżej.
 
 Układ badawczy składał się z komputera, Arduino Due, badanego układu elektronicznego, taśmy transmisyjnej, oscyloskopu, generatora impulsów, zasilacza. Na potrzeby tego badania ustalono tymczasową wartość współczynnika korekcji czasu martwego na wartość 1.0.
 
-Podczas pomiarów wykonywano trzykrotnie próby testowe dla wybranych dziesięciu różnych częstotliwości sygnału testowego z generatora, dla 2 czasów akwizycji. Na podstawie tych danych przygotowano krzywe odpowiedzi zaprezentowane przykładowo na rysunku \ref{wykresy fit calib}. Do punktów pomiarowych dopasowano funkcję liniową: $f(x) = a*x$, wyniki fitowania umieszczone zostały w tabeli \ref{dead time fit}.
+Podczas pomiarów wykonywano trzykrotnie próby testowe dla wybranych dziesięciu różnych częstotliwości sygnału testowego z generatora, dla 2 czasów akwizycji. Na podstawie tych danych przygotowano krzywe odpowiedzi zaprezentowane na rysunku \ref{wykresy fit calib}. Do punktów pomiarowych dopasowano funkcję liniową: $f(x) = a*x$, wyniki fitowania umieszczone zostały w tabeli \ref{dead time fit}.
 
-\begin{table}
+Na podstawie danych z tabeli \ref{dead time fit} ustalono wartość stałej DEAD\_TIME\_CORECTION równe:
+\begin{equation}
+        \label{dead time eq}
+        DEAD\_TIME\_CORECTION = \frac{1}{\sum^n_i \frac{a_i}{n}} = 1.13636
+\end{equation} 
+
+
+Zbadano dodatkową maksymalną częstotliwość sygnału z generatora impulsów wejściowych dla której następuje przepełnienie liczników. Jest to wartość $3.72 [MHz]$. Po przekroczeniu tej wartości częstotliwości sygnału z  generatora wartość zliczeń rejestrowanych przez system drastycznie spada. 
+
+\begin{figure}[h]
+        \centering
+        \begin{multicols}{2}
+                \includegraphics[width=0.5\textwidth]{dead1A6.jpg} \par
+                \includegraphics[width=0.5\textwidth]{dead2A7.jpg} \par
+        \end{multicols}
+        \caption{Wybrane wykresy użyte w celu kalibracji układu. Czas akwizycji 1000 ms lewy wykres oraz 500 ms prawy wykres}
+        \label{wykresy fit calib}
+\end{figure}
+
+\begin{table}[h]
         \caption{Wyniki fitowania konieczne dla ustalenia korekcji czasu martwego}
         \label{dead time fit}
         \centering
@@ -152,25 +139,7 @@ Podczas pomiarów wykonywano trzykrotnie próby testowe dla wybranych dziesięci
         \end{tabular}
 \end{table}
 
-Na podstawie danych z tabeli \ref{dead time fit} ustalono wartość stałej DEAD\_TIME\_CORECTION równe:
-\begin{equation}
-        \label{dead time eq}
-        DEAD\_TIME\_CORECTION = \frac{1}{\sum^n_i \frac{a_i}{n}} = 1.13636
-\end{equation} 
-
-\begin{figure}
-        \centering
-        \begin{multicols}{2}
-                \includegraphics[width=0.5\textwidth]{dead1A6.jpg} \par
-                \includegraphics[width=0.5\textwidth]{dead2A7.jpg} \par
-        \end{multicols}
-        \caption{Wybrane wykresy użyte w celu kalibracji układu. Czas akwizycji 1000 ms lewy wykres oraz 500 ms prawy wykres}
-        \label{wykresy fit calib}
-\end{figure}
-
-Zbadano dodatkową maksymalny częstotliwość dla której następuje przepełnienie liczników i jest to wartość $3.72 [MHz]$. Po przekroczeniu tej wartości częstotliwości sygnału z  generatora wartość zliczeń rejestrowanych przez system drastycznie spada. 
-
-\paragraph{Błąd przybliżenia do liczby naturalniej}
+\paragraph{Błąd przybliżenia do liczby naturalniej.}
 Jak widać w fragmencie kodu \ref{code aqw} liczba cykli przeprowadzonych w trakcie pojedyńczej akwizycji musi być liczbą całkowitą. Liczba cykli jest określona wzorem:
 \begin{equation}
         N_c [-] = int(A_t*D_t*f_c)
@@ -226,7 +195,7 @@ Wartość ta jest absurdalnie duża i nieprzydatna ponieważ przez cały czas ak
 \subsubsection{Testowanie układu liczników za pomocą generatora zewnętrzego.}
 
 Przy użyciu współczynników otrzymanych w dziale \ref{section kaliblracja} oraz układu badawczego odpowiadającemu temu z działu \ref{section kaliblracja} przeprowadzono test układu z wykorzystaniem dzielnika pozwalającego na dostarczenie sygnałów impulsów, odpowiadającym tym generowanym przez układ RXHDR\_V1, do wszystkich kanałów jednocześnie.
-Badanie przeprowadzono dla 10 częstotliwości od 100Hz do 3.2MHz. Czas akwizycji badania był równy 1s dzięki czemu liczba zliczeń odpowiada częstotliwości sygnału z generatora. Uśrednione wartości wyników dla wybranych kanałów znajdują się w tabeli \ref{tabela wyniki surowe}.
+Badanie przeprowadzono dla 10 częstotliwości od 100Hz do 3.2MHz. Czas akwizycji badania był równy 1s dzięki czemu liczba zliczeń odpowiada częstotliwości sygnału z generatora. Uśrednione wartości wyników dla wybranych kanałów znajdują się w tabeli \ref{tabela wyniki surowe} (Aneks).
 
 \begin{figure}
         \begin{multicols}{2}
@@ -260,7 +229,7 @@ Wyniki odchylenia standardowego oraz różnicy między podawaną częstotliwośc
         \label{3d licznik}
 \end{figure}
 
-Wybrane wykresy pomiaru zależności częstotliwości od liczby zliczeń umieszczone są na rysunku \ref{multi wyk} a wyniki fitowania znajdują się w tabeli \ref{multi fit}. Wyniki pomiarów fitowane były krzywą $f(x) = a*x$. 
+Wybrane wykresy pomiaru zależności częstotliwości od liczby zliczeń umieszczone są na rysunku \ref{multi wyk} a wyniki fitowania znajdują się w tabeli \ref{multi fit} (Aneks). Wyniki pomiarów fitowane były krzywą $f(x) = a*x$. 
 Średnia po wszystkich współczynnikach to $0.999997 \pm 2.5*10^{-5}$
 odchylenie standardowe wyników jest równe  $3.94 * 10^{-5}$.
 
@@ -278,92 +247,10 @@ odchylenie standardowe wyników jest równe  $3.94 * 10^{-5}$.
         \label{multi wyk}
 \end{figure}
 
-\begin{table}
-        \centering
-        \caption{Wyniki fitowania krzywej $f(x) = a*x$ dla pomiarów generowanych z generatora}
-        \label{multi fit}
-        \begin{tabular}{|c|c|c||c|c|c|}
-                \hline
-                kanał & $a$ & $\Delta a$  &kanał & $a$ & $\Delta a$ \\ \hline
-                1A1 & 1.00004 & 1.101e-05 & 2A1 &1.00006&1.129e-05 \\ \hline
-                1A2 & 0.999961 &2.649e-05& 2A2 &0.999956&4.27e-05 \\ \hline
-                1A3 & 0.999988&2.155e-05&2A3 & 1.00003&2.808e-05\\ \hline
-                1A4 & 0.999951&2.792e-05&2A4&0.999951&4.309e-05\\ \hline
-                1A5&1.00004&1.323e-05&2A5&1.00006&1.223e-05\\ \hline
-                1A6&1&2.467e-05&2A6&1.00002&2.792e-05 \\ \hline
-                1A7&0.999979&2.002e-05&2A7&1.00001&2.798e-05 \\ \hline
-                1A8 &0.999949&2.747e-05&2A8&0.999957&4.373e-05 \\ \hline
-        \end{tabular}
-\end{table}
-
-\begin{table}
-        \centering
-        \caption{Wyniki badania zależności częstotliwości od liczby zliczeń dla czasu akwizycji 1s dla wybranych kanałów}
-        \label{tabela wyniki surowe}
-        \begin{multicols}{3}
-                \begin{adjustbox}{width=1\linewidth,left}
-                \begin{tabular}{|c|c|c|}  
-                        \hline 
-                        1A1 & & \\ \hline
-                        f [Hz] & zliczenia & $\Delta$ zliczeń \\ \hline
-                       100 & 99.68 & 2.76\\ \hline 
-                       320 & 319.72 & 4.27\\ \hline 
-                       1000 & 1001.53 & 4.20\\ \hline 
-                       3200 & 3201.92 & 4.02\\ \hline 
-                       10000 & 10006.04 & 7.35\\ \hline 
-                       32000 & 32022.43 & 14.02\\ \hline 
-                       100000 & 100053.84 & 19.37\\ \hline 
-                       320000 & 320206.69 & 79.24\\ \hline 
-                       1000000 & 1000166.75 & 51.99\\ \hline 
-                       3200000 & 3200122.67 & 22.92\\ \hline
-               \end{tabular}
-               \end{adjustbox}
-               \begin{adjustbox}{width=1\linewidth,left}
-
-                \begin{tabular}{|c|c|c|} 
-                        \hline 
-                        1A3 & & \\ \hline
-                        f [Hz] & zliczenia & $\Delta$ zliczeń \\ \hline
-                       100 & 100.27 & 2.59\\ \hline 
-                       320 & 319.39 & 4.09\\ \hline 
-                       1000 & 999.75 & 0.98\\ \hline 
-                       3200 & 3203.41 & 6.79\\ \hline 
-                       10000 & 10005.45 & 7.13\\ \hline 
-                       32000 & 32019.90 & 17.58\\ \hline 
-                       100000 & 100050.45 & 18.87\\ \hline 
-                       320000 & 320202.57 & 79.36\\ \hline 
-                       1000000 & 1000187.97 & 56.24\\ \hline 
-                       3200000 & 3199920.11 & 38.53\\ \hline
-               \end{tabular}
-        \end{adjustbox}
-
-               \begin{adjustbox}{width=1\linewidth,left}
-
-               \begin{tabular}{|c|c|c|}  
-                \hline 
-                2A7 & & \\ \hline
-                f [Hz] & zliczenia & $\Delta$ zliczeń \\ \hline
-                100 & 100.43 & 2.46\\ \hline 
-                320 & 319.94 & 4.01\\ \hline 
-                1000 & 1000.56 & 4.56\\ \hline 
-                3200 & 3203.77 & 5.77\\ \hline 
-                10000 & 10004.45 & 6.20\\ \hline 
-                32000 & 32020.41 & 17.16\\ \hline 
-                100000 & 100045.22 & 20.15\\ \hline 
-                320000 & 320061.73 & 19.52\\ \hline 
-                1000000 & 1000083.13 & 25.85\\ \hline 
-                3200000 & 3199841.89 & 56.18\\ \hline
-        \end{tabular} \par
-\end{adjustbox}
-
-        \end{multicols}
-
-\end{table}
 
 
 
-
-\subsubsection{Testowanie układu liczników przy użyciu kanału testowego układu RXHDR\_V1}
+\subsubsection{Testowanie układu liczników przy użyciu kanału wbudowanego testowego układu RXHDR\_V1}
 \label{section RXHDR test}
 
 Układ badawczy składał się z komputera, Arduino Due, badanego układu elektronicznego, taśmy transmisyjnej, oscyloskopu, generatora impulsów, zasilacza, układu RXHDR\_V1, zasilacza wysokiego napięcia. 
@@ -409,9 +296,9 @@ Gdzie:
         \item $E_{fe}$ -  energia deponowana w krzemie przez źródło ${}^{55}Fe$  (5.9keV)
 \end{description}
 
-Wartości tych współczynników znajdują się w tabeli \ref{tabela wsp test} a wykresy tych wartości po kanałach znajdują się na grafice \ref{test fit wsp wyk} 
+Wartości tych współczynników znajdują się w tabeli \ref{tabela wsp test} (Aneks) a wykresy tych wartości po kanałach znajdują się na grafice \ref{test fit wsp wyk} 
 
-\begin{figure}
+\begin{figure}[b]
         \begin{multicols}{2}
                 \includegraphics[width=0.5\textwidth]{scurve/Generowana_czestotliwosc_fit.jpg} \par
                 \includegraphics[width=0.5\textwidth]{scurve/srednia_fit.jpg} \par       
@@ -420,38 +307,12 @@ Wartości tych współczynników znajdują się w tabeli \ref{tabela wsp test} a
                 \includegraphics[width=0.5\textwidth]{scurve/odchylenie_fit.jpg} \par
                 \includegraphics[width=0.5\textwidth]{scurve/ENC_fit_test.jpg} \par
         \end{multicols}
-        \caption{Wartości współczynników dopasowanych do krzywych s \ref{s curve test}}
+        \caption{Wartości współczynników dopasowanych do krzywych-S \ref{s curve test}}
         \label{test fit wsp wyk}
 \end{figure}
 
 
-\begin{table}
-        \caption{Tabela współczynników testu z użyciem sygnałów testowych, dopasowanych do krzywych-S na rysunku \ref{s curve test}}
-        \label{tabela wsp test}
-        \begin{adjustbox}{width=1.1\linewidth,center}
-        \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
-                \hline
-                kanał & $f_g [Hz]$&$\Delta f_g [Hz]$&$\overline{x} [mV]$&$\Delta \overline{x} [mV]$&  $\sigma$ [mV]&  $\Delta \sigma [mV]$ & ENC $[e^-_{rms}]$& $\Delta$ ENC $[e^-_{rms}]$\\ \hline
 
-                        1A1&100058.81&8.80&320.73&0.06&9.88&0.05&83.84&0.45 \\ \hline 
-                        1A2&100061.52&8.83&324.99&0.04&10.60&0.05&89.93&0.42 \\ \hline 
-                        1A3&100066.02&7.97&322.72&0.04&10.19&0.05&86.48&0.41 \\ \hline 
-                        1A4&100057.83&8.15&327.79&0.05&10.95&0.06&92.89&0.48 \\ \hline 
-                        1A5&100074.82&8.80&325.27&0.03&10.92&0.05&92.63&0.39 \\ \hline 
-                        1A6&100068.24&9.27&322.14&0.04&10.39&0.05&88.17&0.42 \\ \hline 
-                        1A7&100063.50&8.47&328.92&0.05&11.45&0.06&97.14&0.48 \\ \hline 
-                        1A8&100028.93&8.85&317.58&0.04&9.30&0.05&78.88&0.40 \\ \hline 
-                        2A1&100059.06&8.65&331.45&0.05&11.71&0.06&99.33&0.50 \\ \hline 
-                        2A2&100054.34&8.28&322.21&0.05&10.00&0.05&84.84&0.46 \\ \hline 
-                        2A3&100061.20&7.59&327.16&0.04&11.53&0.06&97.82&0.49 \\ \hline 
-                        2A4&100054.62&8.78&324.77&0.06&10.82&0.07&91.80&0.59 \\ \hline 
-                        2A5&100058.74&8.20&324.23&0.04&10.35&0.05&87.79&0.45 \\ \hline 
-                        2A6&100055.83&8.27&332.20&0.04&11.69&0.05&99.20&0.42 \\ \hline 
-                        2A7&100058.83&8.09&328.71&0.05&11.31&0.06&95.93&0.52 \\ \hline 
-                        2A8&100041.80&7.66&325.00&0.04&10.99&0.05&93.25&0.44 \\ \hline                    
-        \end{tabular}
-        \end{adjustbox} 
-\end{table}
 
 
 \subsubsection{Testowanie systemu liczników przy użyciu układu RXHDR\_V1 oraz źródła promieniotwórczego}
@@ -494,39 +355,12 @@ Na podstawie wartości $\sigma$ oraz $\overline{x}$ wyliczona została wartość
         ENC [e^-] = \frac{\sigma}{\overline{x}} * \frac{E_{fe}}{E_{(-,+)}}
 \end{equation}
 
-Wartości otrzymanych współczynników wraz z niepewnościami umieszczone zostały w tabeli~\ref{tabela wsp fe}. Wykresy wartości tych współczynników po kanałach znajdują się na rysunku \ref{wyk wsp fe}.
+Wartości otrzymanych współczynników wraz z niepewnościami umieszczone zostały w tabeli~\ref{tabela wsp fe} (Aneks). Wykresy wartości tych współczynników po kanałach znajdują się na rysunku \ref{wyk wsp fe}.
 
 Średnia wartość $\overline{x}$ dla wszystkich kanałów została policzona i wynosi $191.02 \pm 0.17 [mV]$
 
 
-\begin{table}
-        \centering
-        \caption{Tabela współczynników testu z użyciem źródła promieniotwórczego, dopasowanych do krzywych s na rysunku \ref{s curve fe}}
-        \label{tabela wsp fe}
-        \begin{adjustbox}{width=1.1\linewidth,center}
-                \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
-                \hline
-                kanał & $f_g [Hz]$&$\Delta f_g [Hz]$&$\overline{x} [mV]$&$\Delta \overline{x} [mV]$&  $\sigma$ [mV]&  $\Delta \sigma [mV]$ &RCS&$\Delta$ RCS& ENC $[e^-_{rms}]$& $\Delta$ ENC $[e^-_{rms}]$\\ \hline
-                1A1&20173.65&52.14&185.81&0.17&15.14&0.14&0.44&0.01&132.1&1.2  \\ \hline 
-                1A2&20344.09&51.38&191.21&0.16&14.82&0.14&0.47&0.01&125.6&1.1  \\ \hline 
-                1A3&20403.52&45.63&188.55&0.15&15.27&0.13&0.45&0.01&131.2&1.1  \\ \hline 
-                1A4&20379.81&43.01&193.48&0.16&15.37&0.12&0.46&0.01&128&1  \\ \hline 
-                1A5&20315.39&46.61&188.60&0.19&15.61&0.14&0.47&0.01&134.1&1.1  \\ \hline 
-                1A6&20385.95&47.43&188.80&0.18&15.19&0.13&0.47&0.01&130.3&1.1  \\ \hline 
-                1A7&20458.17&44.85&195.31&0.17&15.34&0.14&0.49&0.01&127.3&1.1  \\ \hline 
-                1A8&20277.88&46.78&184.63&0.20&15.08&0.15&0.47&0.01&132.4&1.3  \\ \hline 
-                2A1&20336.26&45.10&195.12&0.17&15.26&0.14&0.50&0.01&126.7&1.1  \\ \hline 
-                2A2&20433.52&48.91&189.32&0.19&15.17&0.15&0.47&0.01&129.8&1.2  \\ \hline 
-                2A3&20285.03&44.09&190.34&0.19&16.07&0.15&0.48&0.01&136.8&1.2  \\ \hline 
-                2A4&20433.73&43.03&191.42&0.18&15.24&0.15&0.47&0.01&129&1.3  \\ \hline 
-                2A5&20607.82&42.85&190.80&0.17&14.96&0.15&0.48&0.01&127&1.2  \\ \hline 
-                2A6&20633.18&44.10&198.36&0.17&14.90&0.13&0.49&0.01&121&1  \\ \hline 
-                2A7&20470.14&43.72&193.59&0.16&15.80&0.09&0.46&0.01&132.32&0.77  \\ \hline 
-                2A8&20658.61&44.82&192.15&0.17&15.76&0.13&0.47&0.01&132&1  \\ \hline 
-                \end{tabular}
-        \end{adjustbox}
 
-\end{table}
 
 \begin{figure}
         \begin{multicols}{2}

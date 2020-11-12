@@ -42,8 +42,6 @@ Przebieg akwizycji ukazany jest w powyższym wycinku. Proces ten składa się z 
         \item linia 22 - wyzerowanie zawartości zmiennej odpowiedzialnej za przechowywanie wartości zliczeń.     
 \end{itemize}
 
-Używana płytka rozwojowa Arduino Due, używa mikrokontrolera AT91SAM3X8E w architekturze 32 bitowej o taktowaniu głównego procesora z częstotliwością 84 MHz.
-
 Pomimo krótkiej operacji wewnątrz IRS (ang. \textit{interupt service rutine}) - \textit{add} (kod \ref{code_ard_IRS} linie 1-3, tabela \ref{decompile add}) proces wejścia do procedury przerwania i wyjścia zabiera nieporównywalnie więcej cykli procesora, co powoduje że cały proces wywołania przerwania jest kosztowny w czasie. 
 Ilość cykli procesora koniecznych do wywołania funkcji przerwania używając nieoptymalizowanego kodu Arduino może wymagać nawet do 355 cykli procesora \cite{ard_opt_git}, dodatkowo powrót do głównego wątku programu może wymagać kolejnych 128 cykli \cite{ard_opt_git}.
 
@@ -62,7 +60,8 @@ Ilość cykli procesora koniecznych do wywołania funkcji przerwania używając 
         \end{center}
 \end{table}
 
-Pojedynczy cykl procesora zgodnie z wzorem \ref{Cykli w sec} dla układu Arduino Due trwa~$ 11.9 ns $. 
+
+Używana płytka rozwojowa Arduino Due, używa mikrokontrolera AT91SAM3X8E w architekturze 32 bitowej o taktowaniu głównego procesora z częstotliwością 84 MHz. Dlatego też pojedynczy cykl procesora zgodnie z wzorem \ref{Cykli w sec} dla układu Arduino Due trwa~$ 11.9 ns $. 
 Oznacza to że wykonanie instrukcji \textit{val ++} zgodnie z najgorszą estymacja (tabela \ref{decompile add}) trwa ~ $59.52 ns$. 
 Jednak po dodaniu czasu koniecznego na wywołanie i powrót z IRS otrzymywany jest czas $ (355 + 128 + 5) * 11.9 ns =  5.8072 \mu s $. 
 
