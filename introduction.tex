@@ -45,7 +45,7 @@ Przed rozpoczęciem pracy układu konieczne jest ustalenie prądów polaryzacyjn
 Na rzecz prototypu tego projektu skorzystano z 16 kanałów binarnego odczytu danych.  Pozostałe 16-cie kanałów odczytowych układu scalonego wykorzystywane były w innym projekcie odczytu analogowego, który nie był podstawą tej pracy. 
 
 \begin{figure}
-        \includegraphics[width=\textwidth]{RXHDR_shaper_pl.png}
+        \includegraphics[width=\textwidth]{RXHDR_shaper_pl.jpg}
         \caption{Schemat blokowy pojedynczego kanału elektroniki front-end projektu RXHDR\_V1}
         \label{RXHDR schema}
 \end{figure}
@@ -73,7 +73,7 @@ Przykłady takich krzywych dla różnych wartości szumów są wizualizowane na 
 
 Dopasowanie krzywej-S do zbadanej charakterystyki układu pozwala na wyciągniecie wniosków o funkcjonowaniu kanałów na podstawie współczynników tejże zależności.   
 
-\begin{figure}
+\begin{figure}[h]
         \centering
         \includegraphics[height=8cm]{s_curve.png}
         \caption{Przykłady krzywych-S dla różnych wartości szumowych. A - idealny przypadek bez udziału szumów, B,C - rzeczywiste przypadki z uwzględnieniem przyczynku szumowego ($\sigma_C=2\sigma_B$), D - szum bez sygnału. \cite{wiocek doctorat}} 
@@ -82,13 +82,13 @@ Dopasowanie krzywej-S do zbadanej charakterystyki układu pozwala na wyciągniec
 
 \paragraph{RCS}
 (ang. \textit{relative charge sharing})
-Dodatkowym elementem nieuwzględnianym we wzorze \ref{wste krzywa-S} jest efekt podziału ładunku dla detektorów pozycjoczułych. Występuje on w chwili gdy miejscem oddziaływania fotonu jest obszar między sąsiednimi segmentami detektora pozycjoczułego. Sygnał rejestrowany przez sąsiednie kanały odczytu ma poziom niższy niż ten który uzyskiwany jest tylko na jednym elemencie detekcyjnym bez podziału ładunku.
+Dodatkowym elementem nieuwzględnianym we wzorze \ref{wste krzywa s} jest efekt podziału ładunku dla detektorów pozycjoczułych. Występuje on w chwili gdy miejscem oddziaływania fotonu jest obszar między sąsiednimi segmentami detektora pozycjoczułego. Sygnał rejestrowany przez sąsiednie kanały odczytu ma poziom niższy niż ten który uzyskiwany jest tylko na jednym elemencie detekcyjnym bez podziału ładunku.
 Podział ładunku powoduje powstanie dwóch osobnych sygnałów o zmniejszonej energi. Sprawia to że przy napięciu dyskryminacji dopasowanej do energii fotonu przypadek podziału ładunku dla tego fotonu nie wygeneruje binarnego sygnału zliczenia. 
 %  Dla układu o dobrze dopasowanej wartości napięcia dyskryminacji taki przypadek zostałby pominięty.
 
 Podział ładunku nie zawsze dzieli się równo między segmentami detekcji pozycjoczułej dlatego też wraz z obniżaniem napięcia dyskryminacji liniowo będzie zwiększać się liczba zliczeń impulsów o rejestrowanej niepełnej energii.~\cite{Monika mag}. 
 
-Po uwzględnieniu tego efektu w wzorze \ref{wste krzywa-S} otrzymujemy następującą równość:
+Po uwzględnieniu tego efektu w wzorze \ref{wste krzywa s} otrzymujemy następującą równość:
 \begin{equation}
         \label{wstep rcs}
         S_{RCS}(U_{th}) = (1-RCS * \frac{U_{th}}{\overline{U_{th}} - 0.5}) * S(x)
@@ -281,8 +281,8 @@ Powoduje to jednak, że wymagane są sposoby sygnalizacji między wątkami oraz 
 Ta potrzeba spowodowała tworzenie powtarzalnych struktur które są implementowane w najpopularniejszych językach programowania. 
 Poniżej znajduje się ich krótki opis bez skupienia na specyfice którejkolwiek z implementacji. 
 \begin{itemize}
-        \item mutex/lock - obiekt który ma dwa stany zablokowany/otwarty.
-        Kiedy wątek próbuje zablokować mutex/lock który już jest zablokowany powoduje to przejście wątku w stan czekania aż do chwili odblokowania przez zadanie które pierwotnie zablokowało mutex.
+        \item mutex/zamek (ang. \textit{lock}) - obiekt który ma dwa stany zablokowany/otwarty.
+        Kiedy wątek próbuje zablokować mutex/zamek który już jest zablokowany powoduje to przejście wątku w stan czekania aż do chwili odblokowania przez zadanie które pierwotnie zablokowało mutex.
         Daje to możliwość wykorzystania tej struktury w celu ochrony zasobu. Przed rozpoczęciem zadania który wymaga wyłączności blokujemy mutex dając sygnał korzystania z zasobu do którego ten lock należy. 
         Po zakończeniu obliczeń zwalniamy/otwieramy mutex pozwalając pracować innym wątkom. Obiekt ten może być jedynie zwolniony przez wątek który go zablokował. 
         W ten właśnie sposób unika się równoczesnego korzystania z zasobów. 

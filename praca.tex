@@ -51,6 +51,23 @@
   basicstyle=\footnotesize
 }
 
+\makeatletter
+\renewcommand\listoftables{%
+    \subsection{\listtablename}%
+    \@mkboth{\MakeUppercase\listtablename}%
+        {\MakeUppercase\listtablename}%
+    \@starttoc{lot}%
+}
+\renewcommand\listoffigures{%
+    \subsection{\listfigurename}%
+    \@mkboth{\MakeUppercase\listfigurename}%
+        {\MakeUppercase\listfigurename}%
+    \@starttoc{lof}%
+}
+\makeatother
+
+\usepackage{xurl}
+
 \usepackage{float}
 
 \floatstyle{ruled}

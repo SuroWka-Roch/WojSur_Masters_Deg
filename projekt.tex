@@ -169,7 +169,7 @@ Schemat układu wyboru licznika znajduje się rysunku \ref{wybor schema}.
 W celu osiągnięcia efektu pojedynczej wartości logicznej która przesuwa się z każdym rosnącym zboczem sygnału na wejściu rejestru musimy dostarczyć pojedynczy wysoki stan podczas pierwszego cyklu pracy, a następnie trzymać stan niski aż do chwili potrzeby powtórzenia cyklu. 
 Za pomocą bramek NOR układu SN74LV02A oraz bramek AND układu SN74LV21A ustalonych zgodnie ze schematem na rysunku \ref{wybor schema} osiągamy równanie logiczne:
 \begin{equation}
-        NOROUT = \overline{(QR1+QR2)} * \overline{(QR3+QR4)} * \overline{(QR5+QR6)} + \overline{(QR7+QR8)}
+        NOROUT = \overline{(QR1+QR2)} * \overline{(QR3+QR4)} * \overline{(QR5+QR6)} * \overline{(QR7+QR8)}
 \end{equation}
 Gdzie:
 \begin{itemize}
