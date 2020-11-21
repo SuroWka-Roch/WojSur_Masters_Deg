@@ -171,8 +171,11 @@ def SS_deamon(ui, serial_port, port_semaphore, log, ss_count_data, save_location
     ui.ss_fig.update_figure(CANAL_NAMES,ss_count_data.data_for_plot())
     logger.debug("Single Shot result for canals of:\n{}\n{}".format(
         CANAL_NAMES, ss_count_data.data_for_plot()))
+
+    low_rate = ui.comboBox_Low_Rate.currentText()
+    ENBLR =  ui.comboBox_ENBLR.currentText()
     
-    save_config = ConfigurationData(ss_count_data.akw_time,0,0,save_location,"Exel compliant", 0)
+    save_config = ConfigurationData(ss_count_data.akw_time,0,0,save_location,"Exel compliant", 0,low_rate,ENBLR)
     save_data(ss_count_data, save_config)
 
 
